@@ -11,6 +11,7 @@ const StudentProfile = () => {
         skills: '', tenthPercentage: '', twelfthPercentage: '', linkedIn: '', github: '', portfolio: '', address: ''
     });
     const [loading, setLoading] = useState(false);
+    const [uploading, setUploading] = useState(false);
     const [resumeFile, setResumeFile] = useState(null);
 
     useEffect(() => {
@@ -36,18 +37,29 @@ const StudentProfile = () => {
             const res = await studentAPI.updateProfile(data);
             updateUser(res.data);
             toast.success('Profile updated!');
-        } catch (err) { toast.error('Error updating profile'); }
+        } catch (err) {
+            toast.error(err.response?.data?.error || 'Error updating profile');
+        }
         finally { setLoading(false); }
     };
 
     const handleResumeUpload = async () => {
         if (!resumeFile) return toast.error('Select a file first');
+        if (resumeFile.type !== 'application/pdf') return toast.error('Only PDF resumes are supported');
         const formData = new FormData();
         formData.append('resume', resumeFile);
+        setUploading(true);
         try {
             await studentAPI.uploadResume(formData);
+            const profileRes = await studentAPI.getProfile();
+            updateUser(profileRes.data);
+            setResumeFile(null);
             toast.success('Resume uploaded!');
-        } catch { toast.error('Error uploading resume'); }
+        } catch (err) {
+            toast.error(err.response?.data?.error || 'Error uploading resume');
+        } finally {
+            setUploading(false);
+        }
     };
 
     return (
@@ -98,7 +110,7 @@ const StudentProfile = () => {
 
                             {user?.studentProfile?.resumeUrl && (
                                 <div className="mb-2 flex flex-col-mobile items-start gap-2">
-                                    <p style={{ fontSize: '0.9rem', color: 'var(--success)', margin: 0 }}>✅ Resume uploaded successfully.</p>
+                                    <p style={{ fontSize: '0.9rem', color: 'var(--success)', margin: 0 }}>Resume uploaded successfully.</p>
                                     <a
                                         href={`${FILE_BASE_URL}${user.studentProfile.resumeUrl}`}
                                         target="_blank"
@@ -112,12 +124,12 @@ const StudentProfile = () => {
 
                             <div className="flex flex-col-mobile gap-2 items-start">
                                 <input type="file" accept=".pdf" className="w-full-mobile" onChange={(e) => setResumeFile(e.target.files[0])} />
-                                <button type="button" className="btn btn-secondary btn-sm w-full-mobile flex justify-center" onClick={handleResumeUpload}>{loading ? 'Uploading...' : 'Upload New Resume'}</button>
+                                <button type="button" className="btn btn-secondary btn-sm w-full-mobile flex justify-center" onClick={handleResumeUpload} disabled={uploading}>{uploading ? 'Uploading...' : 'Upload New Resume'}</button>
                             </div>
 
                             {user?.studentProfile?.aiResumeAnalysis?.resumeScore > 0 && (
                                 <div style={{ marginTop: '2rem', background: 'var(--bg-card)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border)' }}>
-                                    <h4 style={{ marginBottom: '1rem', color: 'var(--primary)' }}>✨ Full AI Resume Analysis</h4>
+                                    <h4 style={{ marginBottom: '1rem', color: 'var(--primary)' }}>Full AI Resume Analysis</h4>
 
                                     <div className="grid-cols-1-mobile" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '1.5rem' }}>
                                         <div>

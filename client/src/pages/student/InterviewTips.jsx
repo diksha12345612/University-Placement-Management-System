@@ -68,7 +68,7 @@ const InterviewTips = () => {
             setEvaluation(res.data || res); // Handle both wrapped and unwrapped data
             toast.success('Evaluation complete!');
         } catch (err) {
-            toast.error('Evaluation failed');
+            toast.error(err.response?.data?.error || 'Evaluation failed. Please try again.');
         } finally {
             setEvaluating(false);
         }
@@ -78,6 +78,15 @@ const InterviewTips = () => {
         setEvaluation(null);
         setLanguage('plaintext'); // Defaulting back to plaintext for new questions
         setCurrentQuestionIndex(prev => prev + 1);
+    };
+
+    const handleSkipQuestion = () => {
+        if (evaluating) return;
+        if (currentQuestionIndex < questions.length - 1) {
+            nextQuestion();
+            return;
+        }
+        setQuestions([]);
     };
 
     return (
@@ -403,6 +412,16 @@ const InterviewTips = () => {
                                     >
                                         {evaluating ? 'Analyzing Presentation...' : 'Finalize & Submit'}
                                     </button>
+                                    {!evaluation && (
+                                        <button
+                                            onClick={handleSkipQuestion}
+                                            disabled={evaluating}
+                                            className="btn btn-secondary"
+                                            style={{ padding: '1.25rem 1.4rem', fontWeight: 800, borderRadius: '18px', whiteSpace: 'nowrap' }}
+                                        >
+                                            {currentQuestionIndex < questions.length - 1 ? 'Skip / Next Question' : 'Finish Interview'}
+                                        </button>
+                                    )}
                                 </div>
                             </div>
 

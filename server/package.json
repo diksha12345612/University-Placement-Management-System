@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "seed": "node seed.js"
+    "seed": "node seed.js",
+    "seed:full-reset": "node scripts/resetAndSeedFullDemo.js"
   },
   "keywords": [
     "placement",

@@ -3,6 +3,10 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
 [![GitHub stars](https://img.shields.io/github/stars/diksha12345612/University-Placement-Management-System?style=social)](https://github.com/diksha12345612/University-Placement-Management-System)
+[![Live App](https://img.shields.io/badge/Live%20App-Online-16a34a?logo=vercel&logoColor=white)](https://university-placement-portal-seven.vercel.app)
+[![API](https://img.shields.io/badge/API-Production-0ea5e9?logo=render&logoColor=white)](https://university-placement-portal-seven.vercel.app/api)
+[![React](https://img.shields.io/badge/Frontend-React%20%2B%20Vite-61dafb?logo=react&logoColor=black)](https://react.dev/)
+[![Node.js](https://img.shields.io/badge/Backend-Node.js-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 
 A comprehensive full-stack platform designed to bridge the gap between students, recruiters, and placement officers. This portal streamlines the recruitment lifecycle while empowering students with AI-driven preparation tools.
 
@@ -14,8 +18,23 @@ PlacePrep centralizes the university placement process—moving away from scatte
 ---
 
 ## 🟢 Live Deployment
-- **Frontend App:** [https://client-phi-three-68.vercel.app](https://client-phi-three-68.vercel.app)
-- **Backend API:** [https://uni-placement-api.vercel.app/api](https://uni-placement-api.vercel.app/api)
+- **Primary Web App:** [https://university-placement-portal-seven.vercel.app](https://university-placement-portal-seven.vercel.app)
+- **Production API Base:** [https://university-placement-portal-seven.vercel.app/api](https://university-placement-portal-seven.vercel.app/api)
+- **Legacy Frontend URL (still available):** [https://client-phi-three-68.vercel.app](https://client-phi-three-68.vercel.app)
+
+### Demo Credentials
+- **Admin:** `kritiSharma@gmail.com` / `111111`
+- **Demo student and recruiter accounts:** seeded with password `111111`
+
+---
+
+## 🖼️ Project Visuals
+
+![Portal Social Preview](docs/assets/social-preview.png)
+
+<p align="left">
+  <img src="client/public/logo.png" alt="Project Logo" width="96" />
+</p>
 
 ---
 
@@ -24,21 +43,26 @@ PlacePrep centralizes the university placement process—moving away from scatte
 ### For Students 🎓
 - **📊 Personalized Dashboard**: Real-time tracking of applications and upcoming placement drives.
 - **🔍 Smart Job Finder**: Advanced filtering and eligibility checks for job roles.
+- **📄 Resume Upload + ATS Analysis**: AI-powered scoring with criteria-wise breakdown and targeted resume improvements.
 - **💡 AI Preparation Hub**:
   - **Structured DSA Roadmap**: A curated 8-week guide for coding excellence.
   - **Practice Portals**: Topic-wise coding challenges and theoretical concepts.
   - **AI Mock Tests**: Timed assessments with instant feedback.
-  - **Interview Pro-Tips**: Tailored advice for technical and behavioral rounds.
+  - **AI Interview Prep + Evaluation**: Role-based questions, detailed feedback, model answers, and improvement tips.
+  - **Skip-to-Next Interview Question Flow**: Move to the next prompt when you want to pass a question.
+  - **AI Career Mentor Roadmap**: Role-focused multi-phase preparation plans.
 
 ### For Recruiters 🏢
 - **💼 Job Lifecycle Management**: Post roles, define eligibility, and track applications.
 - **📄 Applicant Tracking System (ATS)**: Streamlined student profile reviews and resume management.
 - **⚡ Status Management**: Instant Shortlist/Reject/Select actions for candidates.
+- **🧠 AI Candidate Fit Support**: Automated matching insights to assist screening quality.
 
 ### For Administrators (TPO) 📊
 - **✅ Verification System**: Profile and job posting approval workflows.
 - **📢 Broadcaster**: Schedule drives and broadcast announcements to the entire student body.
 - **📈 Advanced Analytics**: Visual insights into placement trends and company participation.
+- **🧪 Demo Data Ready**: Seed scripts for realistic students, recruiters, jobs, and applications.
 
 ---
 
@@ -47,6 +71,7 @@ Integrated with **OpenAI** and **OpenRouter**, the portal provides:
 - **Resume Analysis**: Instant scoring and improvement suggestions.
 - **AI Interviewer**: Context-aware questioning based on the job role and student profile.
 - **Evaluation Engine**: Automated feedback on student technical and interpersonal performance.
+- **Fallback Handling**: Provider fallback and safe response normalization for better reliability.
 
 ---
 
@@ -84,7 +109,7 @@ University-Placement-System/
 ```bash
 cd server
 npm install
-# Configure your .env (OPENAI_API_KEY, MONGODB_URI)
+# Configure your .env (GITHUB_TOKEN or OPENAI_API_KEY, OPENROUTER_API_KEY, MONGODB_URI)
 npm run seed     # Populate database
 npm run dev      # Server starts on port 5000
 ```
@@ -94,6 +119,12 @@ npm run dev      # Server starts on port 5000
 cd client
 npm install
 npm run dev      # App starts on port 5173
+```
+
+### Optional Full Demo Reset
+```bash
+cd server
+npm run seed:full-reset
 ```
 
 ---

@@ -1,7 +1,7 @@
 ﻿import { useState, useEffect } from 'react';
 import Layout from '../../components/Layout';
 import { useAuth } from '../../context/AuthContext';
-import { jobAPI, applicationAPI, notificationAPI, studentAPI } from '../../services/api';
+import { jobAPI, applicationAPI, notificationAPI, studentAPI, FILE_BASE_URL } from '../../services/api';
 import { Link, useNavigate } from 'react-router-dom';
 import { FiBriefcase, FiFileText, FiCheckCircle, FiBell, FiBook, FiTarget, FiCpu, FiChevronDown, FiChevronUp, FiAlertCircle, FiAward, FiTag } from 'react-icons/fi';
 import toast from 'react-hot-toast';
@@ -84,7 +84,7 @@ const StudentDashboard = () => {
             updateUser(profileRes.data);
             setShowRecoInput(false);
             setTargetRole('');
-            toast.success('âœ¨ New mentor plan generated!');
+            toast.success('New mentor plan generated.');
         } catch (err) {
             toast.error(err.response?.data?.error || 'Failed to generate recommendations');
         } finally {
@@ -110,16 +110,26 @@ const StudentDashboard = () => {
 
     const aiResume = user?.studentProfile?.aiResumeAnalysis;
     const aiReco = user?.studentProfile?.aiRecommendations;
+    const roadmap = Array.isArray(aiReco?.roadmap) ? aiReco.roadmap : [];
     const hasResume = aiResume?.resumeScore > 0 || aiResume?.score > 0;
     const resumeScore = aiResume?.resumeScore || aiResume?.score || 0;
+    const resumeUrl = user?.studentProfile?.resumeUrl;
+
+    const handleResumeCardClick = () => {
+        if (resumeUrl) {
+            window.open(`${FILE_BASE_URL}${resumeUrl}`, '_blank', 'noopener,noreferrer');
+            return;
+        }
+        navigate('/student/profile');
+    };
 
     return (
         <Layout title="Student Dashboard">
             <div className="fade-in">
                 <header style={{ marginBottom: '2rem' }}>
-                    <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.5rem' }}>Welcome, {user?.name} ðŸ‘‹</h1>
+                    <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.5rem' }}>Welcome, {user?.name}</h1>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                        {user?.isVerified ? 'âœ… Profile Verified' : 'â³ Profile verification pending'}
+                        {user?.isVerified ? 'Profile verified' : 'Profile verification pending'}
                     </p>
                 </header>
 
@@ -129,7 +139,7 @@ const StudentDashboard = () => {
                         <div className="stat-icon blue"><FiBriefcase /></div>
                         <div className="stat-info"><h3>{stats.jobs}</h3><p>Jobs</p></div>
                     </div>
-                    <div className="stat-card" onClick={() => navigate('/student/profile')}>
+                    <div className="stat-card" onClick={handleResumeCardClick}>
                         <div className="stat-icon purple"><FiFileText /></div>
                         <div className="stat-info">
                             <h3 style={{ color: resumeScore >= 70 ? 'var(--success)' : resumeScore >= 45 ? 'var(--warning)' : undefined }}>
@@ -153,16 +163,37 @@ const StudentDashboard = () => {
                     {/* AI Insights Card */}
                         {(() => {
                             const criteria = [
-                                { key: 'technicalSkills', label: 'Technical Skills', score: aiResume?.technicalSkillsScore || 0, color: '#3b82f6', icon: 'âš™ï¸', desc: 'Relevance & depth of skills, tools, and frameworks' },
-                                { key: 'projects',        label: 'Projects',         score: aiResume?.projectsScore || 0,          color: '#8b5cf6', icon: 'ðŸ’»', desc: 'Quality, complexity, quantified impact of projects' },
-                                { key: 'experience',      label: 'Experience',       score: aiResume?.experienceScore || 0,        color: '#10b981', icon: 'ðŸ¢', desc: 'Internships, co-ops, open-source, achievements' },
-                                { key: 'ats',             label: 'ATS Score',        score: aiResume?.atsScore || 0,               color: '#f59e0b', icon: 'ðŸ¤–', desc: 'Keywords, section headers, formatting, scannability' },
-                                { key: 'clarity',         label: 'Clarity & Impact', score: aiResume?.clarityScore || 0,           color: '#ef4444', icon: 'âœï¸', desc: 'Action verbs, quantification, professional tone' },
+                                { key: 'technicalSkills', label: 'Technical Skills', score: aiResume?.technicalSkillsScore || 0, color: '#3b82f6', desc: 'Relevance & depth of skills, tools, and frameworks' },
+                                { key: 'projects',        label: 'Projects',         score: aiResume?.projectsScore || 0,          color: '#8b5cf6', desc: 'Quality, complexity, quantified impact of projects' },
+                                { key: 'experience',      label: 'Experience',       score: aiResume?.experienceScore || 0,        color: '#10b981', desc: 'Internships, co-ops, open-source, achievements' },
+                                { key: 'ats',             label: 'ATS Score',        score: aiResume?.atsScore || 0,               color: '#f59e0b', desc: 'Keywords, section headers, formatting, scannability' },
+                                { key: 'clarity',         label: 'Clarity & Impact', score: aiResume?.clarityScore || 0,           color: '#ef4444', desc: 'Action verbs, quantification, professional tone' },
                             ];
                             const scoreColor = resumeScore >= 75 ? '#10b981' : resumeScore >= 55 ? '#f59e0b' : '#ef4444';
                             const scoreLabel = resumeScore >= 75 ? 'Strong' : resumeScore >= 55 ? 'Average' : 'Needs Work';
                             const bd = aiResume?.criteriaBreakdown || {};
                             const gradeColor = (g) => g === 'A' ? '#10b981' : g === 'B' ? '#3b82f6' : g === 'C' ? '#f59e0b' : '#ef4444';
+                            const normalized = criteria.map((c) => Math.round((c.score / 20) * 100));
+                            const avgPct = normalized.length ? Math.round(normalized.reduce((sum, n) => sum + n, 0) / normalized.length) : 0;
+                            const center = 100;
+                            const radius = 78;
+                            const axisPoints = criteria.map((_, i) => {
+                                const angle = (-Math.PI / 2) + (i * 2 * Math.PI / criteria.length);
+                                return {
+                                    x: center + (Math.cos(angle) * radius),
+                                    y: center + (Math.sin(angle) * radius),
+                                };
+                            });
+                            const dataPoints = criteria.map((c, i) => {
+                                const angle = (-Math.PI / 2) + (i * 2 * Math.PI / criteria.length);
+                                const scaled = radius * (c.score / 20);
+                                return {
+                                    x: center + (Math.cos(angle) * scaled),
+                                    y: center + (Math.sin(angle) * scaled),
+                                };
+                            });
+                            const axisPolygon = axisPoints.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+                            const dataPolygon = dataPoints.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
 
                             return (
                                 <div className="card" style={{ overflow: 'hidden' }}>
@@ -178,7 +209,6 @@ const StudentDashboard = () => {
                                         }}
                                     >
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                                            <span style={{ fontSize: '1.1rem' }}>âœ¨</span>
                                             <span style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text-primary)' }}>AI Resume Insights</span>
                                             {hasResume && (
                                                 <span style={{
@@ -200,23 +230,164 @@ const StudentDashboard = () => {
 
                                     {!hasResume ? (
                                         <div className="text-center p-8">
-                                            <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>ðŸ“„</div>
                                             <p style={{ color: 'var(--text-muted)', marginBottom: '1rem' }}>Upload your resume to unlock AI-powered ATS analysis.</p>
                                             <Link to="/student/profile" className="btn btn-primary">Upload Resume</Link>
                                         </div>
                                     ) : (
                                         <>
-                                            {/* Always-visible: 5-bar summary */}
-                                            <div style={{ padding: '0.85rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
-                                                {criteria.map(c => (
-                                                    <div key={c.key} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                                        <span style={{ fontSize: '0.75rem', width: '120px', minWidth: '120px', color: 'var(--text-secondary)', fontWeight: 500 }}>{c.icon} {c.label}</span>
-                                                        <div style={{ flex: 1, height: '7px', background: 'var(--bg-dark)', borderRadius: '99px', overflow: 'hidden' }}>
-                                                            <div style={{ height: '100%', width: `${(c.score / 20) * 100}%`, background: c.color, borderRadius: '99px', transition: 'width 0.5s ease' }} />
+                                            {/* Always-visible: animated overview */}
+                                            <div style={{ padding: '1rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                                <style>{`
+                                                    @keyframes insightPulse {
+                                                        0% { transform: scale(1); opacity: 0.5; }
+                                                        50% { transform: scale(1.08); opacity: 0.2; }
+                                                        100% { transform: scale(1); opacity: 0.5; }
+                                                    }
+                                                    @keyframes radarGlow {
+                                                        0% { opacity: 0.16; }
+                                                        50% { opacity: 0.35; }
+                                                        100% { opacity: 0.16; }
+                                                    }
+                                                `}</style>
+
+                                                <div className="grid-cols-1-mobile" style={{ display: 'grid', gridTemplateColumns: '210px 1fr', gap: '1rem', alignItems: 'center' }}>
+                                                    <div style={{
+                                                        border: '1px solid var(--border)',
+                                                        borderRadius: '14px',
+                                                        background: 'var(--bg-dark)',
+                                                        padding: '0.85rem',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                    }}>
+                                                        <div style={{ position: 'relative', width: '130px', height: '130px' }}>
+                                                            <div style={{
+                                                                position: 'absolute',
+                                                                inset: 0,
+                                                                borderRadius: '50%',
+                                                                background: `conic-gradient(${scoreColor} ${resumeScore * 3.6}deg, var(--border) 0deg)`,
+                                                                transition: 'background 0.7s ease',
+                                                            }} />
+                                                            <div style={{
+                                                                position: 'absolute',
+                                                                inset: '10px',
+                                                                borderRadius: '50%',
+                                                                background: 'var(--bg-card)',
+                                                                display: 'flex',
+                                                                flexDirection: 'column',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                            }}>
+                                                                <div style={{ fontSize: '1.7rem', fontWeight: 900, color: scoreColor, lineHeight: 1 }}>{resumeScore}</div>
+                                                                <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 700 }}>overall</div>
+                                                            </div>
+                                                            <div style={{
+                                                                position: 'absolute',
+                                                                inset: '-5px',
+                                                                borderRadius: '50%',
+                                                                border: `1px solid ${scoreColor}33`,
+                                                                animation: 'insightPulse 2.2s ease-in-out infinite',
+                                                            }} />
                                                         </div>
-                                                        <span style={{ fontSize: '0.78rem', fontWeight: 700, color: c.color, minWidth: '36px', textAlign: 'right' }}>{c.score}/20</span>
                                                     </div>
-                                                ))}
+
+                                                    <div style={{
+                                                        border: '1px solid var(--border)',
+                                                        borderRadius: '14px',
+                                                        background: 'radial-gradient(circle at 50% 25%, #ffffff10 0%, transparent 65%), var(--bg-dark)',
+                                                        padding: '0.85rem 0.9rem 0.5rem',
+                                                    }}>
+                                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.55rem' }}>
+                                                            <span style={{ fontSize: '0.76rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Profile Shape</span>
+                                                            <span style={{ fontSize: '0.78rem', fontWeight: 700, color: scoreColor }}>{avgPct}% avg</span>
+                                                        </div>
+                                                        <svg viewBox="0 0 200 200" style={{ width: '100%', height: '132px', display: 'block' }}>
+                                                            <polygon points={axisPolygon} fill="none" stroke="var(--border)" strokeWidth="1" />
+                                                            <polygon points="100,32 166,71 145,145 55,145 34,71" fill="none" stroke="var(--border)" strokeWidth="0.8" opacity="0.55" />
+                                                            <polygon points="100,48 153,80 136,136 64,136 47,80" fill="none" stroke="var(--border)" strokeWidth="0.8" opacity="0.55" />
+                                                            {axisPoints.map((p, i) => (
+                                                                <line key={criteria[i].key} x1="100" y1="100" x2={p.x} y2={p.y} stroke="var(--border)" strokeWidth="0.8" opacity="0.6" />
+                                                            ))}
+
+                                                            <polygon
+                                                                points={dataPolygon}
+                                                                fill={`${scoreColor}33`}
+                                                                stroke={scoreColor}
+                                                                strokeWidth="2"
+                                                                style={{ animation: 'radarGlow 2.4s ease-in-out infinite' }}
+                                                            />
+
+                                                            {dataPoints.map((p, i) => (
+                                                                <circle key={criteria[i].key} cx={p.x} cy={p.y} r="3.2" fill={criteria[i].color} stroke="#ffffff" strokeWidth="1.2" />
+                                                            ))}
+                                                        </svg>
+                                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '0.35rem', marginTop: '-0.25rem' }}>
+                                                            {criteria.map((c) => (
+                                                                <div key={c.key} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                                                    <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: c.color, display: 'inline-block' }} />
+                                                                    <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{c.label.split(' ')[0]}</span>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(145px, 1fr))', gap: '0.65rem' }}>
+                                                    {criteria.map((c) => {
+                                                        const pct = Math.round((c.score / 20) * 100);
+                                                        return (
+                                                            <div key={c.key} style={{
+                                                                border: '1px solid var(--border)',
+                                                                borderRadius: '12px',
+                                                                background: 'var(--bg-dark)',
+                                                                padding: '0.6rem 0.65rem',
+                                                                display: 'flex',
+                                                                flexDirection: 'column',
+                                                                alignItems: 'center',
+                                                                gap: '0.35rem',
+                                                            }}>
+                                                                <div style={{
+                                                                    position: 'relative',
+                                                                    width: '64px',
+                                                                    height: '64px',
+                                                                }}>
+                                                                    <div style={{
+                                                                        position: 'absolute',
+                                                                        inset: 0,
+                                                                        borderRadius: '50%',
+                                                                        background: `conic-gradient(${c.color} ${pct * 3.6}deg, var(--border) 0deg)`,
+                                                                        transition: 'all 0.8s ease',
+                                                                    }} />
+                                                                    <div style={{
+                                                                        position: 'absolute',
+                                                                        inset: '8px',
+                                                                        borderRadius: '50%',
+                                                                        background: 'var(--bg-card)',
+                                                                        display: 'flex',
+                                                                        alignItems: 'center',
+                                                                        justifyContent: 'center',
+                                                                        fontSize: '0.72rem',
+                                                                        fontWeight: 800,
+                                                                        color: c.color,
+                                                                    }} />
+                                                                    <div style={{
+                                                                        position: 'absolute',
+                                                                        inset: '8px',
+                                                                        borderRadius: '50%',
+                                                                        display: 'flex',
+                                                                        alignItems: 'center',
+                                                                        justifyContent: 'center',
+                                                                        fontSize: '0.72rem',
+                                                                        fontWeight: 800,
+                                                                        color: c.color,
+                                                                    }}>{pct}%</div>
+                                                                </div>
+                                                                <span style={{ fontSize: '0.73rem', color: 'var(--text-secondary)', fontWeight: 600, textAlign: 'center', lineHeight: 1.2 }}>{c.label}</span>
+                                                                <span style={{ fontSize: '0.8rem', fontWeight: 800, color: c.color }}>{c.score}/20</span>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
                                             </div>
 
                                             {/* Expandable Detail Panel */}
@@ -227,7 +398,7 @@ const StudentDashboard = () => {
                                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.25rem' }}>
                                                         {criteria.map(c => {
                                                             const info = bd[c.key] || {};
-                                                            const grade = info.grade || 'â€”';
+                                                            const grade = info.grade || '-';
                                                             const pct = Math.round((c.score / 20) * 100);
                                                             return (
                                                                 <div key={c.key} style={{
@@ -236,12 +407,11 @@ const StudentDashboard = () => {
                                                                 }}>
                                                                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
                                                                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                                            <span style={{ fontSize: '0.85rem' }}>{c.icon}</span>
                                                                             <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)' }}>{c.label}</span>
                                                                             <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{c.desc}</span>
                                                                         </div>
                                                                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-                                                                            {grade !== 'â€”' && (
+                                                                            {grade !== '-' && (
                                                                                 <span style={{
                                                                                     fontSize: '0.7rem', fontWeight: 800, padding: '1px 7px',
                                                                                     borderRadius: '6px', background: `${gradeColor(grade)}20`, color: gradeColor(grade)
@@ -273,7 +443,7 @@ const StudentDashboard = () => {
                                                             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                                                                 {(aiResume.strengths || []).map((s, i) => (
                                                                     <div key={i} style={{ display: 'flex', gap: '6px', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
-                                                                        <span style={{ color: '#10b981', fontWeight: 700, flexShrink: 0 }}>âœ“</span>
+                                                                        <span style={{ color: '#10b981', fontWeight: 700, flexShrink: 0 }}>-</span>
                                                                         <span>{s}</span>
                                                                     </div>
                                                                 ))}
@@ -317,7 +487,6 @@ const StudentDashboard = () => {
                                                     {(aiResume.suggestions || []).length > 0 && (
                                                         <div>
                                                             <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '0.5rem' }}>
-                                                                <span style={{ fontSize: '0.8rem' }}>ðŸ’¡</span>
                                                                 <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase' }}>Improvement Tips</span>
                                                             </div>
                                                             <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
@@ -337,7 +506,7 @@ const StudentDashboard = () => {
 
                                                     <div style={{ marginTop: '1rem', textAlign: 'right' }}>
                                                         <Link to="/student/profile" style={{ fontSize: '0.8rem', color: 'var(--primary)', textDecoration: 'none', fontWeight: 600 }}>
-                                                            ðŸ”„ Re-analyze Resume â†’
+                                                            Re-analyze Resume
                                                         </Link>
                                                     </div>
                                                 </div>
@@ -351,20 +520,27 @@ const StudentDashboard = () => {
                         <div className="card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                             <h3 className="card-title">AI Career Mentor</h3>
                             {aiReco && (
-                                <button className="btn btn-sm" style={{ fontSize: '0.75rem', padding: '4px 12px' }} onClick={() => setShowRecoInput(true)}>
+                                <button
+                                    className="btn btn-sm"
+                                    style={{ fontSize: '0.75rem', padding: '4px 12px' }}
+                                    onClick={() => {
+                                        setTargetRole(aiReco?.targetRole || '');
+                                        setShowRecoInput(true);
+                                    }}
+                                >
                                     Re-generate Plan
                                 </button>
                             )}
                         </div>
-                        {aiReco ? (
+                        {(aiReco && !showRecoInput) ? (
                             <div style={{ padding: '1rem' }}>
                                 <div style={{ marginBottom: '0.75rem' }}>
-                                    <h4 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.25rem' }}>Target: {aiReco.targetRole}</h4>
-                                    <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{aiReco.overallAssessment}</p>
+                                    <h4 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.25rem' }}>Target: {aiReco?.targetRole || 'Not specified'}</h4>
+                                    <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{aiReco?.overallAssessment || 'Generate a plan to get role-specific guidance.'}</p>
                                 </div>
 
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                                    {aiReco.roadmap.map((phase, idx) => {
+                                    {roadmap.length > 0 ? roadmap.map((phase, idx) => {
                                         const isOpen = openPhase === idx;
                                         const topicsDone = (phase.topics || []).filter(t => t.completed).length;
                                         const tasksDone = (phase.tasks || []).filter(t => t.completed).length;
@@ -475,7 +651,7 @@ const StudentDashboard = () => {
                                                 )}
                                             </div>
                                         );
-                                    })}
+                                    }) : <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>No roadmap steps found. Re-generate your plan.</p>}
                                 </div>
                             </div>
                         ) : (
@@ -484,7 +660,7 @@ const StudentDashboard = () => {
                                     <>
                                         <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>Get a custom study roadmap targeted to your role.</p>
                                         <button className="btn btn-primary" onClick={() => setShowRecoInput(true)} disabled={!hasResume}>
-                                            {hasResume ? 'âœ¨ Generate My Plan' : 'Upload resume first'}
+                                            {hasResume ? 'Generate My Plan' : 'Upload resume first'}
                                         </button>
                                     </>
                                 ) : (
@@ -499,7 +675,7 @@ const StudentDashboard = () => {
                                         />
                                         <div className="flex gap-2">
                                             <button className="btn btn-primary flex-1" onClick={handleGetRecommendations} disabled={loadingReco}>
-                                                {loadingReco ? 'â³ AI Thinkingâ€¦' : 'âœ¨ Generate Plan'}
+                                                {loadingReco ? 'Generating Plan...' : 'Generate Plan'}
                                             </button>
                                             <button className="btn btn-secondary" onClick={() => setShowRecoInput(false)}>Cancel</button>
                                         </div>

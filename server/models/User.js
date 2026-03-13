@@ -25,6 +25,7 @@ const userSchema = new mongoose.Schema({
         resumeUrl: String,
         resumeBase64: String, // Added for Vercel Serverless storage
         resumeContentType: String,
+        linkedIn: String,
         github: String,
         portfolio: String,
         isPlaced: { type: Boolean, default: false },

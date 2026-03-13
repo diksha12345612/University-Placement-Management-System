@@ -1,5 +1,5 @@
 ﻿/**
- * AI Service â€” University Placement Portal
+ * AI Service ΓÇö University Placement Portal
  * Primary: GitHub Models (gpt-4o-mini)
  * Fallback: OpenRouter (openrouter/free)
  */
@@ -15,7 +15,7 @@ const getGitHubToken = () => {
 
 const getOpenRouterToken = () => process.env.OPENROUTER_API_KEY || '';
 
-// â”€â”€â”€ AI Clients â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ΓöÇΓöÇΓöÇ AI Clients ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 const githubModels = new OpenAI({
     apiKey: getGitHubToken() || 'not-configured',
     baseURL: 'https://models.inference.ai.azure.com',
@@ -37,7 +37,7 @@ const GITHUB_MODELS = [
 ];
 const OPENROUTER_FALLBACK_MODEL = 'openrouter/free';
 
-// â”€â”€â”€ Utilities â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ΓöÇΓöÇΓöÇ Utilities ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 
 /**
  * Sleep for ms milliseconds
@@ -208,7 +208,7 @@ const parseJsonSafely = (text) => {
     throw new Error('AI returned non-JSON response: ' + text.slice(0, 300));
 };
 
-// â”€â”€â”€ Feature 1: Mock Test Generation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ΓöÇΓöÇΓöÇ Feature 1: Mock Test Generation ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 
 /**
  * Generate a balanced mock test
@@ -294,7 +294,7 @@ Total Questions: ${count}
 Rules:
 - Questions must be ONLY about the topic: ${topic}.
 ${rules}
-- MCQ options must be plausible â€” avoid obviously wrong distractors.
+- MCQ options must be plausible ΓÇö avoid obviously wrong distractors.
 - Concept questions must test understanding, not just definitions.
 - correctAnswer for MCQ must be one of the option strings exactly.
 
@@ -322,7 +322,7 @@ Return ONLY this exact JSON structure, nothing else:
     }
 };
 
-// â”€â”€â”€ Feature 2: Test Answer Evaluation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ΓöÇΓöÇΓöÇ Feature 2: Test Answer Evaluation ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 
 /**
  * Evaluate a subjective or coding answer using a rubric
@@ -388,21 +388,22 @@ Return ONLY this exact JSON, nothing else:
     }
 };
 
-// â”€â”€â”€ Feature 3: Resume Analysis â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ΓöÇΓöÇΓöÇ Feature 3: Resume Analysis ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 
 /**
- * Analyze a student resume across 5 categories
- * @returns { resumeScore, technicalSkillsScore, projectsScore, experienceScore, atsScore, communicationScore, strengths[], weaknesses[], missingSkills[], improvementSuggestions[] }
+ * Analyze a student resume using ATS-standard criteria.
+ * @returns { resumeScore, technicalSkillsScore, projectsScore, experienceScore, atsScore, clarityScore, criteriaBreakdown, strengths[], weaknesses[], missingSkills[], suggestions[] }
  */
 const analyzeResume = async (resumeText, studentProfile = {}) => {
     const messages = [
         {
             role: 'system',
-            content: 'You are a senior ATS engineer and technical recruiter with 15+ years experience at FAANG. You evaluate resumes with the same rigor as Jobscan and Resume Worded. You are STRICT — most student resumes score 40–60/100. You ONLY respond with valid JSON. No explanations, no markdown.',
+            content:
+                'You are a senior ATS engineer and technical recruiter with 15+ years of experience. You evaluate resumes with strict ATS standards. Most student resumes should score between 40 and 65 out of 100. You ONLY respond with valid JSON. No explanations, no markdown.',
         },
         {
             role: 'user',
-            content: `Critically evaluate this university student resume using the ATS scoring rubric below.
+            content: `Critically evaluate this university student resume using the ATS rubric below.
 
 Student Context:
 - Department: ${studentProfile.department || 'Computer Science'}
@@ -414,39 +415,39 @@ Resume Text:
 ${resumeText.slice(0, 4500)}
 """
 
-SCORING RUBRIC (each category 0-20, total max 100). Be STRICT:
+SCORING RUBRIC (each out of 20, total 100):
 
-1. TECHNICAL SKILLS (0-20): Start at 20, deduct:
-   -5 missing 5+ in-demand skills | -4 skills not backed by projects/experience
-   -3 no tools/frameworks, only languages | -2 irrelevant filler skills (MS Word) | -3 no skills section
-   +2 bonus for cloud/DevOps/CI-CD (cap 20)
+1. TECHNICAL SKILLS (0-20) - Start at 20, deduct:
+    -5 missing 5+ in-demand skills | -4 skills not backed by projects/experience
+    -3 no tools/frameworks (only languages) | -2 irrelevant filler skills | -3 no skills section
+    +2 bonus for cloud/DevOps/CI-CD (cap 20)
 
-2. PROJECTS QUALITY (0-20): Start at 20, deduct:
-   -6 fewer than 2 substantial projects | -5 no quantified impact/metrics
-   -3 no tech stack details | -3 no GitHub/demo link | -4 tutorial clones only
-   +2 bonus for production-deployed project (cap 20)
+2. PROJECTS QUALITY (0-20) - Start at 20, deduct:
+    -6 fewer than 2 substantial projects | -5 no quantified impact/metrics
+    -3 no tech stack details | -3 no GitHub/demo link | -4 tutorial clone projects
+    +2 bonus for production deployment evidence (cap 20)
 
-3. EXPERIENCE & CREDENTIALS (0-20): Start at 20, deduct:
-   -7 no internship/co-op | -5 bullets lack measurable achievements
-   -4 no extracurriculars/leadership/open-source | -2 missing or inconsistent dates
-   -3 CGPA below 6.5 with no compensating experience
-   +2 bonus for named-company internship (cap 20)
+3. EXPERIENCE AND CREDENTIALS (0-20) - Start at 20, deduct:
+    -7 no internship/co-op | -5 no measurable outcomes in bullets
+    -4 no leadership/open-source/extracurricular depth | -2 inconsistent dates
+    -3 CGPA below 6.5 with no compensating evidence
+    +2 bonus for strong named-company internship (cap 20)
 
-4. ATS OPTIMIZATION (0-20): Start at 20, deduct:
-   -4 per missing standard section header (max -8) | -3 no contact info/LinkedIn/GitHub
-   -4 keywords only in skills section, not in bullets | -3 resume over 2 pages
-   -5 uses tables/columns/graphics (ATS-hostile format)
-   +2 bonus for strong keyword-JD alignment (cap 20)
+4. ATS OPTIMIZATION (0-20) - Start at 20, deduct:
+    -4 per missing standard header (max -8)
+    -3 missing contact/LinkedIn/GitHub | -4 keywords only in skills section
+    -3 overlong student resume | -5 ATS-hostile formatting (tables/columns/graphics)
+    +2 bonus for clear keyword alignment in achievements (cap 20)
 
-5. CLARITY & STRUCTURE (0-20): Start at 20, deduct:
-   -5 vague responsibilities, not achievements | -4 no action verbs
-   -5 spelling/grammar errors | -3 inconsistent formatting | -2 no professional summary
-   +2 bonus for STAR-method with Before/After impact (cap 20)
+5. CLARITY AND STRUCTURE (0-20) - Start at 20, deduct:
+    -5 vague responsibilities instead of achievements | -4 weak action verbs
+    -5 grammar/spelling issues | -3 inconsistent formatting | -2 no summary/profile
+    +2 bonus for concise impact storytelling (cap 20)
 
-Calibration benchmark: 80-100=Exceptional, 60-79=Good, 40-59=Average, 20-39=Weak.
-Most student resumes should score 35-65. Only truly exceptional resumes score above 75.
+Calibration: 80-100 Exceptional, 60-79 Good, 40-59 Average, 20-39 Weak.
+Be strict. Only exceptional resumes should exceed 75.
 
-Return ONLY this exact JSON, nothing else:
+Return ONLY this exact JSON:
 {
   "resumeScore": 0,
   "technicalSkillsScore": 0,
@@ -454,17 +455,17 @@ Return ONLY this exact JSON, nothing else:
   "experienceScore": 0,
   "atsScore": 0,
   "clarityScore": 0,
-  "criteriaBreakdown": {
-    "technicalSkills": { "grade": "A/B/C/D/F", "notes": "2-sentence specific finding about this resume" },
-    "projects": { "grade": "A/B/C/D/F", "notes": "2-sentence specific finding about this resume" },
-    "experience": { "grade": "A/B/C/D/F", "notes": "2-sentence specific finding about this resume" },
-    "ats": { "grade": "A/B/C/D/F", "notes": "2-sentence specific finding about this resume" },
-    "clarity": { "grade": "A/B/C/D/F", "notes": "2-sentence specific finding about this resume" }
-  },
-  "strengths": ["specific strength from the resume"],
-  "weaknesses": ["specific weakness found in the resume"],
-  "missingSkills": ["skill1", "skill2", "skill3"],
-  "suggestions": ["actionable fix 1", "actionable fix 2", "actionable fix 3"]
+    "criteriaBreakdown": {
+        "technicalSkills": { "grade": "A/B/C/D/F", "notes": "2-sentence specific finding" },
+        "projects": { "grade": "A/B/C/D/F", "notes": "2-sentence specific finding" },
+        "experience": { "grade": "A/B/C/D/F", "notes": "2-sentence specific finding" },
+        "ats": { "grade": "A/B/C/D/F", "notes": "2-sentence specific finding" },
+        "clarity": { "grade": "A/B/C/D/F", "notes": "2-sentence specific finding" }
+    },
+  "strengths": ["string"],
+  "weaknesses": ["string"],
+  "missingSkills": ["string"],
+  "suggestions": ["string"]
 }`,
         },
     ];
@@ -491,11 +492,23 @@ Return ONLY this exact JSON, nothing else:
         // --- KEYWORD MATCHING FALLBACK ---
         console.log('[FALLBACK] Using keyword matching engine for resume analysis.');
         const textLower = resumeText.toLowerCase();
+        const foundSkills = [];
+        const missing = [];
         const currentSkills = studentProfile.skills || [];
-        const matchCount = currentSkills.filter(s => textLower.includes(s.toLowerCase())).length;
-        const missing = currentSkills.filter(s => !textLower.includes(s.toLowerCase()));
+
+        currentSkills.forEach(skill => {
+            if (textLower.includes(skill.toLowerCase())) {
+                matchCount++;
+                foundSkills.push(skill);
+            } else {
+                missing.push(skill);
+            }
+        });
+
+        const matchCount = foundSkills.length;
         const presenceRatio = currentSkills.length > 0 ? matchCount / currentSkills.length : 0.5;
         const baseScore = Math.round(10 + (presenceRatio * 7));
+
         return {
             resumeScore: Math.min(100, baseScore * 5),
             technicalSkillsScore: baseScore,
@@ -508,17 +521,122 @@ Return ONLY this exact JSON, nothing else:
                 projects: { grade: 'C', notes: 'Fallback analysis only. Re-analyze resume for full AI scoring.' },
                 experience: { grade: 'C', notes: 'Fallback analysis only. Re-analyze resume for full AI scoring.' },
                 ats: { grade: 'C', notes: 'Fallback analysis only. Re-analyze resume for full AI scoring.' },
-                clarity: { grade: 'C', notes: 'Fallback analysis only. Re-analyze resume for full AI scoring.' }
+                clarity: { grade: 'C', notes: 'Fallback analysis only. Re-analyze resume for full AI scoring.' },
             },
-            strengths: matchCount > 0 ? [`${matchCount} listed skills found in resume text`] : ['Basic resume structure present'],
-            weaknesses: ['Full AI analysis unavailable — re-analyze when AI is available'],
+            strengths: foundSkills.length > 0 ? [`${matchCount} listed skills found in resume text`] : ['Basic resume structure present'],
+            weaknesses: ['Full AI analysis unavailable. Re-analyze when AI service is available.'],
             missingSkills: missing.slice(0, 5),
-            suggestions: ['Re-upload resume for full ATS analysis', 'Add quantifiable achievements to each bullet', 'Ensure all skills appear in project/experience bullets']
+            suggestions: ['Re-upload and re-analyze your resume', 'Add quantified impact to project and experience bullets', 'Ensure all listed skills appear in project or experience bullets'],
         };
     }
 };
 
-// â”€â”€â”€ Feature 6: Interview Question Generation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ΓöÇΓöÇΓöÇ Feature 5: Candidate Ranking ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+
+/**
+ * Rank a candidate for a specific job
+ * @param {string} jobRequirements - job title + description
+ * @param {object} candidateProfile - { name, skills, cgpa, resumeScore, department }
+ * @returns { matchScore, skillMatchScore, experienceMatchScore, strengthSummary, riskFactors[], recommendation }
+ */
+const rankCandidateForJob = async (jobRequirements, candidateProfile) => {
+    const messages = [
+        {
+            role: 'system',
+            content:
+                'You are an ELITE TECHNICAL RECRUITER and BRUTALLY HONEST hiring consultant. Your job is to sift through university candidates and find ONLY those who are truly qualified. You are extremely critical and rarely give scores above 80% unless the candidate is a perfect fit. You ONLY respond with valid JSON. No explanations, no markdown.',
+        },
+        {
+            role: 'user',
+            content: `CRITICALLY evaluate this candidate's suitability for the job.
+            
+SCORING BRACKETS (CRITICAL):
+- 0-25%: Totally unrelated background/skills. (e.g., Marketing student for a Java Role)
+- 26-50%: Tangentially related but lacks core required tech stack.
+- 51-75%: Good match, has some core skills but lacks depth or specific required frameworks.
+- 76-90%: Strong match, has most core skills and relevant projects.
+- 91-100%: Exceptionally Rare. Near perfect alignment in every category.
+
+PENALTY RULES:
+- Subtract 40% if the candidate's department is totally unrelated to the role (e.g., Civil Eng for Web Dev) unless they have massive projects.
+- Subtract 30% if they lack at least 2 of the "Must Have" skills mentioned in the job description.
+- Low Resume Quality (<50) should cap the overall matchScore at 60%.
+
+Job Requirements:
+                """
+${jobRequirements.slice(0, 1500)}
+"""
+
+Candidate Profile:
+        - Name: ${candidateProfile.name || 'Student'}
+        - Department: ${candidateProfile.department || 'CS'}
+        - CGPA: ${candidateProfile.cgpa || 'N/A'}
+        - Skills: ${(candidateProfile.skills || []).join(', ') || 'Not specified'}
+- Resume Quality Score: ${candidateProfile.resumeScore || 0}/100
+    - Additional Info (Resume Excerpt): ${candidateProfile.additionalInfo || 'None'}
+
+Return ONLY this exact JSON:
+{
+    "matchScore": 0,
+    "skillMatchScore": 0,
+    "experienceMatchScore": 0,
+    "strengthSummary": "string (1-2 sentences strictly about role-specific fit)",
+    "riskFactors": ["list 2-3 specific reasons why they might fail in this specific role"],
+    "recommendation": "Weak/Moderate/Strong"
+}
+
+Scoring:
+- matchScore(0-100): Overall fit after applying all penalties.
+- recommendation: MUST be exactly "Strong", "Moderate", or "Weak".`,
+        },
+    ];
+
+    try {
+        const raw = await callAI(messages, 0, 1500);
+        const data = parseJsonSafely(raw);
+        const clamp100 = (v) => Math.min(100, Math.max(0, Number(v) || 0));
+        data.matchScore = clamp100(data.matchScore);
+        data.skillMatchScore = clamp100(data.skillMatchScore);
+        data.experienceMatchScore = clamp100(data.experienceMatchScore);
+        data.riskFactors = Array.isArray(data.riskFactors) ? data.riskFactors : [];
+        if (!['Strong', 'Moderate', 'Weak'].includes(data.recommendation)) {
+            data.recommendation = data.matchScore >= 75 ? 'Strong' : data.matchScore >= 45 ? 'Moderate' : 'Weak';
+        }
+        return data;
+    } catch (err) {
+        console.error('[AI] rankCandidateForJob error:', err.message);
+
+        // --- CRITICAL KEYWORD MATCHING FALLBACK ---
+        console.log('[FALLBACK] Using keyword matching engine for candidate ranking.');
+        const jobLower = jobRequirements.toLowerCase();
+        const candSkills = candidateProfile.skills || [];
+        let match = 0;
+
+        candSkills.forEach(s => {
+            if (jobLower.includes(s.toLowerCase())) match++;
+        });
+
+        // Stricter fallback calculation
+        const skillRatio = candSkills.length > 0 ? (match / candSkills.length) : 0;
+        let matchScore = Math.round(skillRatio * 100 * 0.5 + (candidateProfile.resumeScore || 0) * 0.2);
+
+        // Department penalty in fallback
+        const techDepts = ['cs', 'it', 'computer', 'software', 'ece', 'electronics'];
+        const isTechDept = techDepts.some(d => (candidateProfile.department || '').toLowerCase().includes(d));
+        if (!isTechDept) matchScore = Math.round(matchScore * 0.6);
+
+        return {
+            matchScore: Math.min(100, matchScore),
+            skillMatchScore: Math.round(skillRatio * 100),
+            experienceMatchScore: Math.round((candidateProfile.resumeScore || 0) * 0.5),
+            strengthSummary: candSkills.length > 0 ? `Detected ${match} overlapping skills via keyword matching.` : "Minimal text-based skill overlap detected.",
+            riskFactors: ["Limited AI context during fallback", "Inconclusive depth of experience"],
+            recommendation: matchScore > 70 ? "Strong" : matchScore > 40 ? "Moderate" : "Weak"
+        };
+    }
+};
+
+// ΓöÇΓöÇΓöÇ Feature 6: Interview Question Generation ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 
 /**
  * Generate role-specific interview questions
@@ -666,7 +784,7 @@ STUDENT'S ANSWER: ${studentAnswer}
 EVALUATION RULES:
 1. Score 1-10. Be fair but honest. A partial answer should get 3-5, a good answer 6-8, only perfect gets 9-10.
 2. "feedback": Write 3-5 sentences. First acknowledge what's correct. Then explain SPECIFICALLY what is incorrect or missing and WHY it matters. Reference specific parts of the student's answer.
-3. "sampleAnswer": Write a COMPLETE correct answer that would score 9-10. This is the most important field. It must be a full, detailed, expert-level response â€” NOT a summary or tips. If it's a coding question, include working code.  
+3. "sampleAnswer": Write a COMPLETE correct answer that would score 9-10. This is the most important field. It must be a full, detailed, expert-level response ΓÇö NOT a summary or tips. If it's a coding question, include working code.  
 4. "strengths": List 2-3 specific things the student did well (with references to their answer).
 5. "weaknesses": List 2-3 specific mistakes or gaps. Explain WHY each is wrong or problematic.
 6. "improvementTips": Give 3-4 actionable steps to improve, specific to this answer.
@@ -677,14 +795,18 @@ Return ONLY valid JSON. Every field MUST have substantial content (never empty o
   "feedback": "Your answer correctly identifies X and Y, which shows understanding of the basics. However, you incorrectly stated that Z because [reason]. You also missed the important concept of W, which is critical because [reason]. Overall, the answer demonstrates foundational knowledge but lacks the depth expected in a technical interview.",
   "sampleAnswer": "A complete, detailed, expert-level answer that would score 9-10...",
   "strengths": "1. Correctly identified X. 2. Good structure in explaining Y.",
-  "weaknesses": "1. Incorrectly stated Z â€” the correct approach is [correction]. 2. Missing coverage of W.",
+  "weaknesses": "1. Incorrectly stated Z ΓÇö the correct approach is [correction]. 2. Missing coverage of W.",
   "improvementTips": "1. Study [topic] to understand why Z works differently. 2. Practice explaining W with real examples. 3. Structure answers with introduction, main points, and conclusion."
 }`,
         },
     ];
 
     try {
-        const raw = await callAI(messages, 0, 3500);
+        // Keep interview evaluation responsive on serverless by enforcing an upper bound.
+        const raw = await Promise.race([
+            callAI(messages, 0, 1400),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Interview evaluation timed out')), 6000))
+        ]);
         const data = parseJsonSafely(raw);
         data.score = Math.min(10, Math.max(1, Number(data.score) || 5));
         data.feedback = data.feedback || 'Your answer has been evaluated. Review the strengths and weaknesses below.';
@@ -706,7 +828,7 @@ Return ONLY valid JSON. Every field MUST have substantial content (never empty o
     }
 };
 
-// â”€â”€â”€ PDF Extraction â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ΓöÇΓöÇΓöÇ PDF Extraction ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 
 /**
  * Extract text from a PDF resume buffer
@@ -721,105 +843,85 @@ const extractTextFromPDF = async (buffer) => {
     }
 };
 
-// â”€â”€â”€ Feature 3: Resume Analysis â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ΓöÇΓöÇΓöÇ Legacy Compatibility ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// Keep old function name as alias for backward compatibility
+const evaluateTestAnswers = async (type, question, studentAnswer, correctAnswer) => {
+    const result = await evaluateTestAnswer(question, studentAnswer, correctAnswer);
+    // Map to legacy format expected by old routes
+    return {
+        score: Math.round((result.totalScore / 15) * 10), // convert to 0-10
+        feedback: result.strengths + ' ' + result.weaknesses,
+        improvement: result.improvementAdvice,
+        // Also expose new fields
+        ...result,
+    };
+};
+
+const evaluateCandidateForJob = async (jobDescription, resumeText, studentProfile) => {
+    const profile = {
+        ...studentProfile,
+        additionalInfo: resumeText ? resumeText.slice(0, 800) : '',
+    };
+    const result = await rankCandidateForJob(jobDescription, profile);
+    // Map to legacy format
+    return {
+        matchPercentage: result.matchScore,
+        strengthSummary: result.strengthSummary,
+        riskFactors: result.riskFactors,
+        recommendation: result.recommendation,
+        ...result,
+    };
+};
+
+// ΓöÇΓöÇΓöÇ Feature 7: Personalized Recommendations ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 
 /**
- * Analyze a student resume using ATS-standard criteria
- * @returns { resumeScore, technicalSkillsScore, projectsScore, experienceScore, atsScore, clarityScore, criteriaBreakdown, strengths[], weaknesses[], missingSkills[], suggestions[] }
+ * Generate personalized preparation recommendations for a student
+ * @param {number} resumeScore - The student's latest CV score
+ * @param {Array} skills - The student's listed skills
+ * @param {Object} testPerformance - Object containing avgPercentage and test count
+ * @param {string} targetRole - The role the student is aiming for
  */
-const analyzeResume = async (resumeText, studentProfile = {}) => {
+const generateRecommendations = async (resumeScore, skills, testPerformance, targetRole) => {
     const messages = [
         {
             role: 'system',
-            content: 'You are a senior ATS engineer and technical recruiter with 15+ years of experience at FAANG. You evaluate resumes with the same rigour as Jobscan and Resume Worded. You are STRICT â€” the average student resume scores 45â€“60/100. You ONLY respond with valid JSON. No explanations, no markdown.',
+            content: 'You are an expert career coach and AI mentor. You provide highly personalized and structured learning roadmaps. You ONLY respond with valid JSON. No markdown, no explanations outside the JSON. You MUST generate a complete preparation roadmap with exactly 4 to 6 phases, starting from basics up to interview preparation.'
         },
         {
             role: 'user',
-            content: `Critically evaluate this university student resume using the ATS scoring rubric below.
+            content: `Generate a personalized preparation journey for a university student.
 
-Student Context:
-- Department: ${studentProfile.department || 'Computer Science'}
-- CGPA: ${studentProfile.cgpa || 'Not specified'}
-- Listed Skills: ${(studentProfile.skills || []).join(', ') || 'Not specified'}
+Student Profile:
+- Target Role: ${targetRole}
+- Resume Score: ${resumeScore}/100
+- Current Skills: ${skills.join(', ') || 'None listed'}
+- Mock Test Average: ${testPerformance.avgPercentage || 0}% across ${testPerformance.totalTests || 0} tests
 
-Resume Text:
-"""
-${resumeText.slice(0, 4500)}
-"""
-
-SCORING RUBRIC (each category out of 20, total 100):
-
-1. TECHNICAL SKILLS (0â€“20) â€” Start at 20, deduct:
-   â€¢ Missing 5+ in-demand skills: -5 | Skills not backed by projects/experience: -4
-   â€¢ No tools/frameworks (only languages): -3 | Irrelevant filler skills (MS Word): -2 | No skills section: -3
-   Bonus for cloud/DevOps/CI-CD: +2 (cap 20)
-
-2. PROJECTS QUALITY (0â€“20) â€” Start at 20, deduct:
-   â€¢ Fewer than 2 substantial projects: -6 | No quantified impact/metrics: -5
-   â€¢ No tech stack details: -3 | No GitHub/demo link: -3 | Tutorial clones only: -4
-   Bonus for production-deployed project: +2 (cap 20)
-
-3. EXPERIENCE & CREDENTIALS (0â€“20) â€” Start at 20, deduct:
-   â€¢ No internship/co-op: -7 | Bullets lack achievements with numbers: -5
-   â€¢ No extracurriculars/leadership/open-source: -4 | Missing or inconsistent dates: -2
-   â€¢ CGPA below 6.5 with no compensating experience: -3
-   Bonus for named-company internship: +2 (cap 20)
-
-4. ATS OPTIMIZATION (0â€“20) â€” Start at 20, deduct:
-   â€¢ Missing standard section headers (Education/Experience/Projects/Skills): -4 each (max -8)
-   â€¢ No contact info/LinkedIn/GitHub: -3 | Keywords only in skills, not bullets: -4
-   â€¢ Resume >2 pages for student: -3 | Uses tables/columns/graphics (ATS-hostile): -5
-   Bonus for strong keyword-JD alignment: +2 (cap 20)
-
-5. CLARITY & STRUCTURE (0â€“20) â€” Start at 20, deduct:
-   â€¢ Vague responsibilities instead of achievements: -5 | No action verbs: -4
-   â€¢ Spelling/grammar errors: -5 | Inconsistent formatting: -3 | No professional summary: -2
-   Bonus for STAR-method with Before/After impact: +2 (cap 20)
-
-Calibration (be strict): 80â€“100=Exceptional, 60â€“79=Good, 40â€“59=Average, 20â€“39=Weak, 0â€“19=Very weak.
-
-Return ONLY this exact JSON, nothing else:
+Return exactly this JSON structure:
 {
-  "resumeScore": 0,
-  "technicalSkillsScore": 0,
-  "projectsScore": 0,
-  "experienceScore": 0,
-  "atsScore": 0,
-  "clarityScore": 0,
-  "criteriaBreakdown": {
-    "technicalSkills": { "grade": "A/B/C/D/F", "notes": "2-sentence specific finding" },
-    "projects": { "grade": "A/B/C/D/F", "notes": "2-sentence specific finding" },
-    "experience": { "grade": "A/B/C/D/F", "notes": "2-sentence specific finding" },
-    "ats": { "grade": "A/B/C/D/F", "notes": "2-sentence specific finding" },
-    "clarity": { "grade": "A/B/C/D/F", "notes": "2-sentence specific finding" }
-  },
-  "strengths": ["specific strength 1", "specific strength 2", "specific strength 3"],
-  "weaknesses": ["specific weakness 1", "specific weakness 2", "specific weakness 3"],
-  "missingSkills": ["skill1", "skill2", "skill3"],
-  "suggestions": ["actionable fix 1", "actionable fix 2", "actionable fix 3"]
-}`,
-        },
-    ];
+  "targetRole": "${targetRole}",
+  "overallAssessment": "string (A detailed paragraph summarizing the student's current standing and next major steps)",
+  "skillGapAnalysis": ["string (Detailed description of the gap)", "string"],
+  "prioritySkills": ["string (Skill name and why it matters)", "string"],
+  "roadmap": [
+    {
+      "phase": "Phase 1",
+      "title": "string (e.g., Core Fundamentals)",
+      "duration": "string (e.g., '2-4 weeks')",
+      "focusArea": "string",
+      "topics": [
+         "Topic string 1", "Topic string 2"
+      ],
+      "tasks": [
+         "Practical task string 1", "Practical task string 2"
+      ],
+      "strategy": "string (A fully detailed strategy explaining exactly how to practice this phase, what to focus on, and potential pitfalls)"
+    }
+  ],
+  "recommendedProjects": ["string (Project title and an in-depth description of its features and what it teaches)", "string"],
 
-    try {
-        const raw = await callAI(messages);
-        const data = parseJsonSafely(raw);
-        const clamp = (v, max) => Math.min(max, Math.max(0, Number(v) || 0));
-        data.technicalSkillsScore = clamp(data.technicalSkillsScore, 20);
-        data.projectsScore = clamp(data.projectsScore, 20);
-        data.experienceScore = clamp(data.experienceScore, 20);
-        data.atsScore = clamp(data.atsScore, 20);
-        data.clarityScore = clamp(data.clarityScore, 20);
-        data.resumeScore = data.technicalSkillsScore + data.projectsScore + data.experienceScore + data.atsScore + data.clarityScore;
-        data.criteriaBreakdown = (data.criteriaBreakdown && typeof data.criteriaBreakdown === 'object') ? data.criteriaBreakdown : {};
-        data.strengths = Array.isArray(data.strengths) ? data.strengths : [];
-        data.weaknesses = Array.isArray(data.weaknesses) ? data.weaknesses : [];
-        data.missingSkills = Array.isArray(data.missingSkills) ? data.missingSkills : [];
-        data.suggestions = Array.isArray(data.suggestions) ? data.suggestions : [];
-        return data;
-    } catch (err) {
-        console.error('[AI] analyzeResume error:', err.message);
-        console.log('[FALLBACK] Using keyword matching engine for resume analysis.');
+  "recommendedResources": ["string (The resource and why it is useful)", "string"],
   "interviewPreparationTips": ["string", "string"],
   "suggestedCompanies": ["string", "string"]
 }`

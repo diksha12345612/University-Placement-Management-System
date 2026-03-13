@@ -8,21 +8,6 @@ const AdminReports = () => {
 
     useEffect(() => { adminAPI.getReports().then(res => setData(res.data)).catch(() => { }).finally(() => setLoading(false)); }, []);
 
-    const handleSeedData = async () => {
-        if (!window.confirm('This will add dummy placement drives, announcements, and job applications for demonstration. Proceed?')) return;
-        try {
-            setLoading(true);
-            await adminAPI.seedDemoData();
-            const res = await adminAPI.getReports();
-            setData(res.data);
-            alert('Demo data seeded successfully! Dashboard updated.');
-        } catch (error) {
-            alert('Error seeding demo data: ' + (error.response?.data?.error || error.message));
-        } finally {
-            setLoading(false);
-        }
-    };
-
     const exportToCSV = () => {
         if (!data) return;
 
@@ -73,7 +58,6 @@ const AdminReports = () => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', gap: '1rem', flexWrap: 'wrap' }}>
                     <p style={{ color: 'var(--text-muted)', margin: 0, flex: 1 }}>Comprehensive placement analytics and performance tracking.</p>
                     <div style={{ display: 'flex', gap: '0.75rem' }}>
-                        <button className="btn btn-secondary btn-sm" onClick={handleSeedData}>🚀 Seed Demo Data</button>
                         <button className="btn btn-primary btn-sm" onClick={exportToCSV}>📥 Export Placement Data (CSV)</button>
                     </div>
                 </div>

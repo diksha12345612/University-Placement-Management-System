@@ -22,14 +22,22 @@ router.get('/profile', auth, authorize('student'), async (req, res) => {
 // Update student profile
 router.put('/profile', auth, authorize('student'), async (req, res) => {
     try {
-        const updates = req.body;
+        const updates = req.body || {};
+        const { name, ...profileUpdates } = updates;
+        const existing = await User.findById(req.user._id);
+        if (!existing) {
+            return res.status(404).json({ error: 'Student not found' });
+        }
+
+        const mergedProfile = { ...(existing.studentProfile || {}), ...profileUpdates };
         const student = await User.findByIdAndUpdate(
             req.user._id,
-            { $set: { studentProfile: { ...req.user.studentProfile, ...updates }, name: updates.name || req.user.name } },
+            { $set: { studentProfile: mergedProfile, ...(name ? { name } : {}) } },
             { new: true, runValidators: true }
         );
         res.json(student);
     } catch (error) {
+        console.error('Profile update error:', error);
         res.status(500).json({ error: 'Error updating profile' });
     }
 });
@@ -39,6 +47,14 @@ router.post('/resume', auth, authorize('student'), upload.single('resume'), asyn
     try {
         if (!req.file) {
             return res.status(400).json({ error: 'No file uploaded' });
+        }
+
+        if (req.file.mimetype !== 'application/pdf') {
+            return res.status(400).json({ error: 'Only PDF resumes are supported' });
+        }
+
+        if (!req.file.buffer) {
+            return res.status(400).json({ error: 'Upload buffer missing. Please try again.' });
         }
 
         // Vercel Serverless: File is in memory buffer

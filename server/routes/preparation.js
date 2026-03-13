@@ -47,6 +47,14 @@ router.get('/interview/questions', auth, async (req, res) => {
 router.post('/interview/evaluate', auth, async (req, res) => {
     try {
         const { questionId, studentAnswer } = req.body;
+        if (!questionId) {
+            return res.status(400).json({ error: 'questionId is required' });
+        }
+
+        if (!studentAnswer || !String(studentAnswer).trim()) {
+            return res.status(400).json({ error: 'studentAnswer is required' });
+        }
+
         const question = await InterviewQuestion.findById(questionId);
         if (!question) return res.status(404).json({ error: 'Question not found' });
 
@@ -56,21 +64,42 @@ router.post('/interview/evaluate', auth, async (req, res) => {
             question.category || 'Technical'
         );
 
-        const record = new InterviewEvaluation({
-            studentId: req.user.id,
-            questionId,
-            studentAnswer,
-            score: evaluation.score,
-            strengths: evaluation.strengths,
-            weaknesses: evaluation.weaknesses,
-            improvementTips: evaluation.improvementTips,
-            aiAnalysis: evaluation
-        });
+        const asText = (value, fallback) => {
+            if (Array.isArray(value)) return value.join('\n');
+            if (value && typeof value === 'object') return JSON.stringify(value);
+            const text = String(value || '').trim();
+            return text || fallback;
+        };
 
-        await record.save();
+        const normalizedEvaluation = {
+            ...evaluation,
+            score: Math.min(10, Math.max(1, Number(evaluation?.score) || 5)),
+            feedback: asText(evaluation?.feedback, 'Your answer was evaluated.'),
+            sampleAnswer: asText(evaluation?.sampleAnswer, 'Please try again for a detailed model answer.'),
+            strengths: asText(evaluation?.strengths, 'Answer addressed key parts of the question.'),
+            weaknesses: asText(evaluation?.weaknesses, 'Add more specifics and examples to improve clarity.'),
+            improvementTips: asText(evaluation?.improvementTips, 'Use a structured answer with concrete examples.'),
+        };
 
-        // AI now returns all frontend-expected fields directly
-        res.json(evaluation);
+        try {
+            const record = new InterviewEvaluation({
+                studentId: req.user.id,
+                questionId,
+                studentAnswer: String(studentAnswer),
+                score: normalizedEvaluation.score,
+                strengths: normalizedEvaluation.strengths,
+                weaknesses: normalizedEvaluation.weaknesses,
+                improvementTips: normalizedEvaluation.improvementTips,
+                aiAnalysis: normalizedEvaluation
+            });
+
+            await record.save();
+        } catch (saveErr) {
+            console.error('Interview evaluation save warning:', saveErr.message);
+        }
+
+        // Always return evaluation even if persistence has an intermittent issue.
+        res.json(normalizedEvaluation);
     } catch (err) {
         console.error('Interview evaluation error:', err);
         res.status(500).json({ error: 'Failed to evaluate interview answer' });
