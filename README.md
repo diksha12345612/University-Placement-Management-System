@@ -20,7 +20,6 @@ PlacePrep centralizes the university placement process—moving away from scatte
 ## 🟢 Live Deployment
 - **Primary Web App:** [https://university-placement-portal-seven.vercel.app](https://university-placement-portal-seven.vercel.app)
 - **Production API Base:** [https://university-placement-portal-seven.vercel.app/api](https://university-placement-portal-seven.vercel.app/api)
-- **Legacy Frontend URL (still available):** [https://client-phi-three-68.vercel.app](https://client-phi-three-68.vercel.app)
 
 ### Demo Credentials
 - **Admin:** `kritiSharma@gmail.com` / `111111`
@@ -30,11 +29,21 @@ PlacePrep centralizes the university placement process—moving away from scatte
 
 ## 🖼️ Project Visuals
 
-![Portal Social Preview](docs/assets/social-preview.png)
+### Frontpage
 
-<p align="left">
-  <img src="client/public/logo.png" alt="Project Logo" width="96" />
-</p>
+![Frontpage](https://image.thum.io/get/width/1400/crop/800/noanimate/https://university-placement-portal-seven.vercel.app/)
+
+### Student Dashboard
+
+![Student Dashboard](https://image.thum.io/get/width/1400/crop/800/noanimate/https://university-placement-portal-seven.vercel.app/student/dashboard)
+
+### Interview Prep Feature
+
+![Interview Preparation](https://image.thum.io/get/width/1400/crop/800/noanimate/https://university-placement-portal-seven.vercel.app/student/interview-tips)
+
+### Admin Analytics
+
+![Admin Reports](https://image.thum.io/get/width/1400/crop/800/noanimate/https://university-placement-portal-seven.vercel.app/admin/reports)
 
 ---
 
