@@ -33,17 +33,21 @@ PlacePrep centralizes the university placement process—moving away from scatte
 
 ![Frontpage](docs/assets/screenshots/image-1773444236120.png)
 
-### Register Page
-
-![Register Page](docs/assets/screenshots/image-1773444246079.png)
-
 ### Login Page
 
 ![Login Page](docs/assets/screenshots/image-1773444276609.png)
 
+### Register Page
+
+![Register Page](docs/assets/screenshots/image-1773444246079.png)
+
 ### Student Dashboard
 
 ![Student Dashboard](docs/assets/screenshots/image-1773444298648.png)
+
+### Job Listings
+
+![Job Listings](docs/assets/screenshots/image-1773444320077.png)
 
 ### Mock Test Hub
 
@@ -53,13 +57,9 @@ PlacePrep centralizes the university placement process—moving away from scatte
 
 ![Interview Preparation](docs/assets/screenshots/image-1773444313032.png)
 
-### Job Listings
+### Admin Dashboard
 
-![Job Listings](docs/assets/screenshots/image-1773444320077.png)
-
-### Admin Analytics
-
-![Admin Reports](docs/assets/screenshots/image-1773444325863.png)
+![Admin Dashboard](docs/assets/screenshots/image-1773444325863.png)
 
 ---
 
