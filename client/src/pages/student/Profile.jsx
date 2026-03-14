@@ -118,11 +118,11 @@ const StudentProfile = () => {
                             <div className="form-group"><label>CGPA</label><input name="cgpa" type="number" step="0.01" min="0" max="10" value={form.cgpa} onChange={handleChange} required /></div>
                             <div className="form-group">
                                 <label>Mobile Number</label>
-                                <div className="form-row" style={{ margin: 0 }}>
-                                    <div className="form-group" style={{ flex: '0 0 88px', marginBottom: 0 }}>
+                                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'stretch' }}>
+                                    <div style={{ flex: '0 0 76px' }}>
                                         <input name="phoneCountryCode" value={form.phoneCountryCode} onChange={handleChange} placeholder="+91" required />
                                     </div>
-                                    <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
+                                    <div style={{ flex: 1 }}>
                                         <input name="phone" value={form.phone} onChange={handleChange} inputMode="numeric" maxLength={10} placeholder="10-digit mobile" required />
                                     </div>
                                 </div>
