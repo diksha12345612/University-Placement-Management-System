@@ -11,7 +11,6 @@ const StudentProfile = () => {
         skills: '', tenthPercentage: '', twelfthPercentage: '', linkedIn: '', github: '', portfolio: '', address: ''
     });
     const [loading, setLoading] = useState(false);
-    const [uploading, setUploading] = useState(false);
     const [resumeFile, setResumeFile] = useState(null);
 
     useEffect(() => {
@@ -31,34 +30,29 @@ const StudentProfile = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (resumeFile && resumeFile.type !== 'application/pdf') {
+            return toast.error('Only PDF resumes are supported');
+        }
         setLoading(true);
         try {
             const data = { ...form, skills: form.skills.split(',').map(s => s.trim()).filter(Boolean), cgpa: parseFloat(form.cgpa) || 0, tenthPercentage: parseFloat(form.tenthPercentage) || 0, twelfthPercentage: parseFloat(form.twelfthPercentage) || 0 };
             const res = await studentAPI.updateProfile(data);
             updateUser(res.data);
-            toast.success('Profile updated!');
-        } catch (err) {
-            toast.error(err.response?.data?.error || 'Error updating profile');
-        }
-        finally { setLoading(false); }
-    };
 
-    const handleResumeUpload = async () => {
-        if (!resumeFile) return toast.error('Select a file first');
-        if (resumeFile.type !== 'application/pdf') return toast.error('Only PDF resumes are supported');
-        const formData = new FormData();
-        formData.append('resume', resumeFile);
-        setUploading(true);
-        try {
-            await studentAPI.uploadResume(formData);
-            const profileRes = await studentAPI.getProfile();
-            updateUser(profileRes.data);
-            setResumeFile(null);
-            toast.success('Resume uploaded!');
+            if (resumeFile) {
+                const formData = new FormData();
+                formData.append('resume', resumeFile);
+                await studentAPI.uploadResume(formData);
+                const profileRes = await studentAPI.getProfile();
+                updateUser(profileRes.data);
+                setResumeFile(null);
+            }
+
+            toast.success('Profile saved!');
         } catch (err) {
-            toast.error(err.response?.data?.error || 'Error uploading resume');
+            toast.error(err.response?.data?.error || 'Error saving profile');
         } finally {
-            setUploading(false);
+            setLoading(false);
         }
     };
 
@@ -124,7 +118,7 @@ const StudentProfile = () => {
 
                             <div className="flex flex-col-mobile gap-2 items-start">
                                 <input type="file" accept=".pdf" className="w-full-mobile" onChange={(e) => setResumeFile(e.target.files[0])} />
-                                <button type="button" className="btn btn-secondary btn-sm w-full-mobile flex justify-center" onClick={handleResumeUpload} disabled={uploading}>{uploading ? 'Uploading...' : 'Upload New Resume'}</button>
+                                {resumeFile && <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0 }}>Selected: {resumeFile.name} — will be uploaded on Save</p>}
                             </div>
 
                             {user?.studentProfile?.aiResumeAnalysis?.resumeScore > 0 && (
@@ -171,7 +165,7 @@ const StudentProfile = () => {
 
                         {/* Save Profile Button moved at the absolute bottom */}
                         <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%' }} disabled={loading}>
-                            {loading ? 'Saving Changes...' : 'Save Complete Profile'}
+                            {loading ? 'Saving...' : 'Save Profile'}
                         </button>
                     </form>
                 </div>
