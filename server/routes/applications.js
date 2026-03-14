@@ -69,7 +69,7 @@ router.post('/', auth, authorize('student'), async (req, res) => {
 router.get('/my-applications', auth, authorize('student'), async (req, res) => {
     try {
         const applications = await Application.find({ student: req.user._id })
-            .populate({ path: 'job', populate: { path: 'postedBy', select: 'name recruiterProfile' } })
+            .populate({ path: 'job', populate: { path: 'postedBy', select: 'name email recruiterProfile' } })
             .sort('-createdAt');
         res.json(applications);
     } catch (error) {
