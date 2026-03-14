@@ -82,7 +82,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                             <FiCheckSquare /> <span>Mock Tests</span>
                         </Link>
                         <Link to="/student/preparation/tips" className={isActive('/student/preparation/tips')} onClick={handleLinkClick}>
-                            <FiHelpCircle /> <span>Interview Tips</span>
+                            <FiHelpCircle /> <span>Interview Prep</span>
                         </Link>
                     </div>
                 )}
