@@ -46,4 +46,60 @@ const sendOTP = async (email, otp) => {
     }
 };
 
-module.exports = { sendOTP };
+const sendRecruiterConfirmationEmail = async (email, recruiterName) => {
+    const mailOptions = {
+        from: `"UniPlacements Portal" <${process.env.EMAIL_USER}>`,
+        to: email,
+        subject: 'Account Verification Complete – Welcome to UniPlacements Portal',
+        html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px;">
+                <h2 style="color: #2563eb; text-align: center;">UniPlacements Portal</h2>
+                <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+                <p>Hello <strong>${recruiterName || 'Recruiter'}</strong>,</p>
+                <p>Great news! Your recruiter account has been successfully verified and approved by our admin team.</p>
+                
+                <div style="background: #ecfdf5; border-left: 4px solid #10b981; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                    <p style="color: #065f46; margin: 0;"><strong>✓ Verification Complete</strong></p>
+                    <p style="color: #047857; margin: 10px 0 0 0;">Your account is now active and ready to use.</p>
+                </div>
+
+                <p><strong>What you can do now:</strong></p>
+                <ul style="color: #475569; line-height: 1.8;">
+                    <li>Log in to your recruiter dashboard</li>
+                    <li>Post job openings</li>
+                    <li>Manage applications from candidates</li>
+                    <li>Schedule interviews and placements</li>
+                </ul>
+
+                <p style="margin-top: 20px;">
+                    <a href="${process.env.CLIENT_URL || 'https://yourportal.com'}/recruiter/login" style="display: inline-block; background: #2563eb; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold;">Log In Now</a>
+                </p>
+
+                <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+                
+                <p style="color: #475569; font-size: 14px;">Thank you for being part of the UniPlacements Portal community. We look forward to connecting you with excellent candidates!</p>
+                
+                <p style="color: #64748b; font-size: 12px; margin-top: 15px;">If you have any questions, feel free to reach out to our support team.</p>
+                
+                <p style="text-align: center; color: #475569; font-size: 12px; margin-top: 20px;">&copy; 2026 UniPlacements Portal. All rights reserved.</p>
+            </div>
+        `
+    };
+
+    try {
+        const info = await transporter.sendMail(mailOptions);
+        console.log(`Confirmation email sent successfully to ${email}`);
+        return {
+            sent: true,
+            messageId: info?.messageId || null
+        };
+    } catch (error) {
+        console.error('Error sending confirmation email:', error.message);
+        return {
+            sent: false,
+            error: error.message || 'Unable to send confirmation email'
+        };
+    }
+};
+
+module.exports = { sendOTP, sendRecruiterConfirmationEmail };

@@ -7,6 +7,7 @@ const Application = require('../models/Application');
 const PlacementDrive = require('../models/PlacementDrive');
 const Announcement = require('../models/Announcement');
 const Notification = require('../models/Notification');
+const { sendRecruiterConfirmationEmail } = require('../services/emailService');
 
 // ==================== Student Management ====================
 
@@ -45,6 +46,11 @@ router.put('/recruiters/:id/verify', auth, authorize('admin'), async (req, res) 
             { new: true }
         );
         if (!recruiter) return res.status(404).json({ error: 'Recruiter not found' });
+
+        // Send confirmation email if admin is approving
+        if (req.body.isApprovedByAdmin) {
+            await sendRecruiterConfirmationEmail(recruiter.email, recruiter.name || recruiter.companyName);
+        }
 
         await new Notification({
             user: recruiter._id,
