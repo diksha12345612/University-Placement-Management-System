@@ -170,32 +170,40 @@ const StudentJobs = () => {
                                         className="btn btn-secondary btn-sm"
                                         onClick={async () => {
                                             try {
-                                                console.log('Downloading attachment for job:', selectedJob._id);
+                                                console.log('=== STUDENT DOWNLOAD START ===');
+                                                console.log('JobID:', selectedJob._id);
+                                                console.log('FileName:', selectedJob.attachmentFileName);
+                                                console.log('ContentType:', selectedJob.attachmentContentType);
+                                                console.log('HasAttachmentFile:', !!selectedJob.attachmentFile);
+                                                
                                                 const response = await jobAPI.getAttachment(selectedJob._id);
-                                                // With responseType: 'blob', response.data IS the Blob
+                                                console.log('Response received:', response);
                                                 const blob = response.data;
-                                                console.log('Blob received, size:', blob.size);
+                                                console.log('Blob size:', blob?.size);
                                                 
                                                 if (!blob || blob.size === 0) {
+                                                    console.error('Blob is empty or undefined');
                                                     toast.error('Downloaded file is empty');
                                                     return;
                                                 }
                                                 
-                                                // Create download link
+                                                console.log('Creating download link...');
                                                 const url = URL.createObjectURL(blob);
                                                 const link = document.createElement('a');
                                                 link.href = url;
                                                 link.download = selectedJob.attachmentFileName || 'attachment';
+                                                console.log('Download filename:', link.download);
+                                                
                                                 document.body.appendChild(link);
                                                 link.click();
                                                 document.body.removeChild(link);
                                                 URL.revokeObjectURL(url);
+                                                console.log('=== DOWNLOAD SUCCESS ===');
                                                 toast.success('Attachment downloaded successfully');
                                             } catch (err) {
-                                                console.error('Download error:', err);
+                                                console.error('=== STUDENT DOWNLOAD ERROR ===', err);
                                                 let errorMsg = 'Failed to download attachment';
                                                 
-                                                // Try to extract error message from various sources
                                                 if (err.response?.status === 404) {
                                                     errorMsg = 'Attachment not found';
                                                 } else if (err.response?.data) {
@@ -208,6 +216,7 @@ const StudentJobs = () => {
                                                     errorMsg = err.message;
                                                 }
                                                 
+                                                console.error('Error message:', errorMsg);
                                                 toast.error(errorMsg);
                                             }
                                         }}
