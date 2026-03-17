@@ -48,8 +48,8 @@ const RecruiterDetail = () => {
                 try {
                     // Fetch all jobs for admin
                     const jobsRes = await jobAPI.getAllForAdmin();
-                    // Filter by recruiter's ID
-                    const recruiterJobs = jobsRes.data.filter(job => job.postedBy === recruiter._id);
+                    // Filter by recruiter's ID (postedBy is populated object, so use _id)
+                    const recruiterJobs = jobsRes.data.filter(job => job.postedBy._id === recruiter._id);
                     setJobs(recruiterJobs);
                 } catch (err) {
                     console.error(err);
