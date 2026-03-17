@@ -11,6 +11,10 @@ const api = axios.create({
 api.interceptors.request.use((config) => {
     const token = localStorage.getItem('token');
     if (token) config.headers.Authorization = `Bearer ${token}`;
+    // Don't set Content-Type for blob requests or file uploads
+    if (config.responseType === 'blob' || config.headers['Content-Type'] === 'multipart/form-data') {
+        delete config.headers['Content-Type'];
+    }
     return config;
 });
 

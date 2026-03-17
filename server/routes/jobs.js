@@ -20,20 +20,30 @@ router.get('/', auth, async (req, res) => {
 // Get job attachment (MUST be before /:id route)
 router.get('/:id/attachment', auth, async (req, res) => {
     try {
+        console.log('Downloading attachment for job:', req.params.id);
         const job = await Job.findById(req.params.id);
-        if (!job) return res.status(404).json({ error: 'Job not found' });
+        if (!job) {
+            console.log('Job not found:', req.params.id);
+            return res.status(404).json({ error: 'Job not found' });
+        }
         
         if (!job.attachmentFile) {
+            console.log('No attachment found for job:', req.params.id);
             return res.status(404).json({ error: 'No attachment found for this job' });
         }
         
+        console.log('Found attachment, converting from base64');
         const buffer = Buffer.from(job.attachmentFile, 'base64');
-        res.set('Content-Type', job.attachmentContentType || 'application/octet-stream');
-        res.set('Content-Disposition', `attachment; filename="${job.attachmentFileName}"`);
-        res.send(buffer);
+        const contentType = job.attachmentContentType || 'application/octet-stream';
+        const filename = job.attachmentFileName || 'attachment';
+        
+        res.set('Content-Type', contentType);
+        res.set('Content-Disposition', `attachment; filename="${filename}"`);
+        res.set('Content-Length', buffer.length);
+        return res.send(buffer);
     } catch (error) {
         console.error('Attachment download error:', error);
-        res.status(500).json({ error: 'Error downloading attachment' });
+        return res.status(500).json({ error: 'Error downloading attachment: ' + error.message });
     }
 });
 

@@ -136,17 +136,45 @@ const AdminJobs = () => {
                                     className="btn btn-secondary btn-sm"
                                     onClick={async () => {
                                         try {
-                                            const blob = await jobAPI.getAttachment(selectedJob._id);
-                                            const element = document.createElement('a');
-                                            element.href = URL.createObjectURL(blob);
-                                            element.download = selectedJob.attachmentFileName || 'attachment';
-                                            document.body.appendChild(element);
-                                            element.click();
-                                            document.body.removeChild(element);
-                                            URL.revokeObjectURL(element.href);
+                                            console.log('Downloading attachment for job:', selectedJob._id);
+                                            const response = await jobAPI.getAttachment(selectedJob._id);
+                                            // With responseType: 'blob', response.data IS the Blob
+                                            const blob = response.data;
+                                            console.log('Blob received, size:', blob.size);
+                                            
+                                            if (!blob || blob.size === 0) {
+                                                toast.error('Downloaded file is empty');
+                                                return;
+                                            }
+                                            
+                                            // Create download link
+                                            const url = URL.createObjectURL(blob);
+                                            const link = document.createElement('a');
+                                            link.href = url;
+                                            link.download = selectedJob.attachmentFileName || 'attachment';
+                                            document.body.appendChild(link);
+                                            link.click();
+                                            document.body.removeChild(link);
+                                            URL.revokeObjectURL(url);
+                                            toast.success('Attachment downloaded successfully');
                                         } catch (err) {
                                             console.error('Download error:', err);
-                                            toast.error(err.response?.data?.error || 'Failed to download attachment');
+                                            let errorMsg = 'Failed to download attachment';
+                                            
+                                            // Try to extract error message from various sources
+                                            if (err.response?.status === 404) {
+                                                errorMsg = 'Attachment not found';
+                                            } else if (err.response?.data) {
+                                                if (typeof err.response.data === 'string') {
+                                                    errorMsg = err.response.data;
+                                                } else if (err.response.data?.error) {
+                                                    errorMsg = err.response.data.error;
+                                                }
+                                            } else if (err.message) {
+                                                errorMsg = err.message;
+                                            }
+                                            
+                                            toast.error(errorMsg);
                                         }
                                     }}
                                 >
