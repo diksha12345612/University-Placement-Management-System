@@ -65,6 +65,7 @@ router.post('/', auth, authorize('recruiter'), upload.single('attachment'), asyn
         
         // Handle file attachment if provided
         if (req.file) {
+            console.log('File uploaded:', req.file.originalname, 'Type:', req.file.mimetype, 'Size:', req.file.size);
             const base64 = req.file.buffer.toString('base64');
             jobData.attachmentFile = base64;
             jobData.attachmentFileName = req.file.originalname;
@@ -88,7 +89,8 @@ router.post('/', auth, authorize('recruiter'), upload.single('attachment'), asyn
 
         res.status(201).json(job);
     } catch (error) {
-        res.status(500).json({ error: 'Error creating job posting' });
+        console.error('Error creating job posting:', error);
+        res.status(500).json({ error: error.message || 'Error creating job posting' });
     }
 });
 

@@ -18,6 +18,17 @@ const StudentJobs = () => {
 
     useEffect(() => { loadData(); }, []);
 
+    useEffect(() => {
+        if (selectedJob) {
+            console.log('Job selected. Attachment info:', {
+                hasAttachment: !!selectedJob.attachmentFile,
+                fileName: selectedJob.attachmentFileName,
+                contentType: selectedJob.attachmentContentType,
+                fileSize: selectedJob.attachmentFile?.length || 0
+            });
+        }
+    }, [selectedJob]);
+
     const loadData = async () => {
         try {
             const [jobsRes, appsRes] = await Promise.all([jobAPI.getAll(), applicationAPI.getMyApplications()]);

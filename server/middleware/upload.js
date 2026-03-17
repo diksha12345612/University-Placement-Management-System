@@ -5,11 +5,19 @@ const fs = require('fs');
 const storage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
-    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
+    // Allow PDF, images, and MS Office documents (for job attachments and resumes)
+    const allowedTypes = [
+        'application/pdf',
+        'image/jpeg',
+        'image/png',
+        'image/jpg',
+        'application/msword',  // .doc
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'  // .docx
+    ];
     if (allowedTypes.includes(file.mimetype)) {
         cb(null, true);
     } else {
-        cb(new Error('Only PDF, JPEG, and PNG files are allowed'), false);
+        cb(new Error(`File type not allowed. Allowed: PDF, Images, Word documents. Got: ${file.mimetype}`), false);
     }
 };
 
