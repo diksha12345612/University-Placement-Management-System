@@ -360,7 +360,7 @@ const AdminReports = () => {
                                                                 <td style={{ padding: '1rem' }}><strong>{job.title}</strong></td>
                                                                 <td style={{ padding: '1rem' }}>{job.company}</td>
                                                                 <td style={{ padding: '1rem' }}>{typeof job.postedBy === 'object' ? job.postedBy.name : 'N/A'}</td>
-                                                                <td style={{ padding: '1rem' }}>{job.salary || 'Negotiable'}</td>
+                                                                <td style={{ padding: '1rem' }}>{job.salary ? `₹ ${job.salary}` : 'Negotiable'}</td>
                                                                 <td style={{ padding: '1rem' }}>
                                                                     <span style={{
                                                                         padding: '0.25rem 0.75rem',

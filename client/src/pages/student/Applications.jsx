@@ -32,7 +32,7 @@ const JobDetailModal = ({ app, onClose }) => {
                     {[
                         ['Location', job.location],
                         ['Type', job.type],
-                        ['Salary', job.salary || 'Not disclosed'],
+                        ['Salary', job.salary ? `₹ ${job.salary}` : 'Not disclosed'],
                         ['Openings', job.openings],
                         ['Deadline', job.deadline ? new Date(job.deadline).toLocaleDateString() : 'N/A'],
                         ['Applied On', new Date(app.appliedAt).toLocaleDateString()],
