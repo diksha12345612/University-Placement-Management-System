@@ -72,7 +72,7 @@ const sendRecruiterConfirmationEmail = async (email, recruiterName) => {
                 </ul>
 
                 <p style="margin-top: 20px;">
-                    <a href="${process.env.FRONTEND_URL || 'http://localhost:5500'}/login" style="display: inline-block; background: #2563eb; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold;">Log In Now</a>
+                    <a href="https://university-placement-portal-seven.vercel.app/login" style="display: inline-block; background: #2563eb; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold;">Log In Now</a>
                 </p>
 
                 <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;">
