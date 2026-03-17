@@ -1,15 +1,34 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../../components/Layout';
-import { adminAPI } from '../../services/api';
-import { FiUsers, FiBriefcase, FiCheckCircle, FiFileText, FiClock } from 'react-icons/fi';
+import { adminAPI, notificationAPI } from '../../services/api';
+import { FiUsers, FiBriefcase, FiCheckCircle, FiFileText, FiClock, FiBell } from 'react-icons/fi';
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [notificationCount, setNotificationCount] = useState(0);
 
-    useEffect(() => { adminAPI.getDashboard().then(res => setData(res.data)).catch(() => { }).finally(() => setLoading(false)); }, []);
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                setLoading(true);
+                const [dashRes, notifRes] = await Promise.all([
+                    adminAPI.getDashboard(),
+                    notificationAPI.getUnreadCount()
+                ]);
+                setData(dashRes.data);
+                setNotificationCount(notifRes.data.count);
+            } catch (error) {
+                console.error(error);
+                adminAPI.getDashboard().then(res => setData(res.data)).catch(() => { });
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchData();
+    }, []);
 
     if (loading) return <Layout title="Admin Dashboard"><div className="loading"><div className="spinner"></div></div></Layout>;
 
@@ -43,6 +62,12 @@ const AdminDashboard = () => {
                     <div className="stat-card clickable" onClick={() => navigate('/admin/reports')}>
                         <div className="stat-icon red"><FiFileText /></div>
                         <div className="stat-info"><h3>{data?.totalApplications || 0}</h3><p>Total Applications</p></div>
+                    </div>
+                    <div className="stat-card clickable" onClick={() => navigate('/admin/notifications')}>
+                        <div className="stat-icon purple" style={{ color: '#f59e0b', backgroundColor: '#fffbeb' }}>
+                            <FiBell />
+                        </div>
+                        <div className="stat-info"><h3>{notificationCount}</h3><p>Notifications</p></div>
                     </div>
                 </div>
 

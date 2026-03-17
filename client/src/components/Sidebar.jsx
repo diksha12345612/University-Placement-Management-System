@@ -41,6 +41,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         { path: '/admin/announcements', icon: <FiBell />, label: 'Announcements' },
         { path: '/admin/admins', icon: <FiUser />, label: 'Admin Management' },
         { path: '/admin/reports', icon: <FiBarChart2 />, label: 'Reports' },
+        { path: '/admin/notifications', icon: <FiBell />, label: 'Notifications' },
     ];
 
     const links = user?.role === 'admin' ? adminLinks : user?.role === 'recruiter' ? recruiterLinks : studentLinks;
