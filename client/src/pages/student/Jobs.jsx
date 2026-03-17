@@ -157,14 +157,18 @@ const StudentJobs = () => {
                                     <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.85rem', fontWeight: 600, color: '#0369a1' }}>📎 Job Attachment</p>
                                     <button
                                         className="btn btn-secondary btn-sm"
-                                        onClick={() => {
-                                            const element = document.createElement('a');
-                                            const file = new Blob([Buffer.from(selectedJob.attachmentFile, 'base64')], { type: selectedJob.attachmentContentType });
-                                            element.href = URL.createObjectURL(file);
-                                            element.download = selectedJob.attachmentFileName || 'attachment';
-                                            document.body.appendChild(element);
-                                            element.click();
-                                            document.body.removeChild(element);
+                                        onClick={async () => {
+                                            try {
+                                                const blob = await jobAPI.getAttachment(selectedJob._id);
+                                                const element = document.createElement('a');
+                                                element.href = URL.createObjectURL(blob);
+                                                element.download = selectedJob.attachmentFileName || 'attachment';
+                                                document.body.appendChild(element);
+                                                element.click();
+                                                document.body.removeChild(element);
+                                            } catch (err) {
+                                                toast.error('Failed to download attachment');
+                                            }
                                         }}
                                     >
                                         ⬇ {selectedJob.attachmentFileName}

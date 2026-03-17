@@ -129,6 +129,30 @@ const AdminJobs = () => {
                             <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>{selectedJob.description}</p>
                         </div>
 
+                        {selectedJob.attachmentFile && (
+                            <div style={{ marginBottom: '1.5rem', padding: '0.75rem', backgroundColor: '#f0f9ff', borderRadius: '8px', border: '1px solid #0ea5e9' }}>
+                                <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.85rem', fontWeight: 600, color: '#0369a1' }}>📎 Job Attachment</p>
+                                <button
+                                    className="btn btn-secondary btn-sm"
+                                    onClick={async () => {
+                                        try {
+                                            const blob = await jobAPI.getAttachment(selectedJob._id);
+                                            const element = document.createElement('a');
+                                            element.href = URL.createObjectURL(blob);
+                                            element.download = selectedJob.attachmentFileName || 'attachment';
+                                            document.body.appendChild(element);
+                                            element.click();
+                                            document.body.removeChild(element);
+                                        } catch (err) {
+                                            toast.error('Failed to download attachment');
+                                        }
+                                    }}
+                                >
+                                    ⬇ {selectedJob.attachmentFileName}
+                                </button>
+                            </div>
+                        )}
+
                         <div className="modal-actions" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                             {selectedJob.status === 'pending' && (
                                 <>
