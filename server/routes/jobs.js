@@ -20,19 +20,15 @@ router.get('/', auth, async (req, res) => {
 // Get job attachment (MUST be before /:id route)
 router.get('/:id/attachment', auth, async (req, res) => {
     try {
-        console.log('Downloading attachment for job:', req.params.id);
         const job = await Job.findById(req.params.id);
         if (!job) {
-            console.log('Job not found:', req.params.id);
             return res.status(404).json({ error: 'Job not found' });
         }
         
         if (!job.attachmentFile) {
-            console.log('No attachment found for job:', req.params.id);
             return res.status(404).json({ error: 'No attachment found for this job' });
         }
         
-        console.log('Found attachment, converting from base64');
         const buffer = Buffer.from(job.attachmentFile, 'base64');
         const contentType = job.attachmentContentType || 'application/octet-stream';
         const filename = job.attachmentFileName || 'attachment';
@@ -65,7 +61,6 @@ router.post('/', auth, authorize('recruiter'), upload.single('attachment'), asyn
         
         // Handle file attachment if provided
         if (req.file) {
-            console.log('File uploaded:', req.file.originalname, 'Type:', req.file.mimetype, 'Size:', req.file.size);
             const base64 = req.file.buffer.toString('base64');
             jobData.attachmentFile = base64;
             jobData.attachmentFileName = req.file.originalname;

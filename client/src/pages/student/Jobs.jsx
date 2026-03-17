@@ -18,17 +18,6 @@ const StudentJobs = () => {
 
     useEffect(() => { loadData(); }, []);
 
-    useEffect(() => {
-        if (selectedJob) {
-            console.log('Job selected. Attachment info:', {
-                hasAttachment: !!selectedJob.attachmentFile,
-                fileName: selectedJob.attachmentFileName,
-                contentType: selectedJob.attachmentContentType,
-                fileSize: selectedJob.attachmentFile?.length || 0
-            });
-        }
-    }, [selectedJob]);
-
     const loadData = async () => {
         try {
             const [jobsRes, appsRes] = await Promise.all([jobAPI.getAll(), applicationAPI.getMyApplications()]);
@@ -170,53 +159,35 @@ const StudentJobs = () => {
                                         className="btn btn-secondary btn-sm"
                                         onClick={async () => {
                                             try {
-                                                console.log('=== STUDENT DOWNLOAD START ===');
-                                                console.log('JobID:', selectedJob._id);
-                                                console.log('FileName:', selectedJob.attachmentFileName);
-                                                console.log('ContentType:', selectedJob.attachmentContentType);
-                                                console.log('HasAttachmentFile:', !!selectedJob.attachmentFile);
-                                                
                                                 const response = await jobAPI.getAttachment(selectedJob._id);
-                                                console.log('Response received:', response);
                                                 const blob = response.data;
-                                                console.log('Blob size:', blob?.size);
                                                 
                                                 if (!blob || blob.size === 0) {
-                                                    console.error('Blob is empty or undefined');
                                                     toast.error('Downloaded file is empty');
                                                     return;
                                                 }
                                                 
-                                                console.log('Creating download link...');
                                                 const url = URL.createObjectURL(blob);
                                                 const link = document.createElement('a');
                                                 link.href = url;
                                                 link.download = selectedJob.attachmentFileName || 'attachment';
-                                                console.log('Download filename:', link.download);
-                                                
                                                 document.body.appendChild(link);
                                                 link.click();
                                                 document.body.removeChild(link);
                                                 URL.revokeObjectURL(url);
-                                                console.log('=== DOWNLOAD SUCCESS ===');
                                                 toast.success('Attachment downloaded successfully');
                                             } catch (err) {
-                                                console.error('=== STUDENT DOWNLOAD ERROR ===', err);
+                                                console.error('Attachment download error:', err);
                                                 let errorMsg = 'Failed to download attachment';
                                                 
                                                 if (err.response?.status === 404) {
                                                     errorMsg = 'Attachment not found';
-                                                } else if (err.response?.data) {
-                                                    if (typeof err.response.data === 'string') {
-                                                        errorMsg = err.response.data;
-                                                    } else if (err.response.data?.error) {
-                                                        errorMsg = err.response.data.error;
-                                                    }
+                                                } else if (err.response?.data?.error) {
+                                                    errorMsg = err.response.data.error;
                                                 } else if (err.message) {
                                                     errorMsg = err.message;
                                                 }
                                                 
-                                                console.error('Error message:', errorMsg);
                                                 toast.error(errorMsg);
                                             }
                                         }}

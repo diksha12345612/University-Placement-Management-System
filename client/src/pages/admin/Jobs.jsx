@@ -13,17 +13,6 @@ const AdminJobs = () => {
 
     useEffect(() => { loadJobs(); }, []);
 
-    useEffect(() => {
-        if (selectedJob) {
-            console.log('Job selected. Attachment info:', {
-                hasAttachment: !!selectedJob.attachmentFile,
-                fileName: selectedJob.attachmentFileName,
-                contentType: selectedJob.attachmentContentType,
-                fileSize: selectedJob.attachmentFile?.length || 0
-            });
-        }
-    }, [selectedJob]);
-
     const loadJobs = async () => {
         try { const res = await jobAPI.getAll(); setJobs(res.data); } catch { } finally { setLoading(false); }
     };
