@@ -146,14 +146,99 @@ const StudentJobs = () => {
                     <div className="modal-overlay" onClick={() => setSelectedJob(null)}>
                         <div className="modal modal-lg" onClick={(e) => e.stopPropagation()}>
                             <h2>{selectedJob.title}</h2>
-                            <p style={{ color: 'var(--primary-light)', fontWeight: 500 }}>{selectedJob.company}</p>
-                            <div className="meta" style={{ margin: '1rem 0', display: 'flex', gap: '1rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                                <span><FiMapPin /> {selectedJob.location}</span>
-                                <span><FiClock /> {selectedJob.type}</span>
-                                {selectedJob.salary && <span>₹ {selectedJob.salary}</span>}
+                            <p style={{ color: 'var(--primary-light)', fontWeight: 500, marginBottom: '1.5rem' }}>{selectedJob.company}</p>
+                            
+                            {/* Basic Info Grid */}
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem', paddingBottom: '1.5rem', borderBottom: '1px solid var(--border)' }}>
+                                <div>
+                                    <p style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Location</p>
+                                    <p style={{ fontSize: '0.9rem' }}>{selectedJob.location}</p>
+                                </div>
+                                <div>
+                                    <p style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Type</p>
+                                    <p style={{ fontSize: '0.9rem' }}>{selectedJob.type}</p>
+                                </div>
+                                <div>
+                                    <p style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Salary</p>
+                                    <p style={{ fontSize: '0.9rem' }}>{selectedJob.salary ? `₹ ${selectedJob.salary}` : 'Not disclosed'}</p>
+                                </div>
+                                <div>
+                                    <p style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Openings</p>
+                                    <p style={{ fontSize: '0.9rem' }}>{selectedJob.openings || 1}</p>
+                                </div>
+                                <div>
+                                    <p style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Deadline</p>
+                                    <p style={{ fontSize: '0.9rem' }}>{new Date(selectedJob.deadline).toLocaleDateString()}</p>
+                                </div>
+                                <div>
+                                    <p style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Batch</p>
+                                    <p style={{ fontSize: '0.9rem' }}>{selectedJob.eligibility?.batch || 'N/A'}</p>
+                                </div>
                             </div>
+
+                            {/* Eligibility Info */}
+                            <div style={{ marginBottom: '1.5rem', paddingBottom: '1.5rem', borderBottom: '1px solid var(--border)' }}>
+                                <div style={{ marginBottom: '1rem' }}>
+                                    <p style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Min CGPA</p>
+                                    <p style={{ fontSize: '0.9rem' }}>{selectedJob.eligibility?.minCGPA || 0}</p>
+                                </div>
+                                {selectedJob.eligibility?.branches?.length > 0 && (
+                                    <div style={{ marginBottom: '1rem' }}>
+                                        <p style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Eligible Branches</p>
+                                        <p style={{ fontSize: '0.9rem' }}>{selectedJob.eligibility.branches.join(', ')}</p>
+                                    </div>
+                                )}
+                                {selectedJob.eligibility?.skills?.length > 0 && (
+                                    <div>
+                                        <p style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Required Skills</p>
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                                            {selectedJob.eligibility.skills.map((skill, i) => (
+                                                <span key={i} className="badge badge-primary" style={{ fontSize: '0.8rem' }}>{skill}</span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Description */}
+                            <div style={{ marginBottom: '1.5rem', paddingBottom: '1.5rem', borderBottom: '1px solid var(--border)' }}>
+                                <h4 style={{ fontSize: '0.9rem', marginBottom: '0.5rem', fontWeight: 600 }}>Description</h4>
+                                <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', whiteSpace: 'pre-wrap', wordWrap: 'break-word', overflowWrap: 'break-word', lineHeight: 1.6 }}>{selectedJob.description}</p>
+                            </div>
+
+                            {/* Requirements */}
+                            {selectedJob.requirements?.length > 0 && (
+                                <div style={{ marginBottom: '1.5rem', paddingBottom: '1.5rem', borderBottom: '1px solid var(--border)' }}>
+                                    <h4 style={{ fontSize: '0.9rem', marginBottom: '0.5rem', fontWeight: 600 }}>Requirements</h4>
+                                    <ul style={{ paddingLeft: '1.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.8 }}>
+                                        {selectedJob.requirements.map((r, i) => <li key={i}>{r}</li>)}
+                                    </ul>
+                                </div>
+                            )}
+
+                            {/* Responsibilities */}
+                            {selectedJob.responsibilities?.length > 0 && (
+                                <div style={{ marginBottom: '1.5rem', paddingBottom: '1.5rem', borderBottom: '1px solid var(--border)' }}>
+                                    <h4 style={{ fontSize: '0.9rem', marginBottom: '0.5rem', fontWeight: 600 }}>Responsibilities</h4>
+                                    <ul style={{ paddingLeft: '1.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.8 }}>
+                                        {selectedJob.responsibilities.map((r, i) => <li key={i}>{r}</li>)}
+                                    </ul>
+                                </div>
+                            )}
+
+                            {/* Perks */}
+                            {selectedJob.perks?.length > 0 && (
+                                <div style={{ marginBottom: '1.5rem', paddingBottom: '1.5rem', borderBottom: '1px solid var(--border)' }}>
+                                    <h4 style={{ fontSize: '0.9rem', marginBottom: '0.5rem', fontWeight: 600 }}>Perks</h4>
+                                    <ul style={{ paddingLeft: '1.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.8 }}>
+                                        {selectedJob.perks.map((p, i) => <li key={i}>{p}</li>)}
+                                    </ul>
+                                </div>
+                            )}
+
+                            {/* Attachment */}
                             {selectedJob.attachmentFile && (
-                                <div style={{ marginBottom: '1rem', padding: '0.75rem', backgroundColor: '#f0f9ff', borderRadius: '8px', border: '1px solid #0ea5e9' }}>
+                                <div style={{ marginBottom: '1.5rem', padding: '0.75rem', backgroundColor: '#f0f9ff', borderRadius: '8px', border: '1px solid #0ea5e9' }}>
                                     <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.85rem', fontWeight: 600, color: '#0369a1' }}>📎 Job Attachment</p>
                                     <button
                                         className="btn btn-secondary btn-sm"
@@ -196,18 +281,7 @@ const StudentJobs = () => {
                                     </button>
                                 </div>
                             )}
-                            <div style={{ marginBottom: '1rem' }}>
-                                <h4 style={{ fontSize: '0.9rem', marginBottom: '0.5rem' }}>Description</h4>
-                                <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', whiteSpace: 'pre-wrap', wordWrap: 'break-word', overflowWrap: 'break-word' }}>{selectedJob.description}</p>
-                            </div>
-                            {selectedJob.requirements?.length > 0 && (
-                                <div style={{ marginBottom: '1rem' }}>
-                                    <h4 style={{ fontSize: '0.9rem', marginBottom: '0.5rem' }}>Requirements</h4>
-                                    <ul style={{ paddingLeft: '1.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                                        {selectedJob.requirements.map((r, i) => <li key={i}>{r}</li>)}
-                                    </ul>
-                                </div>
-                            )}
+
                             {!selectedJob.viewOnly && !appliedJobs.includes(selectedJob._id) && (
                                 <div style={{ marginTop: '1rem' }}>
                                     <div className="form-group">
