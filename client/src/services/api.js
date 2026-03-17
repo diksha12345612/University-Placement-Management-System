@@ -61,10 +61,12 @@ export const jobAPI = {
     getAll: () => api.get('/jobs'),
     getById: (id) => api.get(`/jobs/${id}`),
     create: (data) => api.post('/jobs', data),
+    createWithAttachment: (formData) => api.post('/jobs', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
     update: (id, data) => api.put(`/jobs/${id}`, data),
     delete: (id) => api.delete(`/jobs/${id}`),
     getMyJobs: () => api.get('/jobs/recruiter/my-jobs'),
     getAllForAdmin: () => api.get('/admin/jobs'), // Get all jobs for admin
+    getAttachment: (jobId) => api.get(`/jobs/${jobId}/attachment`, { responseType: 'blob' }),
 };
 
 // Applications

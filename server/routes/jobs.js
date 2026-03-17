@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { auth, authorize } = require('../middleware/auth');
+const upload = require('../middleware/upload');
 const Job = require('../models/Job');
 const Notification = require('../models/Notification');
 const User = require('../models/User');
@@ -27,10 +28,39 @@ router.get('/:id', auth, async (req, res) => {
     }
 });
 
-// Create job posting (recruiter)
-router.post('/', auth, authorize('recruiter'), async (req, res) => {
+// Get job attachment
+router.get('/:id/attachment', auth, async (req, res) => {
     try {
-        const job = new Job({ ...req.body, postedBy: req.user._id, company: req.user.recruiterProfile?.company || req.body.company });
+        const job = await Job.findById(req.params.id);
+        if (!job) return res.status(404).json({ error: 'Job not found' });
+        
+        if (!job.attachmentFile) {
+            return res.status(404).json({ error: 'No attachment found for this job' });
+        }
+        
+        const buffer = Buffer.from(job.attachmentFile, 'base64');
+        res.set('Content-Type', job.attachmentContentType);
+        res.set('Content-Disposition', `attachment; filename="${job.attachmentFileName}"`);
+        res.send(buffer);
+    } catch (error) {
+        res.status(500).json({ error: 'Error downloading attachment' });
+    }
+});
+
+// Create job posting (recruiter)
+router.post('/', auth, authorize('recruiter'), upload.single('attachment'), async (req, res) => {
+    try {
+        const jobData = { ...req.body, postedBy: req.user._id, company: req.user.recruiterProfile?.company || req.body.company };
+        
+        // Handle file attachment if provided
+        if (req.file) {
+            const base64 = req.file.buffer.toString('base64');
+            jobData.attachmentFile = base64;
+            jobData.attachmentFileName = req.file.originalname;
+            jobData.attachmentContentType = req.file.mimetype;
+        }
+        
+        const job = new Job(jobData);
         await job.save();
 
         // Notify admin

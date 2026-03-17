@@ -11,25 +11,51 @@ const PostJob = () => {
         deadline: '', minCGPA: 0, branches: '', skills: '', batch: '',
         requirements: '', responsibilities: '', perks: ''
     });
+    const [attachment, setAttachment] = useState(null);
+    const [attachmentName, setAttachmentName] = useState('');
     const [loading, setLoading] = useState(false);
+
+    const handleAttachmentChange = (e) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            // Allow only PDF and DOCX
+            if (!['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(file.type)) {
+                toast.error('Only PDF and DOCX files are allowed');
+                return;
+            }
+            setAttachment(file);
+            setAttachmentName(file.name);
+        }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
         try {
-            await jobAPI.create({
-                title: form.title, company: form.company, description: form.description,
-                location: form.location, type: form.type, salary: form.salary,
-                openings: parseInt(form.openings), deadline: form.deadline,
-                eligibility: {
-                    minCGPA: parseFloat(form.minCGPA), batch: form.batch,
-                    branches: form.branches.split(',').map(s => s.trim()).filter(Boolean),
-                    skills: form.skills.split(',').map(s => s.trim()).filter(Boolean)
-                },
-                requirements: form.requirements.split('\n').filter(Boolean),
-                responsibilities: form.responsibilities.split('\n').filter(Boolean),
-                perks: form.perks.split('\n').filter(Boolean)
-            });
+            const formData = new FormData();
+            formData.append('title', form.title);
+            formData.append('company', form.company);
+            formData.append('description', form.description);
+            formData.append('location', form.location);
+            formData.append('type', form.type);
+            formData.append('salary', form.salary);
+            formData.append('openings', parseInt(form.openings));
+            formData.append('deadline', form.deadline);
+            formData.append('eligibility', JSON.stringify({
+                minCGPA: parseFloat(form.minCGPA),
+                batch: form.batch,
+                branches: form.branches.split(',').map(s => s.trim()).filter(Boolean),
+                skills: form.skills.split(',').map(s => s.trim()).filter(Boolean)
+            }));
+            formData.append('requirements', JSON.stringify(form.requirements.split('\n').filter(Boolean)));
+            formData.append('responsibilities', JSON.stringify(form.responsibilities.split('\n').filter(Boolean)));
+            formData.append('perks', JSON.stringify(form.perks.split('\n').filter(Boolean)));
+            
+            if (attachment) {
+                formData.append('attachment', attachment);
+            }
+
+            await jobAPI.createWithAttachment(formData);
             toast.success('Job posted! Awaiting admin approval.');
             navigate('/recruiter/my-jobs');
         } catch (err) { toast.error(err.response?.data?.error || 'Error posting job'); }
@@ -58,12 +84,18 @@ const PostJob = () => {
                             </div>
                         </div>
                         <div className="form-row">
-                            <div className="form-group"><label>Salary</label><input name="salary" value={form.salary} onChange={handleChange} placeholder="e.g., 12-18 LPA" /></div>
+                            <div className="form-group"><label>Salary (₹)</label><input name="salary" value={form.salary} onChange={handleChange} placeholder="e.g., 12-18 LPA" /></div>
                             <div className="form-group"><label>Openings</label><input name="openings" type="number" value={form.openings} onChange={handleChange} min="1" /></div>
                         </div>
                         <div className="form-row">
                             <div className="form-group"><label>Deadline *</label><input name="deadline" type="date" value={form.deadline} onChange={handleChange} required /></div>
                             <div className="form-group"><label>Batch</label><input name="batch" value={form.batch} onChange={handleChange} placeholder="e.g., 2025" /></div>
+                        </div>
+                        <div className="form-row">
+                            <div className="form-group"><label>Attachment (PDF or DOCX)</label>
+                                <input type="file" accept=".pdf,.docx" onChange={handleAttachmentChange} />
+                                {attachmentName && <p style={{ fontSize: '0.85rem', color: 'var(--success)', marginTop: '0.25rem' }}>✓ {attachmentName}</p>}
+                            </div>
                         </div>
                         <div className="form-row">
                             <div className="form-group"><label>Min CGPA</label><input name="minCGPA" type="number" step="0.1" value={form.minCGPA} onChange={handleChange} /></div>

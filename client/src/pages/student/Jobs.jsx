@@ -101,7 +101,7 @@ const StudentJobs = () => {
                                     <div className="meta" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                                         <span className="flex items-center gap-1"><FiMapPin /> {job.location}</span>
                                         <span className="flex items-center gap-1"><FiClock /> {job.type}</span>
-                                        {job.salary && <span className="flex items-center gap-1"><FiDollarSign /> {job.salary}</span>}
+                                        {job.salary && <span className="flex items-center gap-1">₹ {job.salary}</span>}
                                         <span className="flex items-center gap-1"><FiUsers /> {job.openings} openings</span>
                                     </div>
                                     {job.eligibility?.skills?.length > 0 && (
@@ -150,8 +150,27 @@ const StudentJobs = () => {
                             <div className="meta" style={{ margin: '1rem 0', display: 'flex', gap: '1rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
                                 <span><FiMapPin /> {selectedJob.location}</span>
                                 <span><FiClock /> {selectedJob.type}</span>
-                                {selectedJob.salary && <span><FiDollarSign /> {selectedJob.salary}</span>}
+                                {selectedJob.salary && <span>₹ {selectedJob.salary}</span>}
                             </div>
+                            {selectedJob.attachmentFile && (
+                                <div style={{ marginBottom: '1rem', padding: '0.75rem', backgroundColor: '#f0f9ff', borderRadius: '8px', border: '1px solid #0ea5e9' }}>
+                                    <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.85rem', fontWeight: 600, color: '#0369a1' }}>📎 Job Attachment</p>
+                                    <button
+                                        className="btn btn-secondary btn-sm"
+                                        onClick={() => {
+                                            const element = document.createElement('a');
+                                            const file = new Blob([Buffer.from(selectedJob.attachmentFile, 'base64')], { type: selectedJob.attachmentContentType });
+                                            element.href = URL.createObjectURL(file);
+                                            element.download = selectedJob.attachmentFileName || 'attachment';
+                                            document.body.appendChild(element);
+                                            element.click();
+                                            document.body.removeChild(element);
+                                        }}
+                                    >
+                                        ⬇ {selectedJob.attachmentFileName}
+                                    </button>
+                                </div>
+                            )}
                             <div style={{ marginBottom: '1rem' }}>
                                 <h4 style={{ fontSize: '0.9rem', marginBottom: '0.5rem' }}>Description</h4>
                                 <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{selectedJob.description}</p>

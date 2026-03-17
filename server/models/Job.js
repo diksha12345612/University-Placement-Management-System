@@ -18,6 +18,10 @@ const jobSchema = new mongoose.Schema({
     requirements: [String],
     responsibilities: [String],
     perks: [String],
+    // Job attachment (PDF, DOCX, etc.)
+    attachmentFile: String, // Base64 encoded file
+    attachmentFileName: String,
+    attachmentContentType: String,
     postedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
     isActive: { type: Boolean, default: true }
