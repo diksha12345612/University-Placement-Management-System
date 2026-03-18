@@ -15,88 +15,133 @@ const JobDetailModal = ({ app, onClose }) => {
             onClick={onClose}
         >
             <div
-                style={{ background: 'var(--bg-card)', borderRadius: '16px', border: '1px solid var(--border)', maxWidth: '680px', width: '100%', maxHeight: '90vh', overflowY: 'auto', padding: '2rem', position: 'relative' }}
+                style={{ background: 'var(--bg-card)', borderRadius: '12px', border: '1px solid var(--border)', maxWidth: '720px', width: '100%', maxHeight: '90vh', overflowY: 'auto', padding: '2rem', position: 'relative', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}
                 onClick={e => e.stopPropagation()}
             >
-                <button onClick={onClose} style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', fontSize: '1.4rem', cursor: 'pointer', color: 'var(--text-secondary)' }}>×</button>
+                {/* Close Button */}
+                <button onClick={onClose} style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', fontSize: '1.6rem', cursor: 'pointer', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px' }}>✕</button>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1.5rem' }}>
+                {/* Header with Title and Status */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1.75rem', paddingRight: '2.5rem' }}>
                     <div>
-                        <h2 style={{ margin: 0 }}>{job.title || 'N/A'}</h2>
-                        <p style={{ margin: '0.25rem 0 0', color: 'var(--text-secondary)', fontSize: '1rem' }}>{job.company || 'N/A'}</p>
+                        <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700 }}>{job.title || 'N/A'}</h1>
+                        <p style={{ margin: '0.35rem 0 0', color: 'var(--text-muted)', fontSize: '0.95rem', fontWeight: 500 }}>{job.company || 'N/A'}</p>
                     </div>
-                    <span className={`badge ${statusColors[app.status] || 'badge-info'}`} style={{ alignSelf: 'flex-start' }}>{app.status?.toUpperCase()}</span>
+                    <span className={`badge ${statusColors[app.status] || 'badge-info'}`} style={{ alignSelf: 'flex-start', fontSize: '0.8rem', fontWeight: 700, padding: '0.4rem 0.8rem' }}>{app.status?.toUpperCase()}</span>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem', marginBottom: '1.5rem' }}>
+                {/* Info Grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.75rem', marginBottom: '1.75rem', paddingBottom: '1.75rem', borderBottom: '1px solid var(--border)' }}>
                     {[
-                        ['Location', job.location],
-                        ['Type', job.type],
-                        ['Salary', job.salary ? `₹ ${job.salary}` : 'Not disclosed'],
-                        ['Openings', job.openings],
-                        ['Deadline', job.deadline ? new Date(job.deadline).toLocaleDateString() : 'N/A'],
-                        ['Applied On', new Date(app.appliedAt).toLocaleDateString()],
+                        ['📍 Location', job.location],
+                        ['💼 Type', job.type],
+                        ['💰 Salary', job.salary ? `₹ ${job.salary}` : 'Not disclosed'],
+                        ['👥 Openings', job.openings || 1],
+                        ['📅 Deadline', job.deadline ? new Date(job.deadline).toLocaleDateString('en-IN') : 'N/A'],
+                        ['📨 Applied', new Date(app.appliedAt).toLocaleDateString('en-IN')],
                     ].map(([label, value]) => (
-                        <div key={label} style={{ background: 'var(--bg)', borderRadius: '8px', padding: '0.75rem 1rem' }}>
-                            <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</p>
-                            <p style={{ margin: '0.2rem 0 0', fontWeight: 600 }}>{value || 'N/A'}</p>
+                        <div key={label} style={{ background: 'var(--bg-dark)', borderRadius: '8px', padding: '0.75rem 1rem', display: 'flex', flexDirection: 'column' }}>
+                            <p style={{ margin: 0, fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 600 }}>{label}</p>
+                            <p style={{ margin: '0.4rem 0 0', fontWeight: 600, fontSize: '0.95rem' }}>{value || 'N/A'}</p>
                         </div>
                     ))}
                 </div>
 
-                <div style={{ marginBottom: '1.25rem' }}>
-                    <h4 style={{ marginBottom: '0.5rem' }}>Description</h4>
-                    <p style={{ color: 'var(--text-secondary)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{job.description || 'N/A'}</p>
-                </div>
+                {/* Description */}
+                {job.description && (
+                    <div style={{ marginBottom: '1.5rem' }}>
+                        <h4 style={{ marginTop: 0, marginBottom: '0.75rem', color: 'var(--primary)', fontSize: '0.95rem', fontWeight: 700 }}>📝 About this Role</h4>
+                        <p style={{ color: 'var(--text-secondary)', lineHeight: 1.7, whiteSpace: 'pre-wrap', margin: 0, fontSize: '0.9rem' }}>{job.description}</p>
+                    </div>
+                )}
 
+                {/* Requirements */}
                 {(job.requirements || []).length > 0 && (
-                    <div style={{ marginBottom: '1.25rem' }}>
-                        <h4 style={{ marginBottom: '0.5rem' }}>Requirements</h4>
-                        <ul style={{ paddingLeft: '1.25rem', color: 'var(--text-secondary)', lineHeight: 1.8 }}>
+                    <div style={{ marginBottom: '1.5rem' }}>
+                        <h4 style={{ marginTop: 0, marginBottom: '0.75rem', color: 'var(--primary)', fontSize: '0.95rem', fontWeight: 700 }}>✓ Requirements</h4>
+                        <ul style={{ paddingLeft: '1.25rem', color: 'var(--text-secondary)', lineHeight: 1.8, margin: 0, fontSize: '0.9rem' }}>
                             {job.requirements.map((r, i) => <li key={i}>{r}</li>)}
                         </ul>
                     </div>
                 )}
 
+                {/* Responsibilities */}
                 {(job.responsibilities || []).length > 0 && (
-                    <div style={{ marginBottom: '1.25rem' }}>
-                        <h4 style={{ marginBottom: '0.5rem' }}>Responsibilities</h4>
-                        <ul style={{ paddingLeft: '1.25rem', color: 'var(--text-secondary)', lineHeight: 1.8 }}>
+                    <div style={{ marginBottom: '1.5rem' }}>
+                        <h4 style={{ marginTop: 0, marginBottom: '0.75rem', color: 'var(--primary)', fontSize: '0.95rem', fontWeight: 700 }}>💪 Responsibilities</h4>
+                        <ul style={{ paddingLeft: '1.25rem', color: 'var(--text-secondary)', lineHeight: 1.8, margin: 0, fontSize: '0.9rem' }}>
                             {job.responsibilities.map((r, i) => <li key={i}>{r}</li>)}
                         </ul>
                     </div>
                 )}
 
+                {/* Perks */}
                 {(job.perks || []).length > 0 && (
-                    <div style={{ marginBottom: '1.25rem' }}>
-                        <h4 style={{ marginBottom: '0.5rem' }}>Perks</h4>
-                        <ul style={{ paddingLeft: '1.25rem', color: 'var(--text-secondary)', lineHeight: 1.8 }}>
+                    <div style={{ marginBottom: '1.5rem' }}>
+                        <h4 style={{ marginTop: 0, marginBottom: '0.75rem', color: 'var(--primary)', fontSize: '0.95rem', fontWeight: 700 }}>🎁 Perks</h4>
+                        <ul style={{ paddingLeft: '1.25rem', color: 'var(--text-secondary)', lineHeight: 1.8, margin: 0, fontSize: '0.9rem' }}>
                             {job.perks.map((p, i) => <li key={i}>{p}</li>)}
                         </ul>
                     </div>
                 )}
 
+                {/* Eligibility */}
                 {job.eligibility && (
-                    <div style={{ marginBottom: '1.25rem' }}>
-                        <h4 style={{ marginBottom: '0.5rem' }}>Eligibility</h4>
-                        <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.8 }}>
-                            {job.eligibility.minCGPA > 0 && <p style={{ margin: 0 }}>Min CGPA: <strong>{job.eligibility.minCGPA}</strong></p>}
-                            {job.eligibility.batch && <p style={{ margin: 0 }}>Batch: <strong>{job.eligibility.batch}</strong></p>}
-                            {(job.eligibility.branches || []).length > 0 && <p style={{ margin: 0 }}>Branches: <strong>{job.eligibility.branches.join(', ')}</strong></p>}
-                            {(job.eligibility.skills || []).length > 0 && <p style={{ margin: 0 }}>Required Skills: <strong>{job.eligibility.skills.join(', ')}</strong></p>}
+                    <div style={{ marginBottom: '1.75rem', padding: '1rem', background: 'var(--bg-dark)', borderRadius: '8px', border: '1px solid rgba(99,102,241,0.15)' }}>
+                        <h4 style={{ marginTop: 0, marginBottom: '0.75rem', color: 'var(--primary)', fontSize: '0.95rem', fontWeight: 700 }}>📋 Eligibility</h4>
+                        <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.9, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.75rem' }}>
+                            {job.eligibility.minCGPA > 0 && (
+                                <div>
+                                    <p style={{ margin: 0, fontWeight: 600 }}>Min CGPA: <span style={{ color: 'var(--primary)' }}>{job.eligibility.minCGPA}</span></p>
+                                </div>
+                            )}
+                            {job.eligibility.batch && (
+                                <div>
+                                    <p style={{ margin: 0, fontWeight: 600 }}>Batch: <span style={{ color: 'var(--primary)' }}>{job.eligibility.batch}</span></p>
+                                </div>
+                            )}
+                            {(job.eligibility.branches || []).length > 0 && (
+                                <div style={{ gridColumn: 'span 1' }}>
+                                    <p style={{ margin: 0, fontWeight: 600 }}>Branches:</p>
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginTop: '0.4rem' }}>
+                                        {job.eligibility.branches.map((b, i) => (
+                                            <span key={i} className="badge badge-secondary" style={{ fontSize: '0.75rem' }}>{b}</span>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                            {(job.eligibility.skills || []).length > 0 && (
+                                <div style={{ gridColumn: 'span 1' }}>
+                                    <p style={{ margin: 0, fontWeight: 600 }}>Required Skills:</p>
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginTop: '0.4rem' }}>
+                                        {job.eligibility.skills.map((s, i) => (
+                                            <span key={i} className="badge badge-primary" style={{ fontSize: '0.75rem' }}>{s}</span>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}
 
-                <div style={{ marginTop: '1.5rem', paddingTop: '1.25rem', borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-                    <div style={{ background: 'var(--primary-glow)', borderRadius: '8px', padding: '0.6rem 1rem' }}>
-                        <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Recruiter</p>
-                        <p style={{ margin: '0.15rem 0 0', fontWeight: 600 }}>{recruiter.name || 'N/A'}</p>
+                {/* Recruiter Info */}
+                <div style={{ marginTop: '1.75rem', paddingTop: '1.5rem', borderTop: '1px solid var(--border)' }}>
+                    <h4 style={{ marginTop: 0, marginBottom: '1rem', color: 'var(--primary)', fontSize: '0.95rem', fontWeight: 700 }}>👤 Recruiter Information</h4>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.75rem' }}>
+                        <div style={{ background: 'var(--bg-dark)', borderRadius: '8px', padding: '0.75rem 1rem', borderLeft: '4px solid var(--primary)' }}>
+                            <p style={{ margin: 0, fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 600 }}>Recruiter Name</p>
+                            <p style={{ margin: '0.35rem 0 0', fontWeight: 600 }}>{recruiter.name || 'N/A'}</p>
+                        </div>
+                        <div style={{ background: 'var(--bg-dark)', borderRadius: '8px', padding: '0.75rem 1rem', borderLeft: '4px solid var(--primary)' }}>
+                            <p style={{ margin: 0, fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 600 }}>Email</p>
+                            <a href={`mailto:${recruiterEmail}`} style={{ margin: '0.35rem 0 0', display: 'block', fontWeight: 600, color: 'var(--primary)', textDecoration: 'none', fontSize: '0.9rem' }}>{recruiterEmail}</a>
+                        </div>
                     </div>
-                    <div style={{ background: 'var(--primary-glow)', borderRadius: '8px', padding: '0.6rem 1rem' }}>
-                        <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Recruiter Email</p>
-                        <a href={`mailto:${recruiterEmail}`} style={{ margin: '0.15rem 0 0', display: 'block', fontWeight: 600, color: 'var(--primary)' }}>{recruiterEmail}</a>
-                    </div>
+                </div>
+
+                {/* Close Button */}
+                <div style={{ marginTop: '1.75rem', display: 'flex', gap: '0.75rem' }}>
+                    <button onClick={onClose} className="btn btn-secondary" style={{ flex: 1 }}>Close</button>
                 </div>
             </div>
         </div>

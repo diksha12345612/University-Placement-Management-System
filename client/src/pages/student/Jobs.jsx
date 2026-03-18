@@ -143,74 +143,87 @@ const StudentJobs = () => {
                 </div>
 
                 {selectedJob && (
-                    <div className="modal-overlay" onClick={() => setSelectedJob(null)}>
-                        <div className="modal modal-lg" onClick={(e) => e.stopPropagation()}>
-                            <h2>{selectedJob.title}</h2>
-                            <p style={{ color: 'var(--primary-light)', fontWeight: 500, marginBottom: '1.5rem' }}>{selectedJob.company}</p>
-                            
-                            {/* Basic Info Grid */}
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem', paddingBottom: '1.5rem', borderBottom: '1px solid var(--border)' }}>
-                                <div>
-                                    <p style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Location</p>
-                                    <p style={{ fontSize: '0.9rem' }}>{selectedJob.location}</p>
-                                </div>
-                                <div>
-                                    <p style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Type</p>
-                                    <p style={{ fontSize: '0.9rem' }}>{selectedJob.type}</p>
-                                </div>
-                                <div>
-                                    <p style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Salary</p>
-                                    <p style={{ fontSize: '0.9rem' }}>{selectedJob.salary ? `₹ ${selectedJob.salary}` : 'Not disclosed'}</p>
-                                </div>
-                                <div>
-                                    <p style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Openings</p>
-                                    <p style={{ fontSize: '0.9rem' }}>{selectedJob.openings || 1}</p>
-                                </div>
-                                <div>
-                                    <p style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Deadline</p>
-                                    <p style={{ fontSize: '0.9rem' }}>{new Date(selectedJob.deadline).toLocaleDateString()}</p>
-                                </div>
-                                <div>
-                                    <p style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Batch</p>
-                                    <p style={{ fontSize: '0.9rem' }}>{selectedJob.eligibility?.batch || 'N/A'}</p>
-                                </div>
+                    <div
+                        style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}
+                        onClick={() => setSelectedJob(null)}
+                    >
+                        <div
+                            style={{ background: 'var(--bg-card)', borderRadius: '12px', border: '1px solid var(--border)', maxWidth: '720px', width: '100%', maxHeight: '90vh', overflowY: 'auto', padding: '2rem', position: 'relative', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            {/* Close Button */}
+                            <button onClick={() => setSelectedJob(null)} style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', fontSize: '1.6rem', cursor: 'pointer', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px' }}>✕</button>
+
+                            {/* Header */}
+                            <div style={{ marginBottom: '1.75rem', paddingRight: '2.5rem' }}>
+                                <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700 }}>{selectedJob.title}</h1>
+                                <p style={{ margin: '0.35rem 0 0', color: 'var(--primary)', fontSize: '0.95rem', fontWeight: 600 }}>{selectedJob.company}</p>
                             </div>
 
-                            {/* Eligibility Info */}
-                            <div style={{ marginBottom: '1.5rem', paddingBottom: '1.5rem', borderBottom: '1px solid var(--border)' }}>
-                                <div style={{ marginBottom: '1rem' }}>
-                                    <p style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Min CGPA</p>
-                                    <p style={{ fontSize: '0.9rem' }}>{selectedJob.eligibility?.minCGPA || 0}</p>
-                                </div>
-                                {selectedJob.eligibility?.branches?.length > 0 && (
-                                    <div style={{ marginBottom: '1rem' }}>
-                                        <p style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Eligible Branches</p>
-                                        <p style={{ fontSize: '0.9rem' }}>{selectedJob.eligibility.branches.join(', ')}</p>
+                            {/* Quick Info Grid */}
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.75rem', marginBottom: '1.75rem', paddingBottom: '1.75rem', borderBottom: '1px solid var(--border)' }}>
+                                {[
+                                    ['📍 Location', selectedJob.location],
+                                    ['💼 Type', selectedJob.type],
+                                    ['💰 Salary', selectedJob.salary ? `₹ ${selectedJob.salary}` : 'Not disclosed'],
+                                    ['👥 Openings', selectedJob.openings || 1],
+                                    ['📅 Deadline', new Date(selectedJob.deadline).toLocaleDateString('en-IN')],
+                                    ['🎓 Batch', selectedJob.eligibility?.batch || 'N/A'],
+                                ].map(([label, value]) => (
+                                    <div key={label} style={{ background: 'var(--bg-dark)', borderRadius: '8px', padding: '0.75rem 1rem', display: 'flex', flexDirection: 'column' }}>
+                                        <p style={{ margin: 0, fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 600 }}>{label}</p>
+                                        <p style={{ margin: '0.4rem 0 0', fontWeight: 600, fontSize: '0.95rem' }}>{value || 'N/A'}</p>
                                     </div>
-                                )}
-                                {selectedJob.eligibility?.skills?.length > 0 && (
-                                    <div>
-                                        <p style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Required Skills</p>
-                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                                            {selectedJob.eligibility.skills.map((skill, i) => (
-                                                <span key={i} className="badge badge-primary" style={{ fontSize: '0.8rem' }}>{skill}</span>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
+                                ))}
                             </div>
+
+                            {/* Eligibility */}
+                            {selectedJob.eligibility && (
+                                <div style={{ marginBottom: '1.75rem', padding: '1rem', background: 'var(--bg-dark)', borderRadius: '8px', border: '1px solid rgba(99,102,241,0.15)' }}>
+                                    <h4 style={{ marginTop: 0, marginBottom: '0.75rem', color: 'var(--primary)', fontSize: '0.95rem', fontWeight: 700 }}>📋 Eligibility Criteria</h4>
+                                    <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.9, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.75rem' }}>
+                                        {selectedJob.eligibility.minCGPA > 0 && (
+                                            <div>
+                                                <p style={{ margin: 0, fontWeight: 600 }}>Min CGPA: <span style={{ color: 'var(--primary)' }}>{selectedJob.eligibility.minCGPA}</span></p>
+                                            </div>
+                                        )}
+                                        {selectedJob.eligibility.branches?.length > 0 && (
+                                            <div style={{ gridColumn: 'span 1' }}>
+                                                <p style={{ margin: 0, fontWeight: 600, marginBottom: '0.4rem' }}>Eligible Branches:</p>
+                                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                                                    {selectedJob.eligibility.branches.map((b, i) => (
+                                                        <span key={i} className="badge badge-secondary" style={{ fontSize: '0.75rem' }}>{b}</span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                        {selectedJob.eligibility.skills?.length > 0 && (
+                                            <div style={{ gridColumn: 'span 1' }}>
+                                                <p style={{ margin: 0, fontWeight: 600, marginBottom: '0.4rem' }}>Required Skills:</p>
+                                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                                                    {selectedJob.eligibility.skills.map((s, i) => (
+                                                        <span key={i} className="badge badge-primary" style={{ fontSize: '0.75rem' }}>{s}</span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Description */}
-                            <div style={{ marginBottom: '1.5rem', paddingBottom: '1.5rem', borderBottom: '1px solid var(--border)' }}>
-                                <h4 style={{ fontSize: '0.9rem', marginBottom: '0.5rem', fontWeight: 600 }}>Description</h4>
-                                <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', whiteSpace: 'pre-wrap', wordWrap: 'break-word', overflowWrap: 'break-word', lineHeight: 1.6 }}>{selectedJob.description}</p>
-                            </div>
+                            {selectedJob.description && (
+                                <div style={{ marginBottom: '1.5rem' }}>
+                                    <h4 style={{ marginTop: 0, marginBottom: '0.75rem', color: 'var(--primary)', fontSize: '0.95rem', fontWeight: 700 }}>📝 About this Role</h4>
+                                    <p style={{ color: 'var(--text-secondary)', lineHeight: 1.7, whiteSpace: 'pre-wrap', margin: 0, fontSize: '0.9rem' }}>{selectedJob.description}</p>
+                                </div>
+                            )}
 
                             {/* Requirements */}
                             {selectedJob.requirements?.length > 0 && (
-                                <div style={{ marginBottom: '1.5rem', paddingBottom: '1.5rem', borderBottom: '1px solid var(--border)' }}>
-                                    <h4 style={{ fontSize: '0.9rem', marginBottom: '0.5rem', fontWeight: 600 }}>Requirements</h4>
-                                    <ul style={{ paddingLeft: '1.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.8 }}>
+                                <div style={{ marginBottom: '1.5rem' }}>
+                                    <h4 style={{ marginTop: 0, marginBottom: '0.75rem', color: 'var(--primary)', fontSize: '0.95rem', fontWeight: 700 }}>✓ Requirements</h4>
+                                    <ul style={{ paddingLeft: '1.25rem', color: 'var(--text-secondary)', lineHeight: 1.8, margin: 0, fontSize: '0.9rem' }}>
                                         {selectedJob.requirements.map((r, i) => <li key={i}>{r}</li>)}
                                     </ul>
                                 </div>
@@ -218,9 +231,9 @@ const StudentJobs = () => {
 
                             {/* Responsibilities */}
                             {selectedJob.responsibilities?.length > 0 && (
-                                <div style={{ marginBottom: '1.5rem', paddingBottom: '1.5rem', borderBottom: '1px solid var(--border)' }}>
-                                    <h4 style={{ fontSize: '0.9rem', marginBottom: '0.5rem', fontWeight: 600 }}>Responsibilities</h4>
-                                    <ul style={{ paddingLeft: '1.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.8 }}>
+                                <div style={{ marginBottom: '1.5rem' }}>
+                                    <h4 style={{ marginTop: 0, marginBottom: '0.75rem', color: 'var(--primary)', fontSize: '0.95rem', fontWeight: 700 }}>💪 Responsibilities</h4>
+                                    <ul style={{ paddingLeft: '1.25rem', color: 'var(--text-secondary)', lineHeight: 1.8, margin: 0, fontSize: '0.9rem' }}>
                                         {selectedJob.responsibilities.map((r, i) => <li key={i}>{r}</li>)}
                                     </ul>
                                 </div>
@@ -228,9 +241,9 @@ const StudentJobs = () => {
 
                             {/* Perks */}
                             {selectedJob.perks?.length > 0 && (
-                                <div style={{ marginBottom: '1.5rem', paddingBottom: '1.5rem', borderBottom: '1px solid var(--border)' }}>
-                                    <h4 style={{ fontSize: '0.9rem', marginBottom: '0.5rem', fontWeight: 600 }}>Perks</h4>
-                                    <ul style={{ paddingLeft: '1.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.8 }}>
+                                <div style={{ marginBottom: '1.5rem' }}>
+                                    <h4 style={{ marginTop: 0, marginBottom: '0.75rem', color: 'var(--primary)', fontSize: '0.95rem', fontWeight: 700 }}>🎁 Perks & Benefits</h4>
+                                    <ul style={{ paddingLeft: '1.25rem', color: 'var(--text-secondary)', lineHeight: 1.8, margin: 0, fontSize: '0.9rem' }}>
                                         {selectedJob.perks.map((p, i) => <li key={i}>{p}</li>)}
                                     </ul>
                                 </div>
@@ -238,8 +251,8 @@ const StudentJobs = () => {
 
                             {/* Attachment */}
                             {selectedJob.attachmentFile && (
-                                <div style={{ marginBottom: '1.5rem', padding: '0.75rem', backgroundColor: '#f0f9ff', borderRadius: '8px', border: '1px solid #0ea5e9' }}>
-                                    <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.85rem', fontWeight: 600, color: '#0369a1' }}>📎 Job Attachment</p>
+                                <div style={{ marginBottom: '1.75rem', padding: '1rem', background: 'var(--bg-dark)', borderRadius: '8px', border: '1px solid rgba(99,102,241,0.15)' }}>
+                                    <p style={{ margin: '0 0 0.75rem 0', fontSize: '0.85rem', fontWeight: 700, color: 'var(--primary)' }}>📎 Job Attachment</p>
                                     <button
                                         className="btn btn-secondary btn-sm"
                                         onClick={async () => {
@@ -277,24 +290,47 @@ const StudentJobs = () => {
                                             }
                                         }}
                                     >
-                                        ⬇ {selectedJob.attachmentFileName}
+                                        ⬇ Download {selectedJob.attachmentFileName}
                                     </button>
                                 </div>
                             )}
 
+                            {/* Cover Letter */}
                             {!selectedJob.viewOnly && !appliedJobs.includes(selectedJob._id) && (
-                                <div style={{ marginTop: '1rem' }}>
-                                    <div className="form-group">
-                                        <label>Cover Letter (optional)</label>
-                                        <textarea value={coverLetter} onChange={(e) => setCoverLetter(e.target.value)} rows="3" placeholder="Why are you interested in this role?" />
-                                    </div>
+                                <div style={{ marginBottom: '1.75rem', paddingBottom: '1.75rem', borderBottom: '1px solid var(--border)' }}>
+                                    <h4 style={{ marginTop: 0, marginBottom: '0.75rem', color: 'var(--primary)', fontSize: '0.95rem', fontWeight: 700 }}>💌 Cover Letter (Optional)</h4>
+                                    <textarea
+                                        value={coverLetter}
+                                        onChange={(e) => setCoverLetter(e.target.value)}
+                                        rows="4"
+                                        placeholder="Why are you interested in this role? What attracts you to this opportunity?"
+                                        style={{
+                                            width: '100%',
+                                            padding: '0.75rem',
+                                            borderRadius: '8px',
+                                            border: '1px solid var(--border)',
+                                            background: 'var(--bg-dark)',
+                                            color: 'var(--text)',
+                                            fontSize: '0.9rem',
+                                            lineHeight: 1.5,
+                                            fontFamily: 'inherit',
+                                            resize: 'vertical',
+                                            boxSizing: 'border-box'
+                                        }}
+                                    />
                                 </div>
                             )}
-                            <div className="modal-actions">
+
+                            {/* Action Buttons */}
+                            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
                                 <button className="btn btn-secondary" onClick={() => setSelectedJob(null)}>Close</button>
                                 {!selectedJob.viewOnly && !appliedJobs.includes(selectedJob._id) && (
-                                    <button className="btn btn-primary" onClick={() => handleApply(selectedJob._id)} disabled={applying || !isEligibleToApply}>
-                                        {applying ? 'Submitting...' : 'Submit Application'}
+                                    <button
+                                        className="btn btn-primary"
+                                        onClick={() => handleApply(selectedJob._id)}
+                                        disabled={applying || !isEligibleToApply}
+                                    >
+                                        {applying ? '⏳ Submitting...' : '✓ Submit Application'}
                                     </button>
                                 )}
                             </div>
