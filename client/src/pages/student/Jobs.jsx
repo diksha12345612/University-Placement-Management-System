@@ -141,9 +141,10 @@ const StudentJobs = () => {
                         ))
                     )}
                 </div>
+            </div>
 
-                {selectedJob && (
-                    <div
+            {selectedJob && (
+                <div
                         style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}
                         onClick={() => setSelectedJob(null)}
                     >
@@ -337,7 +338,6 @@ const StudentJobs = () => {
                         </div>
                     </div>
                 )}
-            </div>
         </Layout>
     );
 };
