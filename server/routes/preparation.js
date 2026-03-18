@@ -19,7 +19,7 @@ router.get('/interview/questions', auth, async (req, res) => {
         const { role, count = 5, types = 'technical,behavioral,hr' } = req.query;
         if (!role) return res.status(400).json({ error: 'Role is required' });
 
-        const questionCount = Math.min(15, Math.max(3, parseInt(count) || 5));
+        const questionCount = Math.min(5, Math.max(1, parseInt(count) || 5));
         const requestedTypes = types.split(',').map(t => t.trim().toLowerCase());
 
         // Always generate fresh questions with the AI
