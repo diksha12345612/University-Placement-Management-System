@@ -15,7 +15,7 @@ const InterviewTips = () => {
     const [evaluating, setEvaluating] = useState(false);
     const [evaluation, setEvaluation] = useState(null);
     const [language, setLanguage] = useState('plaintext');
-    const [questionCount, setQuestionCount] = useState(5);
+    const [questionCount, setQuestionCount] = useState(1);
     const [questionTypes, setQuestionTypes] = useState({ technical: true, behavioral: true, hr: true });
 
     const sampleTopics = {
@@ -115,16 +115,16 @@ const InterviewTips = () => {
 
     return (
         <Layout title="AI Interview Prep">
-            <div className="fade-in" style={{ padding: '0.5rem 1rem' }}>
+            <div className="fade-in" style={{ padding: '0.5rem 1rem', width: '100%', margin: '0 auto' }}>
                 {!questions.length ? (
                     <div className="card text-center fade-in" style={{
-                        maxWidth: '900px',
                         margin: '1rem auto 3rem',
                         padding: '4rem 2rem',
                         borderRadius: '24px',
                         background: 'var(--bg-card)',
                         border: '1px solid var(--border)',
-                        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.08)'
+                        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.08)',
+                        width: '100%'
                     }}>
                         <div style={{
                             display: 'inline-flex',
@@ -137,13 +137,12 @@ const InterviewTips = () => {
                             boxShadow: '0 10px 25px rgba(99,102,241,0.2)'
                         }}>🎯</div>
                         <h2 style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: '1rem', color: 'var(--text-main)' }}>Simulation-Based AI Interview</h2>
-                        <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', marginBottom: '2.5rem', lineHeight: 1.7, maxWidth: '600px', margin: '0 auto 2.5rem auto' }}>
+                        <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', marginBottom: '2.5rem', lineHeight: 1.7, maxWidth: '800px', margin: '0 auto 2.5rem auto' }}>
                             Master the art of technical interviews by practicing with our advanced AI. Receive instant, data-driven feedback on your content and delivery.
                         </p>
 
                         {/* Configuration Panel */}
                         <div style={{
-                            maxWidth: '700px',
                             margin: '0 auto',
                             textAlign: 'left',
                             background: 'var(--bg-dark)',
@@ -187,8 +186,8 @@ const InterviewTips = () => {
                                     </label>
                                     <input
                                         type="range"
-                                        min="3"
-                                        max="15"
+                                        min="1"
+                                        max="5"
                                         value={questionCount}
                                         onChange={(e) => setQuestionCount(Number(e.target.value))}
                                         style={{
@@ -330,7 +329,7 @@ const InterviewTips = () => {
                             </div>
                         </div>
 
-                        <div className="grid-2-layout" style={{ display: 'grid', gridTemplateColumns: 'minmax(500px, 1.2fr) 1fr', gap: '3rem' }}>
+                        <div className="grid-2-layout" style={{ display: 'grid', gridTemplateColumns: 'minmax(600px, 1.2fr) 1fr', gap: '3rem' }}>
                             <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
                                 <div className="flex justify-between items-center mb-1">
                                     <h5 style={{ margin: 0, fontSize: '1rem', fontWeight: 800, color: 'var(--text-main)' }}>Your Response</h5>
@@ -363,7 +362,7 @@ const InterviewTips = () => {
                                 </div>
                                 <div style={{
                                     flex: 1,
-                                    minHeight: '400px',
+                                    minHeight: '600px',
                                     borderRadius: '24px',
                                     background: language === 'plaintext' ? 'var(--bg-card)' : '#1e1e1e',
                                     border: '2px solid var(--border)',
@@ -464,7 +463,7 @@ const InterviewTips = () => {
                                 {!evaluation ? (
                                     <div className="card text-center p-4" style={{
                                         height: '100%',
-                                        minHeight: '450px',
+                                        minHeight: '650px',
                                         borderRadius: '24px',
                                         border: '2px dashed var(--border)',
                                         background: 'transparent',
