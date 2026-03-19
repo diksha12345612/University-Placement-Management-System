@@ -3,14 +3,14 @@ const FormData = require('form-data');
 
 /**
  * Service to parse resume file using Affinda Resume Parser API
- * Affinda extracts structured resume data including skills, experience, education, etc.
+ * Fallback: OpenAI GitHub Models if Affinda fails
  */
 
 const parseResumeFile = async (fileBuffer) => {
   try {
     if (!process.env.AFFINDA_API_KEY) {
-      console.warn('⚠️  AFFINDA_API_KEY not set. Using fallback parsing.');
-      return getFallbackParsing();
+      console.warn('⚠️  AFFINDA_API_KEY not set. Falling back to OpenAI parsing.');
+      return parseWithOpenAI(fileBuffer);
     }
 
     console.log('🔄 Uploading resume to Affinda API for parsing...');
@@ -65,18 +65,109 @@ const parseResumeFile = async (fileBuffer) => {
       keywords: extractKeywords(parsed),
       
       // Raw text for AI analysis
-      rawText: parsed.docText || ''
+      rawText: parsed.docText || '',
+      
+      // Mark this as parsed by Affinda
+      parsedBy: 'affinda'
     };
   } catch (error) {
     console.error('❌ Affinda API Error:', error.message);
     
-    // Fallback to basic parsing if Affinda fails
     if (error.response?.status === 401) {
       console.error('Invalid Affinda API Key');
     } else if (error.code === 'ECONNABORTED') {
       console.error('Affinda API timeout');
     }
     
+    // Fallback to OpenAI parsing
+    console.log('🔄 Falling back to OpenAI GitHub Models for resume parsing...');
+    return parseWithOpenAI(fileBuffer);
+  }
+};
+
+/**
+ * Parse resume using OpenAI GitHub Models as fallback
+ */
+const parseWithOpenAI = async (fileBuffer) => {
+  try {
+    const pdfParse = require('pdf-parse');
+    
+    // Extract text from PDF
+    console.log('📄 Extracting text from resume PDF...');
+    const pdfData = await pdfParse(fileBuffer);
+    const resumeText = pdfData.text;
+
+    if (!resumeText || resumeText.length < 50) {
+      console.warn('⚠️  Could not extract meaningful text from PDF');
+      return getFallbackParsing();
+    }
+
+    // Use OpenAI to parse the resume text
+    const { githubModels } = require('./aiService');
+    
+    console.log('🤖 Using OpenAI GitHub Models to analyze resume...');
+    
+    const prompt = `You are an expert resume parser. Analyze this resume and extract the following information in JSON format:
+{
+  "name": "full name",
+  "email": "email address",
+  "phone": "phone number",
+  "location": "city, state",
+  "skills": ["skill1", "skill2", ...],
+  "jobTitles": ["job1", "job2", ...],
+  "companies": ["company1", "company2", ...],
+  "experienceYears": number,
+  "education": ["degree and school"],
+  "certifications": ["cert1", "cert2"],
+  "languages": ["lang1", "lang2"],
+  "keywords": ["keyword1", "keyword2", ...]
+}
+
+Resume Text:
+${resumeText}
+
+Return ONLY valid JSON, no markdown or extra text.`;
+
+    const response = await githubModels.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'user',
+          content: prompt
+        }
+      ],
+      temperature: 0.3,
+      max_tokens: 1000
+    });
+
+    const content = response.choices[0]?.message?.content || '{}';
+    
+    // Parse the JSON response
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    const parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : {};
+
+    console.log('✅ Resume parsed successfully by OpenAI');
+
+    return {
+      name: parsed.name || '',
+      email: parsed.email || '',
+      phone: parsed.phone || '',
+      location: parsed.location || '',
+      skills: Array.isArray(parsed.skills) ? parsed.skills : [],
+      jobTitles: Array.isArray(parsed.jobTitles) ? parsed.jobTitles : [],
+      companies: Array.isArray(parsed.companies) ? parsed.companies : [],
+      experienceYears: parsed.experienceYears || 0,
+      education: Array.isArray(parsed.education) ? parsed.education : [],
+      certifications: Array.isArray(parsed.certifications) ? parsed.certifications : [],
+      languages: Array.isArray(parsed.languages) ? parsed.languages : [],
+      keywords: Array.isArray(parsed.keywords) ? parsed.keywords : [],
+      workExperience: [],
+      rawText: resumeText,
+      parsedBy: 'openai'
+    };
+  } catch (error) {
+    console.error('❌ OpenAI parsing failed:', error.message);
+    console.log('📋 Using basic fallback parsing...');
     return getFallbackParsing();
   }
 };
