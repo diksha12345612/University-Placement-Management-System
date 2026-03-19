@@ -124,6 +124,8 @@ const AdminATSPanel = () => {
         </div>
 
         <button onClick={handleSave} className="btn btn-primary" style={{ width: '100%', padding: '0.75rem' }}>
+          Save ATS Settings
+        </button>
       </div>
     </Layout>
   );
