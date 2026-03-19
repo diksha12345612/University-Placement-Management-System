@@ -71,6 +71,24 @@ const Login = () => {
                         {loading ? 'Signing in...' : 'Sign In'}
                     </button>
                 </form>
+
+                {/* Forgot Password Link */}
+                <div style={{ 
+                    marginTop: '1rem', 
+                    textAlign: 'center',
+                    paddingTop: '1rem',
+                    borderTop: '1px solid var(--border)'
+                }}>
+                    <Link to="/forgot-password" style={{ 
+                        color: 'var(--primary)',
+                        textDecoration: 'none',
+                        fontSize: '0.9rem',
+                        fontWeight: 500
+                    }}>
+                        Forgot Password?
+                    </Link>
+                </div>
+
                 <div className="auth-footer">
                     Don't have an account? <Link to="/register">Register</Link>
                 </div>
