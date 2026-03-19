@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { FiHome, FiUser, FiBriefcase, FiFileText, FiBook, FiUsers, FiCheckSquare, FiBarChart2, FiCalendar, FiBell, FiLogOut, FiCode, FiHelpCircle, FiEdit, FiClipboard, FiX } from 'react-icons/fi';
+import { FiHome, FiUser, FiBriefcase, FiFileText, FiBook, FiUsers, FiCheckSquare, FiBarChart2, FiCalendar, FiBell, FiLogOut, FiCode, FiHelpCircle, FiEdit, FiClipboard, FiX, FiSettings } from 'react-icons/fi';
 
 const Sidebar = ({ isOpen, onClose }) => {
     const { user, logout } = useAuth();
@@ -41,6 +41,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         { path: '/admin/announcements', icon: <FiBell />, label: 'Announcements' },
         { path: '/admin/admins', icon: <FiUser />, label: 'Admin Management' },
         { path: '/admin/reports', icon: <FiBarChart2 />, label: 'Reports' },
+        { path: '/admin/ats-settings', icon: <FiSettings />, label: 'Resume Scoring' },
         { path: '/admin/notifications', icon: <FiBell />, label: 'Notifications' },
     ];
 
