@@ -669,4 +669,106 @@ router.get('/maintenance/expired-items', auth, authorize('admin'), async (req, r
     }
 });
 
+// ==================== Data Export (Raw Format) ====================
+
+/**
+ * Export raw data from MongoDB
+ * Query params: dataTypes (comma-separated: students,placements,recruiters,jobs,applications,drives,announcements)
+ * Format: json or csv
+ */
+router.get('/export/raw', auth, authorize('admin'), async (req, res) => {
+    try {
+        const { dataTypes = 'students,placements,recruiters', format = 'json' } = req.query;
+        const types = dataTypes.split(',').map(t => t.trim().toLowerCase());
+        
+        const exportData = {};
+
+        // Students
+        if (types.includes('students')) {
+            const students = await User.find({ role: 'student' }).lean();
+            exportData.students = students;
+        }
+
+        // Placements (extracted from applications where status = 'selected')
+        if (types.includes('placements')) {
+            const placements = await Application.find({ status: 'selected' })
+                .populate('student', 'name email studentProfile')
+                .populate('job', 'title description company salary')
+                .lean();
+            exportData.placements = placements;
+        }
+
+        // Recruiters
+        if (types.includes('recruiters')) {
+            const recruiters = await User.find({ role: 'recruiter' }).lean();
+            exportData.recruiters = recruiters;
+        }
+
+        // Jobs
+        if (types.includes('jobs')) {
+            const jobs = await Job.find().populate('postedBy', 'name email').lean();
+            exportData.jobs = jobs;
+        }
+
+        // Applications
+        if (types.includes('applications')) {
+            const applications = await Application.find()
+                .populate('student', 'name email')
+                .populate('job', 'title company')
+                .lean();
+            exportData.applications = applications;
+        }
+
+        // Placement Drives
+        if (types.includes('drives')) {
+            const drives = await PlacementDrive.find().lean();
+            exportData.drives = drives;
+        }
+
+        // Announcements
+        if (types.includes('announcements')) {
+            const announcements = await Announcement.find().lean();
+            exportData.announcements = announcements;
+        }
+
+        // Return as JSON or CSV
+        if (format === 'csv') {
+            // Convert to CSV format
+            let csv = '';
+            for (const [dataType, records] of Object.entries(exportData)) {
+                if (!records || records.length === 0) continue;
+                
+                csv += `\n\n--- ${dataType.toUpperCase()} (${records.length} records) ---\n`;
+                
+                // Get headers from first record
+                const headers = Object.keys(records[0]);
+                csv += headers.map(h => `"${h}"`).join(',') + '\n';
+                
+                // Add data rows
+                records.forEach(record => {
+                    csv += headers.map(h => {
+                        const val = record[h];
+                        if (val === null || val === undefined) return '';
+                        if (typeof val === 'object') return `"${JSON.stringify(val).replace(/"/g, '\\"')}"`;
+                        if (typeof val === 'string') return `"${val.replace(/"/g, '\\"')}"`;
+                        return val;
+                    }).join(',') + '\n';
+                });
+            }
+            
+            res.setHeader('Content-Type', 'text/csv;charset=utf-8');
+            res.setHeader('Content-Disposition', `attachment;filename=raw_export_${new Date().toISOString().split('T')[0]}.csv`);
+            res.send(csv);
+        } else {
+            // JSON format (default)
+            res.setHeader('Content-Type', 'application/json');
+            res.setHeader('Content-Disposition', `attachment;filename=raw_export_${new Date().toISOString().split('T')[0]}.json`);
+            res.json(exportData);
+        }
+    } catch (error) {
+        console.error('Export error:', error);
+        res.status(500).json({ error: 'Export failed', details: error.message });
+    }
+});
+
 module.exports = router;

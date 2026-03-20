@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import Layout from '../../components/Layout';
 import { adminAPI, studentAPI, jobAPI, applicationAPI } from '../../services/api';
+import toast from 'react-hot-toast';
 
 const AdminReports = () => {
     const [data, setData] = useState(null);
@@ -10,6 +11,20 @@ const AdminReports = () => {
     const [viewData, setViewData] = useState([]);
     const [viewTitle, setViewTitle] = useState('');
     const [viewLoading, setViewLoading] = useState(false);
+    
+    // Export modal state
+    const [showExportModal, setShowExportModal] = useState(false);
+    const [exportFormat, setExportFormat] = useState('json');
+    const [selectedDataTypes, setSelectedDataTypes] = useState({
+        students: true,
+        placements: true,
+        recruiters: true,
+        jobs: false,
+        applications: false,
+        drives: false,
+        announcements: false
+    });
+    const [exporting, setExporting] = useState(false);
 
     useEffect(() => { adminAPI.getReports().then(res => setData(res.data)).catch(() => { }).finally(() => setLoading(false)); }, []);
 
@@ -86,6 +101,37 @@ const AdminReports = () => {
         }
     };
 
+    const handleDataTypeToggle = (type) => {
+        setSelectedDataTypes(prev => ({ ...prev, [type]: !prev[type] }));
+    };
+
+    const handleRawExport = async () => {
+        try {
+            setExporting(true);
+            const selectedTypes = Object.keys(selectedDataTypes).filter(k => selectedDataTypes[k]).join(',');
+            if (!selectedTypes) {
+                toast.error('Please select at least one data type to export');
+                return;
+            }
+
+            const url = `/api/admin/export/raw?dataTypes=${selectedTypes}&format=${exportFormat}`;
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `raw_export_${new Date().toISOString().split('T')[0]}.${exportFormat === 'csv' ? 'csv' : 'json'}`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            toast.success(`✅ ${exportFormat.toUpperCase()} export downloaded!`);
+            setShowExportModal(false);
+        } catch (error) {
+            console.error('Export error:', error);
+            toast.error('Export failed: ' + error.message);
+        } finally {
+            setExporting(false);
+        }
+    };
+
     const exportToCSV = () => {
         if (!data) return;
 
@@ -136,7 +182,8 @@ const AdminReports = () => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', gap: '1rem', flexWrap: 'wrap' }}>
                     <p style={{ color: 'var(--text-muted)', margin: 0, flex: 1 }}>Comprehensive placement analytics and performance tracking.</p>
                     <div style={{ display: 'flex', gap: '0.75rem' }}>
-                        <button className="btn btn-primary btn-sm" onClick={exportToCSV}>📥 Export Placement Data (CSV)</button>
+                        <button className="btn btn-primary btn-sm" onClick={() => setShowExportModal(true)}>📥 Export Data</button>
+                        <button className="btn btn-secondary btn-sm" onClick={exportToCSV}>📋 Quick Export (CSV)</button>
                     </div>
                 </div>
 
@@ -431,6 +478,54 @@ const AdminReports = () => {
                                 )}
                             </>
                         )}
+                    </div>
+                </div>,
+                document.body
+            )}
+
+            {/* Export Modal */}
+            {showExportModal && createPortal(
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, backdropFilter: 'blur(5px)' }} onClick={() => setShowExportModal(false)}>
+                    <div className="card" style={{ maxWidth: '500px', width: '90%', maxHeight: '80vh', overflowY: 'auto', padding: '2rem' }} onClick={e => e.stopPropagation()}>
+                        <h2 style={{ marginTop: 0, marginBottom: '1.5rem' }}>📥 Export Dataset</h2>
+                        
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <label style={{ fontWeight: 600, marginBottom: '0.75rem', display: 'block', color: 'var(--primary)' }}>Select Data Types:</label>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                                {Object.keys(selectedDataTypes).map(type => (
+                                    <label key={type} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', padding: '0.5rem', borderRadius: '6px', background: 'var(--bg-dark)', transition: 'background 0.2s' }} onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-light)'} onMouseLeave={e => e.currentTarget.style.background = 'var(--bg-dark)'}>
+                                        <input type="checkbox" checked={selectedDataTypes[type]} onChange={() => handleDataTypeToggle(type)} style={{ cursor: 'pointer' }} />
+                                        <span style={{ fontSize: '0.9rem', textTransform: 'capitalize' }}>{type.replace(/([A-Z])/g, ' $1').trim()}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <label style={{ fontWeight: 600, marginBottom: '0.75rem', display: 'block', color: 'var(--primary)' }}>Export Format:</label>
+                            <div style={{ display: 'flex', gap: '0.75rem' }}>
+                                <label style={{ flex: 1, padding: '0.75rem', borderRadius: '6px', border: exportFormat === 'json' ? '2px solid var(--primary)' : '1px solid var(--border)', background: exportFormat === 'json' ? 'rgba(99,102,241,0.1)' : 'var(--bg-dark)', cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s' }}>
+                                    <input type="radio" value="json" checked={exportFormat === 'json'} onChange={e => setExportFormat(e.target.value)} style={{ marginRight: '0.5rem', cursor: 'pointer' }} />
+                                    JSON (Raw)
+                                </label>
+                                <label style={{ flex: 1, padding: '0.75rem', borderRadius: '6px', border: exportFormat === 'csv' ? '2px solid var(--primary)' : '1px solid var(--border)', background: exportFormat === 'csv' ? 'rgba(99,102,241,0.1)' : 'var(--bg-dark)', cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s' }}>
+                                    <input type="radio" value="csv" checked={exportFormat === 'csv'} onChange={e => setExportFormat(e.target.value)} style={{ marginRight: '0.5rem', cursor: 'pointer' }} />
+                                    CSV (Tabular)
+                                </label>
+                            </div>
+                        </div>
+
+                        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
+                            📊 <strong>JSON Format:</strong> Complete MongoDB documents as-is with all nested fields. Perfect for data analysis, archiving, or importing to other systems.<br/>
+                            📋 <strong>CSV Format:</strong> Tabular format for Excel/spreadsheet viewing. Nested objects will be stringified.
+                        </p>
+
+                        <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+                            <button className="btn btn-secondary" onClick={() => setShowExportModal(false)} disabled={exporting}>Cancel</button>
+                            <button className="btn btn-primary" onClick={handleRawExport} disabled={exporting || Object.values(selectedDataTypes).every(v => !v)}>
+                                {exporting ? '⏳ Exporting...' : '📥 Export'}
+                            </button>
+                        </div>
                     </div>
                 </div>,
                 document.body
