@@ -242,21 +242,6 @@ const MyJobs = () => {
                         </div>
 
                         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: '1.5rem' }}>
-                            {/* Profile Photo Section */}
-                            <div style={{ padding: '1.25rem', background: 'var(--bg-dark)', borderRadius: '10px', textAlign: 'center' }}>
-                                {selectedCandidate.student?.studentProfile?.profileImage ? (
-                                    <img src={selectedCandidate.student.studentProfile.profileImage} alt="Profile" style={{ maxWidth: '150px', maxHeight: '150px', borderRadius: '8px', marginBottom: '0.75rem' }} />
-                                ) : (
-                                    <div style={{ width: '150px', height: '150px', background: 'var(--bg-light)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 0.75rem' }}>
-                                        <div style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
-                                            <div style={{ fontSize: '2rem' }}>📷</div>
-                                            <p style={{ margin: '0.5rem 0 0', fontSize: '0.75rem' }}>No photo</p>
-                                        </div>
-                                    </div>
-                                )}
-                                <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)' }}>Upload a clear profile photo (JPEG, PNG, or WebP). Max 5MB. Optional.</p>
-                            </div>
-
                             {/* Personal Information */}
                             <div style={{ background: 'var(--bg-dark)', borderRadius: '10px', padding: '1.25rem' }}>
                                 <h4 style={{ marginTop: 0, marginBottom: '1rem', color: 'var(--primary)' }}>Personal Information</h4>
