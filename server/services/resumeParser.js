@@ -21,15 +21,23 @@ const parseResumeFile = async (fileBuffer) => {
     form.append('wait', 'true'); // Wait for parsing to complete synchronously
 
     // Call Affinda API
+    console.log('📤 Request Details:');
+    console.log('  URL: https://api.affinda.com/v3/documents');
+    console.log('  File size:', fileBuffer.length, 'bytes');
+    console.log('  API Key length:', process.env.AFFINDA_API_KEY.length, 'chars');
+    
     const response = await axios.post(
       'https://api.affinda.com/v3/documents',
       form,
       {
         headers: {
           ...form.getHeaders(),
-          'Authorization': `Bearer ${process.env.AFFINDA_API_KEY}`
+          'Authorization': `Bearer ${process.env.AFFINDA_API_KEY}`,
+          'User-Agent': 'University-Placement-Portal/1.0'
         },
-        timeout: 30000 // 30 second timeout
+        timeout: 30000, // 30 second timeout
+        maxContentLength: 10 * 1024 * 1024, // 10MB max
+        maxBodyLength: 10 * 1024 * 1024
       }
     );
 
@@ -73,15 +81,33 @@ const parseResumeFile = async (fileBuffer) => {
   } catch (error) {
     console.error('❌ Affinda API Error:', error.message);
     
-    if (error.response?.status === 401) {
-      console.error('Invalid Affinda API Key');
+    // Detailed error logging
+    if (error.response) {
+      console.error('  Status:', error.response.status);
+      console.error('  Data:', JSON.stringify(error.response.data).substring(0, 200));
+      
+      if (error.response.status === 400) {
+        console.error('  💡 Bad Request - possible causes:');
+        console.error('    - API key format incorrect');
+        console.error('    - File format not supported');
+        console.error('    - Missing required parameters');
+      } else if (error.response.status === 401) {
+        console.error('  💡 Unauthorized - API key invalid or expired');
+      } else if (error.response.status === 403) {
+        console.error('  💡 Forbidden - API key lacks permissions');
+      } else if (error.response.status === 429) {
+        console.error('  💡 Rate limited - too many requests');
+      }
     } else if (error.code === 'ECONNABORTED') {
-      console.error('Affinda API timeout');
+      console.error('  Affinda API timeout');
+    } else if (error.code === 'ENOTFOUND') {
+      console.error('  Cannot reach Affinda API - network issue');
     }
     
-    // Fallback to OpenAI parsing
-    console.log('🔄 Falling back to OpenAI GitHub Models for resume parsing...');
-    return parseWithOpenAI(fileBuffer);
+    // Skip OpenAI parsing (causes ENAMETOOLONG error)
+    // Go directly to fallback parsing
+    console.log('📋 Using basic fallback parsing (skipping OpenAI due to issues)...');
+    return getFallbackParsing();
   }
 };
 
