@@ -216,25 +216,37 @@ const parseJsonSafely = (text) => {
  * @param {string} difficulty - "Easy" | "Medium" | "Hard"
  * @param {number} count - number of questions (default 5)
  */
-const generateMockTest = async (topic, difficulty = 'Medium', count = 5) => {
+const generateMockTest = async (topic, difficulty = 'Medium', count = 5, questionTypes = 'mix') => {
     const isTechnical = !['aptitude', 'soft skills', 'english', 'verbal', 'logical reasoning', 'quantitative'].some(t =>
         topic.toLowerCase().includes(t)
     );
 
-    console.log(`[AI] Generating ${isTechnical ? 'Technical' : 'Non-Technical'} test for topic: "${topic}"`);
+    console.log(`[AI] Generating ${isTechnical ? 'Technical' : 'Non-Technical'} test for topic: "${topic}", count: ${count}, types: ${questionTypes}`);
+
+    // Determine allowed question types
+    let allowedTypes = [];
+    if (questionTypes === 'mcq') {
+        allowedTypes = ['mcq'];
+    } else if (questionTypes === 'written') {
+        allowedTypes = ['subjective'];
+    } else if (questionTypes === 'coding') {
+        allowedTypes = isTechnical ? ['coding'] : ['subjective']; // Fallback for non-tech topics
+    } else { // 'mix'
+        allowedTypes = isTechnical ? ['mcq', 'coding', 'subjective'] : ['mcq', 'subjective'];
+    }
 
     const rules = isTechnical
-        ? `- Include a mix of MCQ, coding, and concept (subjective) questions.
-- Distribute questions logically to cover various sub-topics within ${topic}.
+        ? `- Include ONLY these question types: ${allowedTypes.join(', ')}.
+- Distribute ${count} questions evenly across allowed types to cover various sub-topics within ${topic}.
 - Coding questions must have clear input/output examples.
 - explanation is required for ALL questions.`
         : `- Use ONLY MCQ and subjective concept questions. 
 - STRICT RULE: NO CODING QUESTIONS are allowed for this topic (${topic}).
+- Generate EXACTLY ${count} questions of types: ${allowedTypes.join(', ')}.
 - Focus on logical, verbal, or quantitative problems suitable for ${topic}.
 - explanation is required for ALL questions.`;
 
-    const questionTemplate = isTechnical
-        ? `[
+    const questionTemplate = `[
     {
       "type": "mcq",
       "question": "string",
@@ -260,36 +272,20 @@ const generateMockTest = async (topic, difficulty = 'Medium', count = 5) => {
       "explanation": "Detailed explanation of the concept",
       "points": 10
     }
-  ]`
-        : `[
-    {
-      "type": "mcq",
-      "question": "string",
-      "options": ["string","string","string","string"],
-      "correctAnswer": "string (must match one option exactly)",
-      "explanation": "string",
-      "points": 5
-    },
-    {
-      "type": "subjective",
-      "question": "string",
-      "correctAnswer": "Key points expected in a good answer",
-      "explanation": "Detailed explanation of the problem solving logic",
-      "points": 10
-    }
   ]`;
 
     const messages = [
         {
             role: 'system',
             content:
-                'You are a technical interview question generator for a university placement preparation portal. You ONLY respond with valid, minified JSON. No explanations, no markdown, no extra text.',
+                'You are a technical interview question generator for a university placement preparation portal. You ONLY respond with valid, minified JSON. No explanations, no markdown, no extra text. CRITICAL: Generate EXACTLY the number of questions requested, not fewer.',
         },
         {
             role: 'user',
             content: `Topic: ${topic}
 Difficulty: ${difficulty}
-Total Questions: ${count}
+Total Questions to Generate: ${count} (MUST GENERATE EXACTLY ${count} QUESTIONS)
+Question Types to Include: ${allowedTypes.join(', ')} (ONLY these types)
 
 Rules:
 - Questions must be ONLY about the topic: ${topic}.
@@ -297,12 +293,15 @@ ${rules}
 - MCQ options must be plausible ΓÇö avoid obviously wrong distractors.
 - Concept questions must test understanding, not just definitions.
 - correctAnswer for MCQ must be one of the option strings exactly.
+- CRITICAL: Your questions array MUST contain exactly ${count} questions.
 
 Return ONLY this exact JSON structure, nothing else:
 {
   "topic": "${topic}",
   "difficulty": "${difficulty}",
-  "questions": ${questionTemplate}
+  "questions": [
+    ... generate EXACTLY ${count} questions here, each with one of these types: ${allowedTypes.join(', ')} ...
+  ]
 }`,
         },
     ];

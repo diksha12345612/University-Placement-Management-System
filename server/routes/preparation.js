@@ -110,11 +110,14 @@ router.post('/interview/evaluate', auth, async (req, res) => {
 
 router.post('/generate-test', auth, async (req, res) => {
     try {
-        const { topic, difficulty = 'Medium', count = 5 } = req.body;
+        const { topic, difficulty = 'Medium', count = 5, questionTypes = 'mix' } = req.body;
         if (!topic) return res.status(400).json({ error: 'Topic is required' });
+        if (!['mcq', 'written', 'coding', 'mix'].includes(questionTypes)) {
+            return res.status(400).json({ error: 'Invalid question type. Must be: mcq, written, coding, or mix' });
+        }
 
-        const questionCount = Math.min(20, Math.max(3, parseInt(count) || 5));
-        const testData = await generateMockTest(topic, difficulty, questionCount);
+        const questionCount = Math.min(10, Math.max(3, parseInt(count) || 5));
+        const testData = await generateMockTest(topic, difficulty, questionCount, questionTypes);
 
         const title = `${topic} — ${difficulty} (AI Generated)`;
         const duration = questionCount * 3;

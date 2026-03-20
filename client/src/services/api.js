@@ -149,7 +149,7 @@ export const prepAPI = {
     getMockTestById: (id) => api.get(`/preparation/mock-tests/${id}`),
     submitMockTest: (id, answers) => api.post(`/preparation/mock-tests/${id}/submit`, { answers }),
     getInterviewTips: () => api.get('/preparation/interview-tips'),
-    generateTest: (topic, difficulty = 'Medium', count = 5) => api.post('/preparation/generate-test', { topic, difficulty, count }),
+    generateTest: (topic, difficulty = 'Medium', count = 5, questionTypes = 'mix') => api.post('/preparation/generate-test', { topic, difficulty, count, questionTypes }),
     getInterviewQuestions: (role, count = 5, types = ['technical', 'behavioral', 'hr']) => api.get('/preparation/interview/questions', { params: { role, count, types: types.join(',') } }),
     evaluateInterviewAnswer: (data) => api.post('/preparation/interview/evaluate', data),
 };

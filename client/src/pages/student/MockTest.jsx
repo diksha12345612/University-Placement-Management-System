@@ -35,6 +35,7 @@ const MockTest = () => {
     const [aiTopic, setAiTopic] = useState('');
     const [aiDifficulty, setAiDifficulty] = useState('Medium');
     const [aiCount, setAiCount] = useState(5);
+    const [aiQuestionType, setAiQuestionType] = useState('mix');
 
     useEffect(() => {
         prepAPI.getMockTests()
@@ -169,7 +170,7 @@ const MockTest = () => {
         if (!aiTopic.trim()) return toast.error('Enter a topic');
         setGenerating(true);
         try {
-            const res = await prepAPI.generateTest(aiTopic.trim(), aiDifficulty, aiCount);
+            const res = await prepAPI.generateTest(aiTopic.trim(), aiDifficulty, aiCount, aiQuestionType);
             setTests([res.data, ...tests]);
             toast.success(`✨ AI Test Generated! (${res.data.questions?.length || aiCount} questions)`);
             startTest(res.data._id);
@@ -388,7 +389,34 @@ const MockTest = () => {
                                             <input type="text" className="form-control" placeholder="e.g. DSA, React, SQL..." value={aiTopic} onChange={(e) => setAiTopic(e.target.value)} disabled={generating} style={{ flex: '1 1 180px' }} list="ai-topics" />
                                             <datalist id="ai-topics">{TOPICS.map(t => <option key={t} value={t} />)}</datalist>
                                             <select className="form-control" value={aiDifficulty} onChange={(e) => setAiDifficulty(e.target.value)} disabled={generating} style={{ flex: '0 0 120px' }}>{DIFFICULTIES.map(d => <option key={d} value={d}>{d}</option>)}</select>
-                                            <select className="form-control" value={aiCount} onChange={(e) => setAiCount(Number(e.target.value))} disabled={generating} style={{ flex: '0 0 90px' }}>{[5, 10, 15].map(n => <option key={n} value={n}>{n} Qs</option>)}</select>
+                                            <select className="form-control" value={aiCount} onChange={(e) => setAiCount(Number(e.target.value))} disabled={generating} style={{ flex: '0 0 100px' }}>
+                                                {[3, 4, 5, 6, 7, 8, 9, 10].map(n => <option key={n} value={n}>{n} Qs</option>)}
+                                            </select>
+                                        </div>
+                                        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.75rem', alignItems: 'center' }}>
+                                            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 0 }}>Question Type:</label>
+                                            {['mcq', 'written', 'coding', 'mix'].map(type => (
+                                                <button
+                                                    key={type}
+                                                    type="button"
+                                                    disabled={generating}
+                                                    onClick={() => setAiQuestionType(type)}
+                                                    style={{
+                                                        padding: '0.4rem 0.8rem',
+                                                        borderRadius: '6px',
+                                                        border: aiQuestionType === type ? '2px solid var(--primary)' : '1px solid var(--border)',
+                                                        background: aiQuestionType === type ? 'rgba(99,102,241,0.1)' : 'transparent',
+                                                        color: aiQuestionType === type ? 'var(--primary)' : 'var(--text-secondary)',
+                                                        cursor: generating ? 'not-allowed' : 'pointer',
+                                                        fontSize: '0.82rem',
+                                                        fontWeight: 500,
+                                                        transition: 'all 0.2s',
+                                                        opacity: generating ? 0.5 : 1
+                                                    }}
+                                                >
+                                                    {type === 'mcq' ? '⭕ MCQ' : type === 'written' ? '📝 Written' : type === 'coding' ? '💻 Coding' : '🔀 Mix'}
+                                                </button>
+                                            ))}
                                         </div>
                                         <button type="submit" className="btn btn-primary" disabled={generating || !aiTopic.trim()} style={{ width: '100%' }}>{generating ? '✨ Generating...' : `Generate ${aiDifficulty} Test →`}</button>
                                     </form>
