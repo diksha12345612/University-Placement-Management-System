@@ -246,16 +246,20 @@ const generateMockTest = async (topic, difficulty = 'Medium', count = 5, questio
 - Focus on logical, verbal, or quantitative problems suitable for ${topic}.
 - explanation is required for ALL questions.`;
 
-    const questionTemplate = `[
-    {
+    // Build template examples based on allowed types
+    const templateExamples = [];
+    if (allowedTypes.includes('mcq')) {
+        templateExamples.push(`{
       "type": "mcq",
       "question": "string",
       "options": ["string","string","string","string"],
       "correctAnswer": "string (must match one option exactly)",
       "explanation": "string",
       "points": 5
-    },
-    {
+    }`);
+    }
+    if (allowedTypes.includes('coding')) {
+        templateExamples.push(`{
       "type": "coding",
       "question": "string",
       "inputExample": "string",
@@ -264,28 +268,32 @@ const generateMockTest = async (topic, difficulty = 'Medium', count = 5, questio
       "explanation": "Brief implementation logic",
       "difficulty": "${difficulty}",
       "points": 15
-    },
-    {
+    }`);
+    }
+    if (allowedTypes.includes('subjective')) {
+        templateExamples.push(`{
       "type": "subjective",
       "question": "string",
       "correctAnswer": "Key points expected in a good answer",
       "explanation": "Detailed explanation of the concept",
       "points": 10
+    }`);
     }
-  ]`;
+
+    const questionTemplate = `[${templateExamples.join(',')}]`;
 
     const messages = [
         {
             role: 'system',
             content:
-                'You are a technical interview question generator for a university placement preparation portal. You ONLY respond with valid, minified JSON. No explanations, no markdown, no extra text. CRITICAL: Generate EXACTLY the number of questions requested, not fewer.',
+                'You are a technical interview question generator for a university placement preparation portal. You ONLY respond with valid, minified JSON. No explanations, no markdown, no extra text. CRITICAL: Generate EXACTLY the number of questions requested. EVERY SINGLE QUESTION MUST have a "type" field set to one of: mcq, coding, or subjective.',
         },
         {
             role: 'user',
             content: `Topic: ${topic}
 Difficulty: ${difficulty}
 Total Questions to Generate: ${count} (MUST GENERATE EXACTLY ${count} QUESTIONS)
-Question Types to Include: ${allowedTypes.join(', ')} (ONLY these types)
+Allowed Question Types: ${allowedTypes.join(', ')} (Use ONLY these types. Every question MUST have a "type" field.)
 
 Rules:
 - Questions must be ONLY about the topic: ${topic}.
@@ -293,27 +301,48 @@ ${rules}
 - MCQ options must be plausible ΓÇö avoid obviously wrong distractors.
 - Concept questions must test understanding, not just definitions.
 - correctAnswer for MCQ must be one of the option strings exactly.
-- CRITICAL: Your questions array MUST contain exactly ${count} questions.
+- CRITICAL: Your questions array MUST contain exactly ${count} questions, each with a "type" field matching one of: ${allowedTypes.join(', ')}.
 
-Return ONLY this exact JSON structure, nothing else:
+Return ONLY this exact JSON structure, nothing else, no markdown:
 {
   "topic": "${topic}",
   "difficulty": "${difficulty}",
-  "questions": [
-    ... generate EXACTLY ${count} questions here, each with one of these types: ${allowedTypes.join(', ')} ...
-  ]
-}`,
+  "questions": ${questionTemplate}
+}
+
+Remember: EVERY question MUST have a "type" field. Generate exactly ${count} questions total.`,
         },
     ];
 
     try {
         const raw = await callAI(messages);
         const data = parseJsonSafely(raw);
-        // Normalize: ensure every question has required fields
-        data.questions = (data.questions || []).map((q) => ({
-            points: q.type === 'mcq' ? 5 : q.type === 'coding' ? 15 : 10,
-            ...q,
-        }));
+        
+        if (!data.questions || !Array.isArray(data.questions)) {
+            throw new Error('AI response does not contain a questions array');
+        }
+
+        // Normalize: ensure every question has required fields, especially 'type'
+        data.questions = (data.questions || []).map((q, idx) => {
+            if (!q.type || !['mcq', 'coding', 'subjective'].includes(q.type)) {
+                console.warn(`[AI] Question ${idx} missing or invalid type: "${q.type}". Skipping invalid question.`);
+                return null;
+            }
+            return {
+                points: q.type === 'mcq' ? 5 : q.type === 'coding' ? 15 : 10,
+                ...q,
+            };
+        }).filter(q => q !== null); // Remove invalid questions
+
+        // Check if we got enough questions
+        if (data.questions.length === 0) {
+            throw new Error('AI generated no valid questions with type field. Please try again.');
+        }
+
+        if (data.questions.length < count) {
+            console.warn(`[AI] Generated ${data.questions.length} questions instead of ${count}. Using what was generated.`);
+        }
+
         return data;
     } catch (err) {
         console.error('[AI] generateMockTest error:', err.message);
