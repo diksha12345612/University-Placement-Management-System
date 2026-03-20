@@ -42,18 +42,19 @@ const seedDB = async () => {
         // Actually, let's just create them if they don't exist, rather than deleting everything.
         // Or perhaps delete only the dummy ones to prevent duplicates on multiple runs.
 
-        await User.deleteMany({ email: { $in: ['mohittttttt48@gmail.com', ...recruiters.map(r => r.email), ...students.map(s => s.email)] } });
+        await User.deleteMany({ email: { $in: ['admin@uniplacements.com', ...recruiters.map(r => r.email), ...students.map(s => s.email)] } });
         await Job.deleteMany({});
         await Application.deleteMany({});
 
-        let passwordReset = 'DemoUser123!';
+        // Use a strong random password. In production, send password reset links to users instead.
+        const demoPassword = process.env.DEMO_PASSWORD || require('crypto').randomBytes(16).toString('hex');
 
         // 1. Create Admin
         console.log('Creating Admin...');
         const admin = new User({
             name: 'System Admin',
-            email: 'mohittttttt48@gmail.com',
-            password: passwordReset,
+            email: process.env.ADMIN_EMAIL || 'admin@uniplacements.com',
+            password: demoPassword,
             role: 'admin',
             isVerified: true
         });
@@ -66,7 +67,7 @@ const seedDB = async () => {
             const recruiter = new User({
                 name: data.name,
                 email: data.email,
-                password: passwordReset,
+                password: demoPassword,
                 role: 'recruiter',
                 isVerified: true,
                 isApprovedByAdmin: true, // Phase 11 Bypass for Seeded Accounts
@@ -164,8 +165,10 @@ const seedDB = async () => {
         }
 
         console.log('Seeding Complete! 🎉');
-        console.log('Admin Email: mohittttttt48@gmail.com | Password: DemoUser123!');
-        console.log('Recruiters created:', recruiters.map(r => r.email).join(', '));
+        console.log('✅ Admin account created');
+        console.log('✅ Recruiters created:', recruiters.map(r => r.name).join(', '));
+        console.log('✅ Students created:', students.map(s => s.name).join(', '));
+        console.log('\n⚠️  IMPORTANT: Send password reset emails to all seeded users instead of sharing passwords.');
         process.exit(0);
     } catch (err) {
         console.error(err);
