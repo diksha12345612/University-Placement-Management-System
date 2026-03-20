@@ -669,17 +669,14 @@ router.get('/maintenance/expired-items', auth, authorize('admin'), async (req, r
     }
 });
 
-// ==================== Data Export (Raw Format) ====================
-
-/**
- * Export raw data from MongoDB
- * Query params: dataTypes (comma-separated: students,placements,recruiters,jobs,applications,drives,announcements)
- * Format: json or csv
- */
 router.get('/export/raw', auth, authorize('admin'), async (req, res) => {
     try {
+        console.log(`[EXPORT] Admin ${req.user.name} (${req.user.email}) requesting export`);
+        
         const { dataTypes = 'students,placements,recruiters', format = 'json' } = req.query;
         const types = dataTypes.split(',').map(t => t.trim().toLowerCase());
+        
+        console.log(`[EXPORT] Data types: ${types.join(', ')}, Format: ${format}`);
         
         const exportData = {};
 
@@ -687,6 +684,7 @@ router.get('/export/raw', auth, authorize('admin'), async (req, res) => {
         if (types.includes('students')) {
             const students = await User.find({ role: 'student' }).lean();
             exportData.students = students;
+            console.log(`[EXPORT] Fetched ${students.length} students`);
         }
 
         // Placements (extracted from applications where status = 'selected')
@@ -696,18 +694,21 @@ router.get('/export/raw', auth, authorize('admin'), async (req, res) => {
                 .populate('job', 'title description company salary')
                 .lean();
             exportData.placements = placements;
+            console.log(`[EXPORT] Fetched ${placements.length} placements`);
         }
 
         // Recruiters
         if (types.includes('recruiters')) {
             const recruiters = await User.find({ role: 'recruiter' }).lean();
             exportData.recruiters = recruiters;
+            console.log(`[EXPORT] Fetched ${recruiters.length} recruiters`);
         }
 
         // Jobs
         if (types.includes('jobs')) {
             const jobs = await Job.find().populate('postedBy', 'name email').lean();
             exportData.jobs = jobs;
+            console.log(`[EXPORT] Fetched ${jobs.length} jobs`);
         }
 
         // Applications
@@ -717,18 +718,21 @@ router.get('/export/raw', auth, authorize('admin'), async (req, res) => {
                 .populate('job', 'title company')
                 .lean();
             exportData.applications = applications;
+            console.log(`[EXPORT] Fetched ${applications.length} applications`);
         }
 
         // Placement Drives
         if (types.includes('drives')) {
             const drives = await PlacementDrive.find().lean();
             exportData.drives = drives;
+            console.log(`[EXPORT] Fetched ${drives.length} placement drives`);
         }
 
         // Announcements
         if (types.includes('announcements')) {
             const announcements = await Announcement.find().lean();
             exportData.announcements = announcements;
+            console.log(`[EXPORT] Fetched ${announcements.length} announcements`);
         }
 
         // Return as JSON or CSV
@@ -758,15 +762,17 @@ router.get('/export/raw', auth, authorize('admin'), async (req, res) => {
             
             res.setHeader('Content-Type', 'text/csv;charset=utf-8');
             res.setHeader('Content-Disposition', `attachment;filename=raw_export_${new Date().toISOString().split('T')[0]}.csv`);
+            console.log(`[EXPORT] Returning CSV file`);
             res.send(csv);
         } else {
             // JSON format (default)
             res.setHeader('Content-Type', 'application/json');
             res.setHeader('Content-Disposition', `attachment;filename=raw_export_${new Date().toISOString().split('T')[0]}.json`);
+            console.log(`[EXPORT] Returning JSON file`);
             res.json(exportData);
         }
     } catch (error) {
-        console.error('Export error:', error);
+        console.error('[EXPORT] Error:', error);
         res.status(500).json({ error: 'Export failed', details: error.message });
     }
 });

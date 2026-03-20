@@ -114,13 +114,36 @@ const AdminReports = () => {
                 return;
             }
 
-            const url = `/api/admin/export/raw?dataTypes=${selectedTypes}&format=${exportFormat}`;
+            // Fetch with proper authentication header
+            const response = await fetch(`/api/admin/export/raw?dataTypes=${selectedTypes}&format=${exportFormat}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+
+            if (!response.ok) {
+                if (response.status === 401) {
+                    toast.error('⚠️ Session expired. Please login again.');
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    window.location.href = '/login';
+                    return;
+                }
+                const errorData = await response.json();
+                throw new Error(errorData.error || `HTTP ${response.status}`);
+            }
+
+            // Get the blob and download it
+            const blob = await response.blob();
+            const blobUrl = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
-            link.href = url;
+            link.href = blobUrl;
             link.download = `raw_export_${new Date().toISOString().split('T')[0]}.${exportFormat === 'csv' ? 'csv' : 'json'}`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+            window.URL.revokeObjectURL(blobUrl);
             
             toast.success(`✅ ${exportFormat.toUpperCase()} export downloaded!`);
             setShowExportModal(false);
