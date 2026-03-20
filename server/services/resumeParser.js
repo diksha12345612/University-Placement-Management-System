@@ -19,12 +19,21 @@ const parseResumeFile = async (fileBuffer) => {
     const form = new FormData();
     form.append('file', fileBuffer, 'resume.pdf');
     form.append('wait', 'true'); // Wait for parsing to complete synchronously
+    
+    // Affinda v3 API requires workspace - try default workspace first
+    // If you have a specific workspace ID, set AFFINDA_WORKSPACE_ID env variable
+    const workspaceId = process.env.AFFINDA_WORKSPACE_ID;
+    if (workspaceId) {
+      form.append('workspace', workspaceId);
+      console.log('📋 Workspace ID:', workspaceId);
+    }
 
     // Call Affinda API
     console.log('📤 Request Details:');
     console.log('  URL: https://api.affinda.com/v3/documents');
     console.log('  File size:', fileBuffer.length, 'bytes');
     console.log('  API Key length:', process.env.AFFINDA_API_KEY.length, 'chars');
+    console.log('  Has workspace ID:', workspaceId ? 'Yes' : 'No');
     
     const response = await axios.post(
       'https://api.affinda.com/v3/documents',
@@ -84,13 +93,22 @@ const parseResumeFile = async (fileBuffer) => {
     // Detailed error logging
     if (error.response) {
       console.error('  Status:', error.response.status);
-      console.error('  Data:', JSON.stringify(error.response.data).substring(0, 200));
+      console.error('  Data:', JSON.stringify(error.response.data).substring(0, 300));
       
       if (error.response.status === 400) {
-        console.error('  💡 Bad Request - possible causes:');
-        console.error('    - API key format incorrect');
-        console.error('    - File format not supported');
-        console.error('    - Missing required parameters');
+        const errorData = error.response.data;
+        if (errorData.errors?.some(e => e.detail?.includes('Workspace'))) {
+          console.error('  💡 Workspace required - Solution:');
+          console.error('    1. Go to: https://affinda.com/settings/api');
+          console.error('    2. Find your workspace ID');
+          console.error('    3. In Vercel, add environment variable:');
+          console.error('       AFFINDA_WORKSPACE_ID=<your-workspace-id>');
+          console.error('    4. Redeploy');
+        } else {
+          console.error('  💡 Bad Request - possible causes:');
+          console.error('    - File format not supported');
+          console.error('    - Missing required parameters');
+        }
       } else if (error.response.status === 401) {
         console.error('  💡 Unauthorized - API key invalid or expired');
       } else if (error.response.status === 403) {

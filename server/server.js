@@ -19,6 +19,10 @@ if (!process.env.JWT_SECRET) {
 
 const app = express();
 
+// Trust proxy - CRITICAL for Vercel
+// Vercel sets X-Forwarded-For header, Express needs to trust it
+app.set('trust proxy', 1);
+
 // Security middleware
 app.use(helmet());
 app.use(cors({
@@ -56,9 +60,14 @@ app.use(async (req, res, next) => {
 
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 2000,
-  message: { error: 'Too many requests, please try again later.' }
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 2000, // Increase limit for Vercel environment
+  message: { error: 'Too many requests, please try again later.' },
+  standardHeaders: false, // Don't return rate limit info in headers
+  skip: (req, res) => {
+    // Skip rate limiting for health checks
+    return req.path === '/api/health' || req.path === '/health';
+  }
 });
 app.use('/api/', limiter);
 
