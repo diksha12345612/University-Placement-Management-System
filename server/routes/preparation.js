@@ -9,7 +9,9 @@ const {
     evaluateTestAnswer,
     generateMockTest,
     generateInterviewQuestions,
-    evaluateInterviewAnswer
+    evaluateInterviewAnswer,
+    saveGeneratedQuestions,
+    calculateTestDuration
 } = require('../services/aiService');
 
 // ─── Interview Preparation ──────────────────────────────────────────────────
@@ -116,11 +118,16 @@ router.post('/generate-test', auth, async (req, res) => {
             return res.status(400).json({ error: 'Invalid question type. Must be: mcq, written, coding, or mix' });
         }
 
+        // Remove all previously generated AI tests from the database
+        await MockTest.deleteMany({ category: 'AI Generated' });
+        console.log('[PREP] Cleared old AI-generated mock tests');
+
         const questionCount = Math.min(10, Math.max(3, parseInt(count) || 5));
         const testData = await generateMockTest(topic, difficulty, questionCount, questionTypes);
 
         const title = `${topic} — ${difficulty} (AI Generated)`;
-        const duration = questionCount * 3;
+        // Calculate duration based on question types
+        const duration = calculateTestDuration(testData.questions);
 
         const newTest = new MockTest({
             title,
@@ -135,7 +142,6 @@ router.post('/generate-test', auth, async (req, res) => {
         await newTest.save();
 
         // Save generated questions to QuestionBank to prevent duplicates
-        const { saveGeneratedQuestions } = require('../services/aiService');
         await saveGeneratedQuestions(topic, difficulty, testData.questions, newTest._id);
 
         res.status(201).json(newTest);

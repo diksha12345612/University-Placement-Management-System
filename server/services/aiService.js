@@ -1141,6 +1141,36 @@ Return exactly this JSON structure:
     return attemptGeneration(2);
 };
 
+
+/**
+ * Calculate optimal test duration based on question types
+ * MCQ: 1-2 minutes per question
+ * Subjective: 3-5 minutes per question  
+ * Coding: 5-10 minutes per question
+ */
+const calculateTestDuration = (questions) => {
+    let totalDuration = 0;
+    
+    for (const q of questions) {
+        switch (q.type) {
+            case 'mcq':
+                totalDuration += 1.5; // 1-2 min average
+                break;
+            case 'subjective':
+                totalDuration += 4; // 3-5 min average
+                break;
+            case 'coding':
+                totalDuration += 7.5; // 5-10 min average
+                break;
+            default:
+                totalDuration += 2; // default fallback
+        }
+    }
+    
+    // Round up to nearest 5 minutes for nice numbers
+    return Math.ceil(totalDuration / 5) * 5;
+};
+
 module.exports = {
     // New API
     generateMockTest,
@@ -1152,6 +1182,7 @@ module.exports = {
     extractTextFromPDF,
     generateRecommendations,
     saveGeneratedQuestions,
+    calculateTestDuration,
     // Legacy aliases
     evaluateTestAnswers,
     evaluateCandidateForJob,

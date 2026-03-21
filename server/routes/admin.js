@@ -7,6 +7,7 @@ const Application = require('../models/Application');
 const PlacementDrive = require('../models/PlacementDrive');
 const Announcement = require('../models/Announcement');
 const Notification = require('../models/Notification');
+const MockTest = require('../models/MockTest');
 const { sendRecruiterConfirmationEmail } = require('../services/emailService');
 
 // ==================== Student Management ====================
@@ -758,6 +759,42 @@ router.get('/export/raw', auth, authorize('admin'), async (req, res) => {
     } catch (error) {
         console.error('[EXPORT] Error:', error);
         res.status(500).json({ error: 'Export failed', details: error.message });
+    }
+});
+
+// ==================== Mock Test Cleanup ====================
+
+/**
+ * Clean up all AI-generated mock tests
+ */
+router.post('/mock-tests/cleanup', auth, authorize('admin'), async (req, res) => {
+    try {
+        const result = await MockTest.deleteMany({ category: 'AI Generated' });
+        console.log(`[ADMIN] Deleted ${result.deletedCount} AI-generated mock tests`);
+        
+        res.json({
+            message: `Successfully deleted ${result.deletedCount} AI-generated mock test(s)`,
+            deletedCount: result.deletedCount
+        });
+    } catch (error) {
+        console.error('[ADMIN] Mock test cleanup error:', error);
+        res.status(500).json({ error: 'Failed to cleanup mock tests', details: error.message });
+    }
+});
+
+/**
+ * Get count of AI-generated mock tests
+ */
+router.get('/mock-tests/count', auth, authorize('admin'), async (req, res) => {
+    try {
+        const count = await MockTest.countDocuments({ category: 'AI Generated' });
+        res.json({
+            aiGeneratedCount: count,
+            message: `${count} AI-generated mock test(s) in database`
+        });
+    } catch (error) {
+        console.error('[ADMIN] Mock test count error:', error);
+        res.status(500).json({ error: 'Failed to get mock test count', details: error.message });
     }
 });
 
