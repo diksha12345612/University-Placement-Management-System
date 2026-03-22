@@ -15,6 +15,33 @@ const {
     calculateTestDuration
 } = require('../services/aiService');
 
+// ─── Database Cleanup Migration ────────────────────────────────────────────
+// This runs once to fix old tests without createdBy field
+let migrationDone = false;
+const cleanupOldTests = async () => {
+    if (migrationDone) return;
+    try {
+        // Only hide AI-generated tests without a creator
+        // Keep existing pre-loaded tests (like "Aptitude Mega Test") as published
+        const updated = await MockTest.updateMany(
+            { 
+                category: 'AI Generated',
+                createdBy: { $exists: false }
+            },
+            { $set: { isPublished: false } }
+        );
+        if (updated.modifiedCount > 0) {
+            console.log(`[PREP MIGRATION] Updated ${updated.modifiedCount} AI-generated tests without creator to isPublished: false`);
+        }
+        migrationDone = true;
+    } catch (err) {
+        console.error('[PREP MIGRATION] Error cleaning up old tests:', err);
+    }
+};
+
+// Run cleanup on first route access
+cleanupOldTests();
+
 // ─── Interview Preparation ──────────────────────────────────────────────────
 
 router.get('/interview/questions', auth, async (req, res) => {
@@ -123,8 +150,14 @@ router.post('/generate-test', auth, async (req, res) => {
         const userId = req.user._id || req.user.id;
         const userObjectId = new mongoose.Types.ObjectId(userId);
 
-        // Remove all previously generated AI tests for THIS STUDENT only
-        await MockTest.deleteMany({ category: 'AI Generated', createdBy: userObjectId });
+        // Remove ALL previously generated AI tests for THIS STUDENT only (published or unpublished)
+        await MockTest.deleteMany({ 
+            category: 'AI Generated', 
+            $or: [
+                { createdBy: userObjectId },
+                { createdBy: userId.toString() } // In case userId is stored as string
+            ]
+        });
         console.log(`[PREP] Cleared old AI-generated mock tests for student: ${userId}`);
 
         const questionCount = Math.min(10, Math.max(3, parseInt(count) || 5));
@@ -146,6 +179,7 @@ router.post('/generate-test', auth, async (req, res) => {
         });
 
         await newTest.save();
+        console.log(`[PREP] Created new test for student ${userId}: ${newTest._id}`);
 
         // Save generated questions to QuestionBank with userId for isolation
         await saveGeneratedQuestions(topic, difficulty, testData.questions, newTest._id, userId);
@@ -179,19 +213,32 @@ router.get('/mock-tests', auth, async (req, res) => {
 router.get('/mock-tests/:id', auth, async (req, res) => {
     try {
         const userId = req.user._id || req.user.id; // Get MongoDB ObjectId
+        const userObjectId = new mongoose.Types.ObjectId(userId);
         const test = await MockTest.findById(req.params.id);
         
         if (!test) return res.status(404).json({ error: 'Test not found' });
         
-        // Allow access if test is published OR student created it
-        const isCreator = test.createdBy.equals(new mongoose.Types.ObjectId(userId));
-        if (!test.isPublished && !isCreator) {
-            return res.status(403).json({ error: 'Access denied: This test is not available to you' });
+        // Check if student is the creator
+        // Old tests might not have createdBy field - treat them as published
+        const isCreator = test.createdBy && test.createdBy.equals(userObjectId);
+        
+        // Access logic:
+        // - Creator can always access (published or not)
+        // - Non-creators can only access if published
+        // - If createdBy is undefined (old test), only allow if isPublished is true
+        if (!isCreator) {
+            const isPublished = test.isPublished === true;
+            const hasNoCreator = !test.createdBy;
+            const allowAccess = isPublished || (hasNoCreator && isPublished);
+            
+            if (!allowAccess) {
+                return res.status(403).json({ error: 'Access denied: This test is not available to you' });
+            }
         }
         
         // Convert to plain object and hide correct answers from non-creators
         const testObj = test.toObject();
-        if (!isCreator) {
+        if (!isCreator && testObj.questions) {
             // Remove correct answers for non-creators
             testObj.questions = testObj.questions.map(q => {
                 const questionCopy = { ...q };
@@ -214,8 +261,8 @@ router.post('/mock-tests/:id/submit', auth, async (req, res) => {
         if (!test) return res.status(404).json({ error: 'Test not found' });
 
         // ✅ PERMISSION CHECK: Student can only submit tests they created or published tests
-        const isCreator = test.createdBy.equals(userId);
-        const isPublished = test.isPublished;
+        const isCreator = test.createdBy && test.createdBy.equals(userId);
+        const isPublished = test.isPublished === true;
         
         if (!isCreator && !isPublished) {
             return res.status(403).json({ error: 'Access denied: You cannot submit this test' });
