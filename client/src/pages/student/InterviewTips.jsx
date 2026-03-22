@@ -5,6 +5,32 @@ import toast from 'react-hot-toast';
 import Editor from '@monaco-editor/react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import DOMPurify from 'dompurify';
+import { sanitizeMarkdownHtml } from '../../utils/sanitization';
+
+/**
+ * Safe Markdown Component
+ * Renders markdown with XSS protection using DOMPurify
+ */
+const SafeMarkdown = ({ children, ...props }) => {
+    const sanitizedContent = sanitizeMarkdownHtml(children || '');
+    return (
+        <ReactMarkdown 
+            {...props}
+            remarkPlugins={[remarkGfm]}
+            components={{
+                // Sanitize all HTML output
+                ...ReactMarkdown.defaultProps?.components,
+                html: ({ value }) => {
+                    const safe = DOMPurify.sanitize(value);
+                    return <div dangerouslySetInnerHTML={{ __html: safe }} />;
+                }
+            }}
+        >
+            {sanitizedContent}
+        </ReactMarkdown>
+    );
+};
 
 const InterviewTips = () => {
     const [role, setRole] = useState('Software Engineer');
@@ -324,9 +350,9 @@ const InterviewTips = () => {
                                 <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 600 }}>Level: {questions[currentQuestionIndex].difficulty}</span>
                             </div>
                             <div className="markdown-body" style={{ fontSize: '1.25rem', lineHeight: 1.5, margin: 0, color: 'var(--text-main)', fontWeight: 600, fontFamily: '"Inter", sans-serif' }}>
-                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                <SafeMarkdown>
                                     {questions[currentQuestionIndex].questionText}
-                                </ReactMarkdown>
+                                </SafeMarkdown>
                             </div>
                         </div>
 
@@ -520,7 +546,7 @@ const InterviewTips = () => {
                                                     lineHeight: 1.6,
                                                     border: '1px solid #e2e8f0'
                                                 }}>
-                                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{evaluation.feedback}</ReactMarkdown>
+                                                    <SafeMarkdown>{evaluation.feedback}</SafeMarkdown>
                                                 </div>
                                             </div>
                                         )}

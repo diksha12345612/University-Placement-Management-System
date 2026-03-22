@@ -6,6 +6,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
 require('dotenv').config();
+const { setupExpiryCheckInterval } = require('./services/expiryService');
 
 // Validate critical environment variables
 if (!process.env.MONGODB_URI) {
@@ -84,6 +85,20 @@ app.use(mongoSanitize({
   }
 }));
 
+// XSS Protection - Prevent Cross-Site Scripting attacks
+// Cleans user input by escaping HTML/JS patterns
+const xss = require('xss-clean');
+app.use(xss({
+  whiteList: {}, // Remove HTML tags from string values (very strict)
+  stripIgnoreTag: true,
+  onTag: (tag, html, options) => {
+    // Log suspicious HTML attempts
+    if (tag && !['b', 'strong', 'i', 'em', 'u', 'br'].includes(tag.toLowerCase())) {
+      console.warn(`[SECURITY] HTML tag attempt detected: ${tag}`);
+    }
+  }
+}));
+
 // Serverless DB Connection Middleware
 // This guarantees Vercel establishes a connection BEFORE routing the request
 let isConnected = false;
@@ -149,14 +164,48 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
-// Error handling middleware
+// Enhanced Error handling middleware - prevents information disclosure in production
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  const statusCode = err.statusCode || 500;
-  res.status(statusCode).json({
-    error: err.message || 'Internal Server Error',
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
-  });
+  // Log full error server-side for debugging
+  const errorId = Date.now().toString(36) + Math.random().toString(36).substr(2);
+  console.error(`[ERROR-${errorId}] ${err.stack || err.message}`);
+  
+  // Determine status code
+  const statusCode = err.statusCode || err.status || 500;
+  
+  // Build safe response
+  let errorResponse = {
+    error: 'An error occurred processing your request'
+  };
+
+  // Include specific safe error messages for known error types
+  if (err.name === 'ValidationError') {
+    errorResponse.error = 'Validation failed';
+  } else if (err.name === 'CastError') {
+    errorResponse.error = 'Invalid request parameters';
+  } else if (err.name === 'MongooseError') {
+    errorResponse.error = 'Database operation failed';
+  } else if (statusCode === 401) {
+    errorResponse.error = 'Authentication required';
+  } else if (statusCode === 403) {
+    errorResponse.error = 'Access denied';
+  } else if (statusCode === 404) {
+    errorResponse.error = 'Resource not found';
+  } else if (statusCode >= 400 && statusCode < 500) {
+    // Use original message for client errors (validation, bad requests)
+    errorResponse.error = err.message || 'Invalid request';
+  }
+
+  // In development, include additional details
+  if (process.env.NODE_ENV === 'development') {
+    errorResponse.stack = err.stack;
+    errorResponse.errorId = errorId;
+  } else {
+    // In production, provide error ID for support reference
+    errorResponse.errorId = errorId;
+  }
+
+  res.status(statusCode).json(errorResponse);
 });
 
 // 404 handler

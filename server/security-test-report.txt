@@ -1,0 +1,104 @@
+
+
+╔════════════════════════════════════════════════════════╗
+║                    TEST SUMMARY REPORT                 ║
+╚════════════════════════════════════════════════════════╝
+
+📊 Results: 17 PASSED | 17 FAILED | 0 SKIPPED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Test Results by Category:
+✅ XSS-1: Basic script tag injection in registration: PASS
+✅ XSS-2: Event handler injection (onclick, onerror): PASS
+✅ XSS-3: HTML entity encoding test: PASS
+✅ Injection-1: NoSQL $ne operator in login: PASS
+✅ Injection-2: NoSQL $regex operator bypass: PASS
+✅ Injection-3: Parameter pollution in request: PASS
+✅ Injection-4: Malformed JSON payload: PASS
+⚠️ Auth-1: Brute force login protection: ERROR
+⚠️ Auth-2: Invalid JWT rejection: ERROR
+⚠️ Auth-3: Missing authentication (no JWT): ERROR
+⚠️ Auth-4: Token expiration handling: ERROR
+⚠️ Validation-1: Missing required fields in registration: ERROR
+⚠️ Validation-2: Invalid email format rejection: ERROR
+⚠️ Validation-3: Invalid role value rejection: ERROR
+⚠️ Validation-4: Wrong data types rejection: ERROR
+✅ Validation-5: Oversized request payload rejection: PASS
+⚠️ CORS-1: Valid origin (localhost) allowed: ERROR
+⚠️ CORS-2: Unauthorized origin rejection: ERROR
+⚠️ CORS-3: Credentials handling with CORS: ERROR
+✅ Upload-1: Executable file type rejection: PASS
+✅ Upload-2: JavaScript file type rejection: PASS
+✅ Upload-3: Oversized file rejection: PASS
+✅ Upload-4: Valid PDF file acceptance: PASS
+✅ Upload-5: File extension spoofing detection: PASS
+⚠️ Error-1: No stack trace in production errors: ERROR
+✅ Error-2: No database error details exposed: PASS
+⚠️ Error-3: Proper error response structure: ERROR
+✅ Performance-1: API response time acceptable: PASS
+✅ Performance-2: No excessive middleware latency: PASS
+✅ Performance-3: Concurrent request handling: PASS
+⚠️ Headers-1: Content-Security-Policy header present: ERROR
+⚠️ Headers-2: HSTS header present: ERROR
+⚠️ Headers-3: X-Frame-Options (clickjacking protection): ERROR
+⚠️ Headers-4: X-Content-Type-Options (MIME sniffing prevention): ERROR
+
+
+⚠️  ISSUES FOUND (17):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. [HIGH] Auth-1: Brute force login protection
+   Issue: timeout of 10000ms exceeded
+
+2. [HIGH] Auth-2: Invalid JWT rejection
+   Issue: 
+
+3. [HIGH] Auth-3: Missing authentication (no JWT)
+   Issue: 
+
+4. [HIGH] Auth-4: Token expiration handling
+   Issue: 
+
+5. [HIGH] Validation-1: Missing required fields in registration
+   Issue: 
+
+6. [HIGH] Validation-2: Invalid email format rejection
+   Issue: 
+
+7. [HIGH] Validation-3: Invalid role value rejection
+   Issue: 
+
+8. [HIGH] Validation-4: Wrong data types rejection
+   Issue: 
+
+9. [HIGH] CORS-1: Valid origin (localhost) allowed
+   Issue: 
+
+10. [HIGH] CORS-2: Unauthorized origin rejection
+   Issue: 
+
+11. [HIGH] CORS-3: Credentials handling with CORS
+   Issue: 
+
+12. [HIGH] Error-1: No stack trace in production errors
+   Issue: 
+
+13. [HIGH] Error-3: Proper error response structure
+   Issue: 
+
+14. [HIGH] Headers-1: Content-Security-Policy header present
+   Issue: 
+
+15. [HIGH] Headers-2: HSTS header present
+   Issue: 
+
+16. [HIGH] Headers-3: X-Frame-Options (clickjacking protection)
+   Issue: 
+
+17. [HIGH] Headers-4: X-Content-Type-Options (MIME sniffing prevention)
+   Issue: 
+
+
+📋 System Status:
+⚠️ ISSUES DETECTED: 17 test(s) require attention
+
+Generated: 2026-03-22T16:36:27.722Z

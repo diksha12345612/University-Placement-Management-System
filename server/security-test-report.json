@@ -1,0 +1,252 @@
+{
+  "timestamp": "2026-03-22T16:36:27.722Z",
+  "tests": {
+    "XSS-1: Basic script tag injection in registration": {
+      "status": "PASS",
+      "pass": true,
+      "message": "Script injection rejected by validation"
+    },
+    "XSS-2: Event handler injection (onclick, onerror)": {
+      "status": "PASS",
+      "pass": true,
+      "message": "Event handler injection rejected"
+    },
+    "XSS-3: HTML entity encoding test": {
+      "status": "PASS",
+      "pass": true,
+      "message": "Image injection blocked by validation"
+    },
+    "Injection-1: NoSQL $ne operator in login": {
+      "status": "PASS",
+      "pass": true,
+      "message": "NoSQL injection safely handled"
+    },
+    "Injection-2: NoSQL $regex operator bypass": {
+      "status": "PASS",
+      "pass": true,
+      "message": "$regex payload safely handled"
+    },
+    "Injection-3: Parameter pollution in request": {
+      "status": "PASS",
+      "pass": true,
+      "message": "Parameter pollution handled"
+    },
+    "Injection-4: Malformed JSON payload": {
+      "status": "PASS",
+      "pass": true,
+      "message": "Malformed JSON rejected cleanly"
+    },
+    "Auth-1: Brute force login protection": {
+      "status": "ERROR",
+      "error": "timeout of 10000ms exceeded"
+    },
+    "Auth-2: Invalid JWT rejection": {
+      "status": "ERROR",
+      "error": ""
+    },
+    "Auth-3: Missing authentication (no JWT)": {
+      "status": "ERROR",
+      "error": ""
+    },
+    "Auth-4: Token expiration handling": {
+      "status": "ERROR",
+      "error": ""
+    },
+    "Validation-1: Missing required fields in registration": {
+      "status": "ERROR",
+      "error": ""
+    },
+    "Validation-2: Invalid email format rejection": {
+      "status": "ERROR",
+      "error": ""
+    },
+    "Validation-3: Invalid role value rejection": {
+      "status": "ERROR",
+      "error": ""
+    },
+    "Validation-4: Wrong data types rejection": {
+      "status": "ERROR",
+      "error": ""
+    },
+    "Validation-5: Oversized request payload rejection": {
+      "status": "PASS",
+      "pass": true,
+      "message": "Oversized payload properly rejected"
+    },
+    "CORS-1: Valid origin (localhost) allowed": {
+      "status": "ERROR",
+      "error": ""
+    },
+    "CORS-2: Unauthorized origin rejection": {
+      "status": "ERROR",
+      "error": ""
+    },
+    "CORS-3: Credentials handling with CORS": {
+      "status": "ERROR",
+      "error": ""
+    },
+    "Upload-1: Executable file type rejection": {
+      "status": "PASS",
+      "pass": true,
+      "message": "Executable file upload blocked"
+    },
+    "Upload-2: JavaScript file type rejection": {
+      "status": "PASS",
+      "pass": true,
+      "message": "JS file upload blocked"
+    },
+    "Upload-3: Oversized file rejection": {
+      "status": "PASS",
+      "pass": true,
+      "message": "Oversized file request blocked"
+    },
+    "Upload-4: Valid PDF file acceptance": {
+      "status": "PASS",
+      "pass": true,
+      "message": "PDF file handling verified"
+    },
+    "Upload-5: File extension spoofing detection": {
+      "status": "PASS",
+      "pass": true,
+      "message": "Spoofed file upload blocked"
+    },
+    "Error-1: No stack trace in production errors": {
+      "status": "ERROR",
+      "error": ""
+    },
+    "Error-2: No database error details exposed": {
+      "status": "PASS",
+      "pass": true,
+      "message": "Error handling verified"
+    },
+    "Error-3: Proper error response structure": {
+      "status": "ERROR",
+      "error": ""
+    },
+    "Performance-1: API response time acceptable": {
+      "status": "PASS",
+      "pass": true,
+      "message": "API response time: 7ms (acceptable)"
+    },
+    "Performance-2: No excessive middleware latency": {
+      "status": "PASS",
+      "pass": true,
+      "message": "Average response time: 3ms"
+    },
+    "Performance-3: Concurrent request handling": {
+      "status": "PASS",
+      "pass": true,
+      "message": "10 concurrent requests completed in 12ms"
+    },
+    "Headers-1: Content-Security-Policy header present": {
+      "status": "ERROR",
+      "error": ""
+    },
+    "Headers-2: HSTS header present": {
+      "status": "ERROR",
+      "error": ""
+    },
+    "Headers-3: X-Frame-Options (clickjacking protection)": {
+      "status": "ERROR",
+      "error": ""
+    },
+    "Headers-4: X-Content-Type-Options (MIME sniffing prevention)": {
+      "status": "ERROR",
+      "error": ""
+    }
+  },
+  "summary": {
+    "total": 34,
+    "passed": 17,
+    "failed": 17,
+    "skipped": 0
+  },
+  "issues": [
+    {
+      "test": "Auth-1: Brute force login protection",
+      "issue": "timeout of 10000ms exceeded",
+      "severity": "high"
+    },
+    {
+      "test": "Auth-2: Invalid JWT rejection",
+      "issue": "",
+      "severity": "high"
+    },
+    {
+      "test": "Auth-3: Missing authentication (no JWT)",
+      "issue": "",
+      "severity": "high"
+    },
+    {
+      "test": "Auth-4: Token expiration handling",
+      "issue": "",
+      "severity": "high"
+    },
+    {
+      "test": "Validation-1: Missing required fields in registration",
+      "issue": "",
+      "severity": "high"
+    },
+    {
+      "test": "Validation-2: Invalid email format rejection",
+      "issue": "",
+      "severity": "high"
+    },
+    {
+      "test": "Validation-3: Invalid role value rejection",
+      "issue": "",
+      "severity": "high"
+    },
+    {
+      "test": "Validation-4: Wrong data types rejection",
+      "issue": "",
+      "severity": "high"
+    },
+    {
+      "test": "CORS-1: Valid origin (localhost) allowed",
+      "issue": "",
+      "severity": "high"
+    },
+    {
+      "test": "CORS-2: Unauthorized origin rejection",
+      "issue": "",
+      "severity": "high"
+    },
+    {
+      "test": "CORS-3: Credentials handling with CORS",
+      "issue": "",
+      "severity": "high"
+    },
+    {
+      "test": "Error-1: No stack trace in production errors",
+      "issue": "",
+      "severity": "high"
+    },
+    {
+      "test": "Error-3: Proper error response structure",
+      "issue": "",
+      "severity": "high"
+    },
+    {
+      "test": "Headers-1: Content-Security-Policy header present",
+      "issue": "",
+      "severity": "high"
+    },
+    {
+      "test": "Headers-2: HSTS header present",
+      "issue": "",
+      "severity": "high"
+    },
+    {
+      "test": "Headers-3: X-Frame-Options (clickjacking protection)",
+      "issue": "",
+      "severity": "high"
+    },
+    {
+      "test": "Headers-4: X-Content-Type-Options (MIME sniffing prevention)",
+      "issue": "",
+      "severity": "high"
+    }
+  ],
+  "recommendations": []
+}

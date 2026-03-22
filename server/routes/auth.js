@@ -6,15 +6,20 @@ const User = require('../models/User');
 const { auth } = require('../middleware/auth');
 const OTP = require('../models/OTP');
 const { sendOTP } = require('../services/emailService');
-const { otpRequestLimiter, otpVerifyLimiter } = require('../middleware/rateLimiter');
+const { otpRequestLimiter, otpVerifyLimiter, loginLimiter, loginFailureTracker } = require('../middleware/rateLimiter');
+const { validateSchema } = require('../utils/validationSchemas');
+const { authSchemas } = require('../utils/validationSchemas');
+const { createApiSecurityMiddleware, securityProfiles } = require('../middleware/apiSecurity');
 
 const getAdminContactEmail = () => {
     return process.env.ADMIN_EMAIL || process.env.EMAIL_USER || 'admin@university.edu';
 };
 
-// Phase 1: Request OTP for Signup
+// Phase 1: Request OTP for Signup - with strict API security
 router.post('/register-otp', [
+    ...createApiSecurityMiddleware(securityProfiles.auth),
     otpRequestLimiter,
+    validateSchema(authSchemas.registerOtp, 'body'),
     body('name').trim().notEmpty().withMessage('Name is required'),
     body('email').isEmail().withMessage('Valid email is required'),
     body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
@@ -66,9 +71,11 @@ router.post('/register-otp', [
     }
 });
 
-// Phase 2: Verify OTP and Create Account
+// Phase 2: Verify OTP and Create Account - with strict API security
 router.post('/register-verify', [
+    ...createApiSecurityMiddleware(securityProfiles.auth),
     otpVerifyLimiter,
+    validateSchema(authSchemas.registerVerify, 'body'),
     body('name').trim().notEmpty().withMessage('Name is required'),
     body('email').isEmail().withMessage('Valid email is required'),
     body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
@@ -143,8 +150,12 @@ router.post('/register-verify', [
     }
 });
 
-// Login
+// Login - with strict brute force protection and API security
 router.post('/login', [
+    ...createApiSecurityMiddleware(securityProfiles.auth),
+    loginLimiter,
+    loginFailureTracker,
+    validateSchema(authSchemas.login, 'body'),
     body('email').isEmail().withMessage('Valid email is required'),
     body('password').notEmpty().withMessage('Password is required')
 ], async (req, res) => {
@@ -163,10 +174,18 @@ router.post('/login', [
         const user = await User.findOne({ email });
         if (!user) {
             console.log(`Login failed: No user found with email ${email}`);
+            // Record failed attempt for per-user lockout
+            if (req.recordFailedLogin) {
+                req.recordFailedLogin();
+            }
             return res.status(401).json({ error: 'Invalid email or password' });
         }
 
         if (!user.isVerified) {
+            // Record failed attempt
+            if (req.recordFailedLogin) {
+                req.recordFailedLogin();
+            }
             return res.status(403).json({ error: 'Account not verified. Please register again to verify your email.' });
         }
 
@@ -176,6 +195,10 @@ router.post('/login', [
         if (user.role === 'recruiter') {
             if (user.isApprovedByAdmin !== true) {
                 console.log(`Login blocked: Recruiter ${email} is pending admin approval.`);
+                // Record failed attempt
+                if (req.recordFailedLogin) {
+                    req.recordFailedLogin();
+                }
                 return res.status(403).json({ error: 'Your recruiter account is pending Admin approval. You will gain access once verified.' });
             }
         }
@@ -183,16 +206,38 @@ router.post('/login', [
         const isMatch = await user.comparePassword(password);
         if (!isMatch) {
             console.log(`Login failed: Incorrect password for ${email}`);
+            // Record failed attempt for account lockout
+            if (req.recordFailedLogin) {
+                req.recordFailedLogin();
+            }
             return res.status(401).json({ error: 'Invalid email or password' });
         }
 
+        // Success! Clear failed login attempts
+        if (req.clearFailedLogins) {
+            req.clearFailedLogins();
+        }
+
         console.log(`Login success for: ${email} (${user.role})`);
-        const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRE || '7d' });
+        
+        // PHASE 3: Validate JWT claims before issuing
+        const token = jwt.sign(
+            { 
+                id: user._id, 
+                role: user.role,
+                iat: Math.floor(Date.now() / 1000) // Issued at time
+            }, 
+            process.env.JWT_SECRET, 
+            { 
+                expiresIn: process.env.JWT_EXPIRE || '7d',
+                algorithm: 'HS256' // Explicit algorithm
+            }
+        );
 
         res.json({ token, user });
     } catch (error) {
         console.error('Login Error:', error);
-        res.status(500).json({ error: error.message || 'Server error during login', stack: error.stack });
+        res.status(500).json({ error: 'Server error during login' });
     }
 });
 
