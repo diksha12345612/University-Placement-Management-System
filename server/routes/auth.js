@@ -51,6 +51,8 @@ router.post('/register-otp', [
         // Generate 6-digit OTP
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
+        console.log('[AUTH] Generated OTP:', { email: normalizedEmail, otp, otpLength: otp.length });
+
         // PHASE 2: Use versioning to prevent OTP overwrite race conditions
         // Ensures that if multiple requests arrive at same time, only one OTP is set
         await setOTPWithVersioning(normalizedEmail, otp, 'registration');
@@ -85,20 +87,28 @@ router.post('/register-verify', [
     body('email').isEmail().withMessage('Valid email is required'),
     body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
     body('role').isIn(['student', 'recruiter']).withMessage('Role must be student or recruiter'),
-    body('otp').isLength({ min: 6, max: 6 }).withMessage('Valid 6-digit OTP is required')
+    body('otp').trim().isLength({ min: 6, max: 6 }).withMessage('Valid 6-digit OTP is required')
 ], async (req, res) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
+            console.error('[AUTH] Register-verify validation errors:', errors.array());
+            return res.status(400).json({ 
+                error: 'Validation failed',
+                errors: errors.array(),
+                details: errors.array().map(e => `${e.param}: ${e.msg}`).join('; ')
+            });
         }
 
         const { name, password, role, otp } = req.body;
         const email = req.body.email.toLowerCase().trim();
 
+        console.log('[AUTH] Register-verify attempt:', { email, role, otpLength: otp.length });
+
         // PHASE 2: Use versioning for safe OTP verification with attempt tracking
         const otpVerifyResult = await verifyOTPWithVersioning(email, otp, 'registration');
         if (!otpVerifyResult.valid) {
+            console.error('[AUTH] OTP verification failed:', { email, error: otpVerifyResult.error });
             return res.status(400).json({ error: otpVerifyResult.error });
         }
         
