@@ -68,34 +68,72 @@ router.put('/recruiters/:id/verify', auth, authorize('admin'), async (req, res) 
 });
 
 // Delete student account
+// PHASE 2: Now uses MongoDB transactions for safe cascade deletion
 router.delete('/students/:id', auth, authorize('admin'), async (req, res) => {
+    const session = await require('mongoose').startSession();
+    session.startTransaction();
+    
     try {
-        const student = await User.findOneAndDelete({ _id: req.params.id, role: 'student' });
-        if (!student) return res.status(404).json({ error: 'Student not found' });
+        const student = await User.findOneAndDelete( { _id: req.params.id, role: 'student' }, { session });
+        if (!student) {
+            await session.abortTransaction();
+            session.endSession();
+            return res.status(404).json({ error: 'Student not found' });
+        }
 
-        // Cleanup applications
-        await Application.deleteMany({ student: req.params.id });
+        // Cleanup applications (atomic within transaction)
+        await Application.deleteMany({ student: req.params.id }, { session });
+
+        // All succeeded - commit transaction
+        await session.commitTransaction();
+        session.endSession();
 
         res.json({ message: 'Student account and data deleted successfully' });
     } catch (error) {
+        // Something failed - rollback all changes
+        await session.abortTransaction();
+        session.endSession();
+        console.error('[TRANSACTION] Error deleting student:', error);
         res.status(500).json({ error: 'Error deleting student' });
     }
 });
 
 // Delete recruiter account
+// PHASE 2: Now uses MongoDB transactions for safe cascade deletion
 router.delete('/recruiters/:id', auth, authorize('admin'), async (req, res) => {
+    const session = await require('mongoose').startSession();
+    session.startTransaction();
+    
     try {
-        const recruiter = await User.findOneAndDelete({ _id: req.params.id, role: 'recruiter' });
-        if (!recruiter) return res.status(404).json({ error: 'Recruiter not found' });
+        const recruiter = await User.findOneAndDelete({ _id: req.params.id, role: 'recruiter' }, { session });
+        if (!recruiter) {
+            await session.abortTransaction();
+            session.endSession();
+            return res.status(404).json({ error: 'Recruiter not found' });
+        }
 
-        // Cleanup jobs and their applications
-        const recruiterJobs = await Job.find({ postedBy: req.params.id });
+        // Find all jobs posted by this recruiter (within transaction)
+        const recruiterJobs = await Job.find({ postedBy: req.params.id }, null, { session });
         const jobIds = recruiterJobs.map(j => j._id);
-        await Application.deleteMany({ job: { $in: jobIds } });
-        await Job.deleteMany({ postedBy: req.params.id });
+        
+        // Cleanup applications for these jobs (atomic)
+        if (jobIds.length > 0) {
+            await Application.deleteMany({ job: { $in: jobIds } }, { session });
+        }
+        
+        // Cleanup jobs (atomic)
+        await Job.deleteMany({ postedBy: req.params.id }, { session });
+
+        // All succeeded - commit transaction
+        await session.commitTransaction();
+        session.endSession();
 
         res.json({ message: 'Recruiter account and related job data deleted successfully' });
     } catch (error) {
+        // Something failed - rollback all changes
+        await session.abortTransaction();
+        session.endSession();
+        console.error('[TRANSACTION] Error deleting recruiter:', error);
         res.status(500).json({ error: 'Error deleting recruiter' });
     }
 });
@@ -795,6 +833,42 @@ router.get('/mock-tests/count', auth, authorize('admin'), async (req, res) => {
     } catch (error) {
         console.error('[ADMIN] Mock test count error:', error);
         res.status(500).json({ error: 'Failed to get mock test count', details: error.message });
+    }
+});
+
+// ==================== PHASE 3: Real-Time Dashboard Updates ====================
+
+/**
+ * Get admin dashboard summary with real-time data
+ * Client should poll this endpoint every 5-10 seconds for live updates
+ * 
+ * PHASE 3 & 4: Real-time admin dashboard implementation
+ * Uses polling approach (safe, simple, reliable)
+ * 
+ * Response includes:
+ * - Counts of students, recruiters, jobs, applications
+ * - Pending approvals
+ * - Upcoming drives
+ * - Timestamp for cache invalidation
+ */
+router.get('/dashboard/summary', auth, authorize('admin'), async (req, res) => {
+    try {
+        const { getAdminDashboardSummary } = require('../services/realtimeService');
+        const summary = await getAdminDashboardSummary();
+        
+        if (!summary) {
+            return res.status(500).json({ error: 'Failed to retrieve dashboard summary' });
+        }
+        
+        res.json({
+            success: true,
+            data: summary,
+            cacheControl: 'no-cache, must-revalidate', // Force fresh data on each request
+            pollingInterval: 5000 // Client should poll every 5 seconds
+        });
+    } catch (error) {
+        console.error('[REAL-TIME] Dashboard summary error:', error);
+        res.status(500).json({ error: 'Server error retrieving dashboard summary', details: error.message });
     }
 });
 

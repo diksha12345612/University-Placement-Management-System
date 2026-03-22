@@ -6,10 +6,18 @@ const User = require('../models/User');
 const { auth } = require('../middleware/auth');
 const OTP = require('../models/OTP');
 const { sendOTP } = require('../services/emailService');
-const { otpRequestLimiter, otpVerifyLimiter, loginLimiter, loginFailureTracker } = require('../middleware/rateLimiter');
+const { otpRequestLimiter, otpVerifyLimiter, loginLimiter } = require('../middleware/rateLimiter');
 const { validateSchema } = require('../utils/validationSchemas');
 const { authSchemas } = require('../utils/validationSchemas');
 const { createApiSecurityMiddleware, securityProfiles } = require('../middleware/apiSecurity');
+// PHASE 2: Import concurrency utilities for distributed state management
+const { 
+    recordFailedLoginAttempt, 
+    recordSuccessfulLogin, 
+    isLoginLocked,
+    setOTPWithVersioning,
+    verifyOTPWithVersioning
+} = require('../utils/concurrencyUtils');
 
 const getAdminContactEmail = () => {
     return process.env.ADMIN_EMAIL || process.env.EMAIL_USER || 'admin@university.edu';
@@ -43,12 +51,9 @@ router.post('/register-otp', [
         // Generate 6-digit OTP
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-        // Save OTP to DB (will overwrite any existing OTP for this email due to logic or TTL)
-        await OTP.findOneAndUpdate(
-            { email: normalizedEmail },
-            { otp, createdAt: new Date(), type: 'registration' },
-            { upsert: true, new: true }
-        );
+        // PHASE 2: Use versioning to prevent OTP overwrite race conditions
+        // Ensures that if multiple requests arrive at same time, only one OTP is set
+        await setOTPWithVersioning(normalizedEmail, otp, 'registration');
 
         // Send OTP via Email and report delivery status
         const emailResult = await sendOTP(normalizedEmail, otp);
@@ -91,11 +96,13 @@ router.post('/register-verify', [
         const { name, password, role, otp } = req.body;
         const email = req.body.email.toLowerCase().trim();
 
-        // Check OTP
-        const otpRecord = await OTP.findOne({ email, otp, type: 'registration' });
-        if (!otpRecord) {
-            return res.status(400).json({ error: 'Invalid or expired OTP' });
+        // PHASE 2: Use versioning for safe OTP verification with attempt tracking
+        const otpVerifyResult = await verifyOTPWithVersioning(email, otp, 'registration');
+        if (!otpVerifyResult.valid) {
+            return res.status(400).json({ error: otpVerifyResult.error });
         }
+        
+        const otpRecord = otpVerifyResult.otpRecord;
 
         // Final duplicate check just in case
         const existingUser = await User.findOne({ email });
@@ -151,10 +158,10 @@ router.post('/register-verify', [
 });
 
 // Login - with strict brute force protection and API security
+// PHASE 2: Uses distributed login attempt tracking (MongoDB) instead of in-memory
 router.post('/login', [
     ...createApiSecurityMiddleware(securityProfiles.auth),
     loginLimiter,
-    loginFailureTracker,
     validateSchema(authSchemas.login, 'body'),
     body('email').isEmail().withMessage('Valid email is required'),
     body('password').notEmpty().withMessage('Password is required')
@@ -171,34 +178,36 @@ router.post('/login', [
 
         console.log(`Login attempt for: ${email}`);
 
+        // PHASE 2: Check if account is locked due to failed attempts (distributed, survives restart)
+        const lockStatus = await isLoginLocked(email);
+        if (lockStatus.locked) {
+            console.warn(`[SECURITY] Login attempt from locked account: ${email}`);
+            return res.status(429).json({
+                error: `Account temporarily locked due to too many failed attempts. Try again in ${lockStatus.minutesRemaining} minutes.`,
+                errorCode: 'ACCOUNT_LOCKED',
+                minutesRemaining: lockStatus.minutesRemaining
+            });
+        }
+
         const user = await User.findOne({ email });
         if (!user) {
             console.log(`Login failed: No user found with email ${email}`);
-            // Record failed attempt for per-user lockout
-            if (req.recordFailedLogin) {
-                req.recordFailedLogin();
-            }
+            // PHASE 2: Record failed attempt in MongoDB (survives restart)
+            await recordFailedLoginAttempt(email);
             return res.status(401).json({ error: 'Invalid email or password' });
         }
 
         if (!user.isVerified) {
             // Record failed attempt
-            if (req.recordFailedLogin) {
-                req.recordFailedLogin();
-            }
+            await recordFailedLoginAttempt(email);
             return res.status(403).json({ error: 'Account not verified. Please register again to verify your email.' });
         }
 
         // Phase 11: Recruiter Approval Block
-        // We MUST explicitly check role === 'recruiter' here because old student accounts 
-        // will not have isApprovedByAdmin defined in their documents at all.
         if (user.role === 'recruiter') {
             if (user.isApprovedByAdmin !== true) {
                 console.log(`Login blocked: Recruiter ${email} is pending admin approval.`);
-                // Record failed attempt
-                if (req.recordFailedLogin) {
-                    req.recordFailedLogin();
-                }
+                await recordFailedLoginAttempt(email);
                 return res.status(403).json({ error: 'Your recruiter account is pending Admin approval. You will gain access once verified.' });
             }
         }
@@ -206,17 +215,14 @@ router.post('/login', [
         const isMatch = await user.comparePassword(password);
         if (!isMatch) {
             console.log(`Login failed: Incorrect password for ${email}`);
-            // Record failed attempt for account lockout
-            if (req.recordFailedLogin) {
-                req.recordFailedLogin();
-            }
+            // PHASE 2: Record failed attempt
+            await recordFailedLoginAttempt(email);
             return res.status(401).json({ error: 'Invalid email or password' });
         }
 
         // Success! Clear failed login attempts
-        if (req.clearFailedLogins) {
-            req.clearFailedLogins();
-        }
+        // PHASE 2: Clear from MongoDB (distributed state)
+        await recordSuccessfulLogin(email);
 
         console.log(`Login success for: ${email} (${user.role})`);
         
