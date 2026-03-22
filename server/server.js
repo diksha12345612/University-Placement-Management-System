@@ -227,22 +227,6 @@ app.use((err, req, res, next) => {
 
   res.status(statusCode).json(errorResponse);
 });
-  } else if (statusCode >= 400 && statusCode < 500) {
-    // Use original message for client errors (validation, bad requests)
-    errorResponse.error = err.message || 'Invalid request';
-  }
-
-  // In development, include additional details
-  if (process.env.NODE_ENV === 'development') {
-    errorResponse.stack = err.stack;
-    errorResponse.errorId = errorId;
-  } else {
-    // In production, provide error ID for support reference
-    errorResponse.errorId = errorId;
-  }
-
-  res.status(statusCode).json(errorResponse);
-});
 
 // 404 handler
 app.use((req, res) => {
