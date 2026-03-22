@@ -167,6 +167,15 @@ router.post('/register-verify', [
     }
 });
 
+// GET handler for debugging - register-verify should be POST only
+router.get('/register-verify', (req, res) => {
+    res.status(405).json({ 
+        error: 'Method not allowed', 
+        message: 'register-verify endpoint only accepts POST requests',
+        hint: 'Make sure your frontend is sending a POST request, not GET'
+    });
+});
+
 // Login - with strict brute force protection and API security
 // PHASE 2: Uses distributed login attempt tracking (MongoDB) instead of in-memory
 router.post('/login', [
