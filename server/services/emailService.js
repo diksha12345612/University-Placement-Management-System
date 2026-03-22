@@ -47,6 +47,13 @@ const sendOTP = async (email, otp) => {
 };
 
 const sendRecruiterConfirmationEmail = async (email, recruiterName) => {
+    // Get frontend URL from environment - defaults to Vercel production URL
+    // Update this environment variable when deploying to different URLs
+    const frontendUrl = process.env.FRONTEND_URL || process.env.VITE_API_URL?.replace('/api', '') || 'https://uniplacements.vercel.app';
+    const loginUrl = `${frontendUrl}/login`;
+    
+    console.log('[EMAIL] Sending recruiter confirmation to:', { email, loginUrl });
+    
     const mailOptions = {
         from: `"UniPlacements Portal" <${process.env.EMAIL_USER}>`,
         to: email,
@@ -72,7 +79,7 @@ const sendRecruiterConfirmationEmail = async (email, recruiterName) => {
                 </ul>
 
                 <p style="margin-top: 20px;">
-                    <a href="https://university-placement-portal-seven.vercel.app/login" style="display: inline-block; background: #2563eb; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold;">Log In Now</a>
+                    <a href="${loginUrl}" style="display: inline-block; background: #2563eb; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold;">Log In Now</a>
                 </p>
 
                 <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;">
