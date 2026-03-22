@@ -157,8 +157,9 @@ async function setOTPWithVersioning(email, otp, type = 'registration') {
         const now = new Date();
         
         // Try to create new OTP record with atomic version increment
+        // CRITICAL FIX: Include type in query to keep registration and password-reset OTPs separate
         let result = await require('../models/OTP').findOneAndUpdate(
-            { email: normalizedEmail },
+            { email: normalizedEmail, type },
             {
                 $set: {
                     otp,
