@@ -3,6 +3,7 @@ const router = express.Router();
 const { auth, authorize } = require('../middleware/auth');
 const Application = require('../models/Application');
 const Job = require('../models/Job');
+const User = require('../models/User');
 const Notification = require('../models/Notification');
 
 // Apply for a job (student)
@@ -269,49 +270,70 @@ router.post('/job/:jobId/ai-rank', auth, authorize('recruiter'), async (req, res
 router.put('/:id/status', auth, authorize('recruiter', 'admin'), async (req, res) => {
     try {
         const { status } = req.body;
+        if (!status) return res.status(400).json({ error: 'Status is required' });
+
         const application = await Application.findByIdAndUpdate(
             req.params.id,
             { status },
             { new: true }
-        ).populate('job', 'title');
+        ).populate('job', 'title company');
 
         if (!application) return res.status(404).json({ error: 'Application not found' });
 
+        // Get job title safely (handle missing job reference)
+        const jobTitle = application.job ? application.job.title : 'Unknown Job';
+        const jobCompany = application.job ? application.job.company : 'N/A';
+
         // Notify student
-        await new Notification({
-            user: application.student,
-            title: 'Application Update',
-            message: `Your application for ${application.job.title} has been ${status}`,
-            type: status === 'selected' ? 'success' : status === 'rejected' ? 'warning' : 'info',
-            link: '/student/applications'
-        }).save();
+        try {
+            await new Notification({
+                user: application.student,
+                title: 'Application Update',
+                message: `Your application for ${jobTitle} has been ${status}`,
+                type: status === 'selected' ? 'success' : status === 'rejected' ? 'warning' : 'info',
+                link: '/student/applications'
+            }).save();
+        } catch (notifErr) {
+            console.error('Notification save error:', notifErr.message);
+            // Don't fail the whole request if notification fails
+        }
 
         // Automate Student Placement Status
         if (status === 'selected') {
-            const User = require('../models/User');
-            await User.findByIdAndUpdate(application.student, {
-                'studentProfile.isPlaced': true,
-                'studentProfile.placedAt': application.job.company || 'N/A'
-            });
+            try {
+                await User.findByIdAndUpdate(application.student, {
+                    'studentProfile.isPlaced': true,
+                    'studentProfile.placedAt': jobCompany
+                });
+            } catch (userErr) {
+                console.error('User update error:', userErr.message);
+                // Don't fail if user update fails
+            }
         }
 
         // Notify Admin if shortlisted
         if (status === 'shortlisted') {
-            const admins = await User.find({ role: 'admin' });
-            for (const admin of admins) {
-                await new Notification({
-                    user: admin._id,
-                    title: 'Student Shortlisted',
-                    message: `A student has been shortlisted for ${application.job.title}`,
-                    type: 'success',
-                    link: '/admin/reports'
-                }).save();
+            try {
+                const admins = await User.find({ role: 'admin' });
+                for (const admin of admins) {
+                    await new Notification({
+                        user: admin._id,
+                        title: 'Student Shortlisted',
+                        message: `A student has been shortlisted for ${jobTitle}`,
+                        type: 'success',
+                        link: '/admin/reports'
+                    }).save();
+                }
+            } catch (adminErr) {
+                console.error('Admin notification error:', adminErr.message);
+                // Don't fail if admin notification fails
             }
         }
 
         res.json(application);
     } catch (error) {
-        res.status(500).json({ error: 'Error updating application status' });
+        console.error('[APPS] Status update error:', error.message);
+        res.status(500).json({ error: 'Error updating application status: ' + error.message });
     }
 });
 
