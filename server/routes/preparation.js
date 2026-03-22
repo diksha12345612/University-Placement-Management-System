@@ -16,32 +16,21 @@ const {
 } = require('../services/aiService');
 
 // ─── Database Cleanup Migration ────────────────────────────────────────────
-// This runs once to fix old tests without createdBy field and remove unwanted tests
+// This runs once to clean up database - VERY CONSERVATIVE to avoid data loss
 let migrationDone = false;
 const cleanupOldTests = async () => {
     if (migrationDone) return;
     try {
-        // Only hide AI-generated tests without a creator
-        const updated = await MockTest.updateMany(
-            { 
-                category: 'AI Generated',
-                createdBy: { $exists: false }
-            },
-            { $set: { isPublished: false } }
-        );
-        if (updated.modifiedCount > 0) {
-            console.log(`[PREP MIGRATION] Updated ${updated.modifiedCount} AI-generated tests without creator to isPublished: false`);
-        }
-        
-        // Remove Aptitude Mega Test (pre-loaded test that shouldn't be visible)
+        // Only delete the specific "Aptitude Mega Test" if it exists
+        // DO NOT unpublish or hide existing tests - that breaks access
         const deleted = await MockTest.deleteOne({ title: 'Aptitude Mega Test' });
         if (deleted.deletedCount > 0) {
-            console.log(`[PREP MIGRATION] Deleted Aptitude Mega Test from database`);
+            console.log(`[PREP MIGRATION] Cleaned up Aptitude Mega Test from database`);
         }
         
         migrationDone = true;
     } catch (err) {
-        console.error('[PREP MIGRATION] Error cleaning up old tests:', err);
+        console.error('[PREP MIGRATION] Error during cleanup:', err.message);
     }
 };
 
@@ -241,9 +230,17 @@ router.get('/mock-tests/:id', auth, async (req, res) => {
     try {
         const userId = req.user._id || req.user.id; // Get MongoDB ObjectId
         const userObjectId = new mongoose.Types.ObjectId(userId);
+        
+        // Validate the ID format
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({ error: 'Invalid test ID format' });
+        }
+        
         const test = await MockTest.findById(req.params.id);
         
-        if (!test) return res.status(404).json({ error: 'Test not found' });
+        if (!test) {
+            return res.status(404).json({ error: 'Test not found' });
+        }
         
         // Check if student is the creator
         // Old tests might not have createdBy field - treat them as published
@@ -255,11 +252,9 @@ router.get('/mock-tests/:id', auth, async (req, res) => {
         // - If createdBy is undefined (old test), only allow if isPublished is true
         if (!isCreator) {
             const isPublished = test.isPublished === true;
-            const hasNoCreator = !test.createdBy;
-            const allowAccess = isPublished || (hasNoCreator && isPublished);
             
-            if (!allowAccess) {
-                return res.status(403).json({ error: 'Access denied: This test is not available to you' });
+            if (!isPublished) {
+                return res.status(403).json({ error: 'This test is not available to you' });
             }
         }
         
@@ -277,7 +272,7 @@ router.get('/mock-tests/:id', auth, async (req, res) => {
         res.json(testObj);
     } catch (err) {
         console.error('[PREP] GET mock-test/:id error:', err);
-        res.status(500).json({ error: 'Server error: ' + err.message });
+        res.status(500).json({ error: 'Server error retrieving test' });
     }
 });
 
