@@ -9,7 +9,7 @@ const { sendOTP } = require('../services/emailService');
 const { otpRequestLimiter, otpVerifyLimiter } = require('../middleware/rateLimiter');
 
 const getAdminContactEmail = () => {
-    return process.env.ADMIN_EMAIL || 'mohittttttt48@gmail.com';
+    return process.env.ADMIN_EMAIL || 'admin@university.edu';
 };
 
 // Phase 1: Request OTP for Signup

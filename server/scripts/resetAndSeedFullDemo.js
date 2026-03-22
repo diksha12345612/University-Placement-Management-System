@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+const crypto = require('crypto');
 
 dotenv.config();
 
@@ -18,6 +19,7 @@ const InterviewEvaluation = require('../models/InterviewEvaluation');
 const OTP = require('../models/OTP');
 
 const MONGODB_URI = process.env.MONGODB_URI;
+const DEMO_PASSWORD = process.env.DEMO_PASSWORD || crypto.randomBytes(8).toString('hex');
 
 // Minimal valid dummy PDF that opens in browser viewers
 const dummyPdfBase64 =
@@ -434,7 +436,7 @@ async function seed() {
   const admin = await User.create({
     name: 'Kriti Sharma',
     email: 'kumarmohit78774@gmail.com',
-    password: '111111',
+    password: DEMO_PASSWORD,
     role: 'admin',
     isVerified: true,
     isApprovedByAdmin: true
@@ -446,7 +448,7 @@ async function seed() {
     const recruiter = await User.create({
       name: r.name,
       email: r.email,
-      password: '111111',
+      password: DEMO_PASSWORD,
       role: 'recruiter',
       isVerified: true,
       isApprovedByAdmin: true,
@@ -473,7 +475,7 @@ async function seed() {
     const student = new User({
       name: s.name,
       email: s.email,
-      password: '111111',
+      password: DEMO_PASSWORD,
       role: 'student',
       isVerified: true,
       studentProfile: {
@@ -702,7 +704,7 @@ async function seed() {
   console.log('Seed complete.');
   console.log(counts);
   console.log('Admin login email: kumarmohit78774@gmail.com');
-  console.log('Admin login password: 111111');
+  console.log('Admin login password:', DEMO_PASSWORD);
 
   await mongoose.disconnect();
 }

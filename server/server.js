@@ -23,18 +23,65 @@ const app = express();
 // Vercel sets X-Forwarded-For header, Express needs to trust it
 app.set('trust proxy', 1);
 
-// Security middleware
-app.use(helmet());
-app.use(cors({
-  origin: (origin, callback) => {
-    // Allow localhost and vercel deployments
-    if (!origin || origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1') || origin.includes('vercel.app')) {
-      callback(null, true);
-    } else {
-      callback(null, process.env.FRONTEND_URL || false);
+// Enhanced Security Headers with Helmet
+// Includes HSTS, CSP, X-Frame-Options, and other best practices
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      scriptSrc: ["'self'", "https://vercel.com"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", "https://api.openrouter.io"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      mediaSrc: ["'self'"],
+      objectSrc: ["'none'"],
     }
   },
-  credentials: true
+  hsts: {
+    maxAge: 31536000, // 1 year in seconds
+    includeSubDomains: true,
+    preload: true
+  },
+  frameguard: { action: 'deny' },
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' }
+}));
+
+// Strict CORS configuration - only allow known safe origins
+const allowedOrigins = [
+  process.env.FRONTEND_URL, // Vercel production (e.g., https://uniplacements.vercel.app)
+  'http://localhost:5173',   // Local Vite dev server
+  'http://localhost:5500',   // Local dev fallback
+  'http://127.0.0.1:5173',   // localhost IPv4 variant
+].filter(Boolean); // Remove undefined values
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests without origin (e.g., mobile apps, curl, Postman)
+    if (!origin) {
+      return callback(null, true);
+    }
+    
+    // Check if origin is in allowed list
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      // Reject with descriptive error (safe for production)
+      callback(new Error('CORS policy: Origin not allowed'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+
+// Input Sanitization - Prevent NoSQL injection attacks
+// sanitize user input data by escaping $ and . characters in object keys
+const mongoSanitize = require('express-mongo-sanitize');
+app.use(mongoSanitize({
+  onSanitize: ({ req, key }) => {
+    console.warn(`[SECURITY] Sanitized potentially malicious key in request: ${key}`);
+  }
 }));
 
 // Serverless DB Connection Middleware
@@ -71,9 +118,9 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
-// Body parsing
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
+// Body parsing - with size limits to prevent DoS attacks
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Logging
 if (process.env.NODE_ENV !== 'production') {

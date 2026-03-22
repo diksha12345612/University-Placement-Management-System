@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 require('dotenv').config();
 
 const User = require('./models/User');
@@ -9,6 +10,11 @@ const Notification = require('./models/Notification');
 const Announcement = require('./models/Announcement');
 const PlacementDrive = require('./models/PlacementDrive');
 const MockTest = require('./models/MockTest');
+
+// Generate secure demo password from environment or random value
+const DEMO_PASSWORD = process.env.DEMO_PASSWORD || crypto.randomBytes(8).toString('hex');
+
+console.log('[SEED] Using demo password:', DEMO_PASSWORD);
 
 const seedData = async () => {
     try {
@@ -29,7 +35,7 @@ const seedData = async () => {
         const admin = await User.create({
             name: 'Placement Officer',
             email: 'kumarmohit78774@gmail.com',
-            password: '111111',
+            password: DEMO_PASSWORD,
             role: 'admin',
             isVerified: true
         });
@@ -38,31 +44,31 @@ const seedData = async () => {
         // Create Sample Students (10+)
         const students = await User.create([
             {
-                name: 'Rahul Sharma', email: 'rahul@student.com', password: 'student123', role: 'student', isVerified: true,
+                name: 'Rahul Sharma', email: 'rahul@student.com', password: DEMO_PASSWORD, role: 'student', isVerified: true,
                 studentProfile: { rollNumber: 'CS2021001', department: 'Computer Science', batch: '2025', cgpa: 8.5, phone: '9876543210', skills: ['JavaScript', 'React', 'Node.js', 'Python'], tenthPercentage: 92, twelfthPercentage: 88, gender: 'Male' }
             },
             {
-                name: 'Priya Patel', email: 'priya@student.com', password: 'student123', role: 'student', isVerified: true,
+                name: 'Priya Patel', email: 'priya@student.com', password: DEMO_PASSWORD, role: 'student', isVerified: true,
                 studentProfile: { rollNumber: 'EC2021015', department: 'Electronics', batch: '2025', cgpa: 9.0, phone: '9876543211', skills: ['C++', 'IoT', 'MATLAB'], tenthPercentage: 95, twelfthPercentage: 91, gender: 'Female' }
             },
             {
-                name: 'Amit Kumar', email: 'amit@student.com', password: 'student123', role: 'student', isVerified: true,
+                name: 'Amit Kumar', email: 'amit@student.com', password: DEMO_PASSWORD, role: 'student', isVerified: true,
                 studentProfile: { rollNumber: 'IT2021008', department: 'Information Technology', batch: '2025', cgpa: 7.8, phone: '9876543212', skills: ['Java', 'Spring Boot', 'MySQL'], tenthPercentage: 85, twelfthPercentage: 82, gender: 'Male' }
             },
             {
-                name: 'Sneha Reddy', email: 'sneha@student.com', password: 'student123', role: 'student', isVerified: true,
+                name: 'Sneha Reddy', email: 'sneha@student.com', password: DEMO_PASSWORD, role: 'student', isVerified: true,
                 studentProfile: { rollNumber: 'CS2021042', department: 'Computer Science', batch: '2025', cgpa: 9.2, phone: '9876543213', skills: ['Python', 'Machine Learning', 'Data Science'], tenthPercentage: 94, twelfthPercentage: 93, gender: 'Female' }
             },
             {
-                name: 'Vikram Singh', email: 'vikram@student.com', password: 'student123', role: 'student', isVerified: true,
+                name: 'Vikram Singh', email: 'vikram@student.com', password: DEMO_PASSWORD, role: 'student', isVerified: true,
                 studentProfile: { rollNumber: 'ME2021021', department: 'Mechanical', batch: '2025', cgpa: 8.1, phone: '9876543214', skills: ['AutoCAD', 'SolidWorks', 'Thermodynamics'], tenthPercentage: 88, twelfthPercentage: 84, gender: 'Male' }
             },
             {
-                name: 'Anjali Gupta', email: 'anjali@student.com', password: 'student123', role: 'student', isVerified: true,
+                name: 'Anjali Gupta', email: 'anjali@student.com', password: DEMO_PASSWORD, role: 'student', isVerified: true,
                 studentProfile: { rollNumber: 'EE2021005', department: 'Electrical', batch: '2025', cgpa: 8.7, phone: '9876543215', skills: ['Circuit Design', 'PLC', 'Control Systems'], tenthPercentage: 91, twelfthPercentage: 89, gender: 'Female' }
             },
             {
-                name: 'Rohan Mehra', email: 'rohan@student.com', password: 'student123', role: 'student', isVerified: true,
+                name: 'Rohan Mehra', email: 'rohan@student.com', password: DEMO_PASSWORD, role: 'student', isVerified: true,
                 studentProfile: { rollNumber: 'CE2021033', department: 'Civil Engineering', batch: '2025', cgpa: 7.5, phone: '9876543216', skills: ['Staad Pro', 'Surveying', 'Project Management'], tenthPercentage: 82, twelfthPercentage: 80, gender: 'Male' }
             }
         ]);
@@ -71,15 +77,15 @@ const seedData = async () => {
         // Create Recruiters
         const recruiters = await User.create([
             {
-                name: 'HR Manager - TechCorp', email: 'recruiter@techcorp.com', password: 'recruiter123', role: 'recruiter', isVerified: true,
+                name: 'HR Manager - TechCorp', email: 'recruiter@techcorp.com', password: DEMO_PASSWORD, role: 'recruiter', isVerified: true,
                 recruiterProfile: { company: 'TechCorp Solutions', designation: 'HR Manager', phone: '9876543220', companyWebsite: 'https://techcorp.com', industry: 'Information Technology' }
             },
             {
-                name: 'Sarah Wilson - InnovateTech', email: 'sarah@innovatetech.com', password: 'recruiter123', role: 'recruiter', isVerified: true,
+                name: 'Sarah Wilson - InnovateTech', email: 'sarah@innovatetech.com', password: DEMO_PASSWORD, role: 'recruiter', isVerified: true,
                 recruiterProfile: { company: 'InnovateTech Inc', designation: 'Talent Acquisition Lead', phone: '9876543221', companyWebsite: 'https://innovatetech.com', industry: 'Software Development' }
             },
             {
-                name: 'Deepak Raj - GlobalSystems', email: 'deepak@globalsystems.com', password: 'recruiter123', role: 'recruiter', isVerified: true,
+                name: 'Deepak Raj - GlobalSystems', email: 'deepak@globalsystems.com', password: DEMO_PASSWORD, role: 'recruiter', isVerified: true,
                 recruiterProfile: { company: 'Global Systems', designation: 'Recruitment Lead', phone: '9876543222', companyWebsite: 'https://globalsystems.com', industry: 'Consulting' }
             }
         ]);

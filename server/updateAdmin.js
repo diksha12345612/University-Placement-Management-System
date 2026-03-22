@@ -1,12 +1,17 @@
 const mongoose = require('mongoose');
+const crypto = require('crypto');
 require('dotenv').config();
 const User = require('./models/User');
 const bcrypt = require('bcryptjs');
+
+// Generate secure demo password from environment or random value
+const DEMO_PASSWORD = process.env.DEMO_PASSWORD || crypto.randomBytes(8).toString('hex');
 
 async function updateAdmin() {
   try {
     await mongoose.connect(process.env.MONGODB_URI);
     console.log('Connected to MongoDB');
+    console.log('[SEED] Using demo password:', DEMO_PASSWORD);
 
     // First, check what admin exists
     const existingAdmin = await User.findOne({ role: 'admin' });
@@ -22,7 +27,7 @@ async function updateAdmin() {
     const newAdmin = await User.create({
       name: 'Placement Officer',
       email: 'kumarmohit78774@gmail.com',
-      password: '111111',
+      password: DEMO_PASSWORD,
       role: 'admin',
       isVerified: true,
       isApprovedByAdmin: true

@@ -1,10 +1,13 @@
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const User = require('../models/User');
 const Job = require('../models/Job');
 const Application = require('../models/Application');
 const MockTest = require('../models/MockTest');
+
+const DEMO_PASSWORD = process.env.DEMO_PASSWORD || crypto.randomBytes(8).toString('hex');
 
 const seedData = async () => {
     try {
@@ -48,8 +51,8 @@ const seedData = async () => {
 
         // 3. Create Students
         const studentData = [
-            { name: 'Rahul Kumar', email: 'rahul@student.com', password: 'student123', skills: ['React', 'Node.js', 'MongoDB', 'Python'], cgpa: 9.2 },
-            { name: 'Priya Singh', email: 'priya@student.com', password: 'student123', skills: ['UI/UX', 'Figma', 'CSS', 'HTML'], cgpa: 8.5 }
+            { name: 'Rahul Kumar', email: 'rahul@student.com', password: DEMO_PASSWORD, skills: ['React', 'Node.js', 'MongoDB', 'Python'], cgpa: 9.2 },
+            { name: 'Priya Singh', email: 'priya@student.com', password: DEMO_PASSWORD, skills: ['UI/UX', 'Figma', 'CSS', 'HTML'], cgpa: 8.5 }
         ];
 
         const students = [];

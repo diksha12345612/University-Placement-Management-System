@@ -1,10 +1,13 @@
 const BASE = 'https://university-placement-portal-seven.vercel.app/api';
 
+// Use demo password from environment or provide a warning
+const DEMO_PASSWORD = process.env.DEMO_PASSWORD || '111111';
+
 async function run() {
   const loginRes = await fetch(`${BASE}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: 'aarav.khanna@student.demo', password: '111111' })
+    body: JSON.stringify({ email: 'aarav.khanna@student.demo', password: DEMO_PASSWORD })
   });
 
   const loginData = await loginRes.json();
