@@ -140,27 +140,41 @@ router.delete('/recruiters/:id', auth, authorize('admin'), async (req, res) => {
 
 // ==================== Admin Management ====================
 
-// Get all admins - PAGINATION ADDED
+// Get all admins - PAGINATION SUPPORTED (backward compatible)
 router.get('/admins', auth, authorize('admin'), async (req, res) => {
     try {
-        const page = Math.max(1, parseInt(req.query.page) || 1);
-        const limit = Math.min(100, parseInt(req.query.limit) || 20);
-        const skip = (page - 1) * limit;
+        const hasPaginationParams = req.query.page || req.query.limit;
         
-        const admins = await User.find({ role: 'admin' })
-            .select('name email createdAt')
-            .sort('-createdAt')
-            .skip(skip)
-            .limit(limit)
-            .lean();
-        
-        const total = await User.countDocuments({ role: 'admin' });
-        res.json({
-            admins,
-            pagination: { page, limit, total, pages: Math.ceil(total / limit) }
-        });
+        if (hasPaginationParams) {
+            // Return structured pagination object only when params provided
+            const page = Math.max(1, parseInt(req.query.page) || 1);
+            const limit = Math.min(100, parseInt(req.query.limit) || 20);
+            const skip = (page - 1) * limit;
+            
+            const admins = await User.find({ role: 'admin' })
+                .select('name email createdAt')
+                .sort('-createdAt')
+                .skip(skip)
+                .limit(limit)
+                .lean();
+            
+            const total = await User.countDocuments({ role: 'admin' });
+            return res.json({
+                admins,
+                pagination: { page, limit, total, pages: Math.ceil(total / limit) }
+            });
+        } else {
+            // Return simple array for backward compatibility (no pagination params)
+            const admins = await User.find({ role: 'admin' })
+                .select('name email createdAt')
+                .sort('-createdAt')
+                .lean();
+            
+            return res.json(admins);
+        }
     } catch (error) {
-        res.status(500).json({ error: 'Error fetching admins' });
+        console.error('[ADMIN] Error fetching admins:', error.message);
+        res.status(500).json({ error: 'Error fetching admins: ' + error.message });
     }
 });
 
@@ -233,24 +247,38 @@ router.delete('/admins/:id', auth, authorize('admin'), async (req, res) => {
 // Get all jobs (for admin) - PAGINATION ADDED
 router.get('/jobs', auth, authorize('admin'), async (req, res) => {
     try {
-        const page = Math.max(1, parseInt(req.query.page) || 1);
-        const limit = Math.min(100, parseInt(req.query.limit) || 50);
-        const skip = (page - 1) * limit;
+        const hasPaginationParams = req.query.page || req.query.limit;
         
-        const jobs = await Job.find()
-            .populate('postedBy', 'name email recruiterProfile')
-            .sort('-createdAt')
-            .skip(skip)
-            .limit(limit)
-            .lean();
-        
-        const total = await Job.countDocuments();
-        res.json({
-            jobs,
-            pagination: { page, limit, total, pages: Math.ceil(total / limit) }
-        });
+        if (hasPaginationParams) {
+            // Return structured pagination object only when params provided
+            const page = Math.max(1, parseInt(req.query.page) || 1);
+            const limit = Math.min(100, parseInt(req.query.limit) || 50);
+            const skip = (page - 1) * limit;
+            
+            const jobs = await Job.find()
+                .populate('postedBy', 'name email recruiterProfile')
+                .sort('-createdAt')
+                .skip(skip)
+                .limit(limit)
+                .lean();
+            
+            const total = await Job.countDocuments();
+            return res.json({
+                jobs,
+                pagination: { page, limit, total, pages: Math.ceil(total / limit) }
+            });
+        } else {
+            // Return simple array for backward compatibility (no pagination params)
+            const jobs = await Job.find()
+                .populate('postedBy', 'name email recruiterProfile')
+                .sort('-createdAt')
+                .lean();
+            
+            return res.json(jobs);
+        }
     } catch (error) {
-        res.status(500).json({ error: 'Error fetching jobs' });
+        console.error('[ADMIN] Error fetching jobs:', error.message);
+        res.status(500).json({ error: 'Error fetching jobs: ' + error.message });
     }
 });
 
@@ -322,23 +350,36 @@ router.put('/jobs/:id/status', auth, authorize('admin'), async (req, res) => {
 
 router.get('/drives', auth, authorize('admin'), async (req, res) => {
     try {
-        const page = Math.max(1, parseInt(req.query.page) || 1);
-        const limit = Math.min(100, parseInt(req.query.limit) || 20);
-        const skip = (page - 1) * limit;
+        const hasPaginationParams = req.query.page || req.query.limit;
         
-        const drives = await PlacementDrive.find()
-            .sort('-date')
-            .skip(skip)
-            .limit(limit)
-            .lean();
-        
-        const total = await PlacementDrive.countDocuments();
-        res.json({
-            drives,
-            pagination: { page, limit, total, pages: Math.ceil(total / limit) }
-        });
+        if (hasPaginationParams) {
+            // Return structured pagination object only when params provided
+            const page = Math.max(1, parseInt(req.query.page) || 1);
+            const limit = Math.min(100, parseInt(req.query.limit) || 20);
+            const skip = (page - 1) * limit;
+            
+            const drives = await PlacementDrive.find()
+                .sort('-date')
+                .skip(skip)
+                .limit(limit)
+                .lean();
+            
+            const total = await PlacementDrive.countDocuments();
+            return res.json({
+                drives,
+                pagination: { page, limit, total, pages: Math.ceil(total / limit) }
+            });
+        } else {
+            // Return simple array for backward compatibility (no pagination params)
+            const drives = await PlacementDrive.find()
+                .sort('-date')
+                .lean();
+            
+            return res.json(drives);
+        }
     } catch (error) {
-        res.status(500).json({ error: 'Error fetching drives' });
+        console.error('[ADMIN] Error fetching drives:', error.message);
+        res.status(500).json({ error: 'Error fetching drives: ' + error.message });
     }
 });
 
@@ -375,24 +416,38 @@ router.delete('/drives/:id', auth, authorize('admin'), async (req, res) => {
 
 router.get('/announcements', auth, async (req, res) => {
     try {
-        const page = Math.max(1, parseInt(req.query.page) || 1);
-        const limit = Math.min(100, parseInt(req.query.limit) || 20);
-        const skip = (page - 1) * limit;
+        const hasPaginationParams = req.query.page || req.query.limit;
         
-        const announcements = await Announcement.find({ isActive: true })
-            .populate('createdBy', 'name')
-            .sort('-createdAt')
-            .skip(skip)
-            .limit(limit)
-            .lean();
-        
-        const total = await Announcement.countDocuments({ isActive: true });
-        res.json({
-            announcements,
-            pagination: { page, limit, total, pages: Math.ceil(total / limit) }
-        });
+        if (hasPaginationParams) {
+            // Return structured pagination object only when params provided
+            const page = Math.max(1, parseInt(req.query.page) || 1);
+            const limit = Math.min(100, parseInt(req.query.limit) || 20);
+            const skip = (page - 1) * limit;
+            
+            const announcements = await Announcement.find({ isActive: true })
+                .populate('createdBy', 'name')
+                .sort('-createdAt')
+                .skip(skip)
+                .limit(limit)
+                .lean();
+            
+            const total = await Announcement.countDocuments({ isActive: true });
+            return res.json({
+                announcements,
+                pagination: { page, limit, total, pages: Math.ceil(total / limit) }
+            });
+        } else {
+            // Return simple array for backward compatibility (no pagination params)
+            const announcements = await Announcement.find({ isActive: true })
+                .populate('createdBy', 'name')
+                .sort('-createdAt')
+                .lean();
+            
+            return res.json(announcements);
+        }
     } catch (error) {
-        res.status(500).json({ error: 'Error fetching announcements' });
+        console.error('[ADMIN] Error fetching announcements:', error.message);
+        res.status(500).json({ error: 'Error fetching announcements: ' + error.message });
     }
 });
 
