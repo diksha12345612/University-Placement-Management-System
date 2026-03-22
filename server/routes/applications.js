@@ -10,7 +10,21 @@ router.post('/', auth, authorize('student'), async (req, res) => {
     try {
         const { jobId, coverLetter } = req.body;
 
+        // Validate jobId format (CRITICAL FIX: Missing validation)
+        if (!jobId) return res.status(400).json({ error: 'Job ID is required' });
+
         const profile = req.user.studentProfile || {};
+        
+        // CRITICAL FIX: Null check for profile - prevents crash on empty profiles
+        if (!profile || Object.keys(profile).length === 0) {
+            return res.status(400).json({
+                error: 'Complete your profile before applying.',
+                missingFields: ['Complete profile'],
+                profileRequired: true,
+                profilePath: '/student/profile'
+            });
+        }
+        
         const normalizedSkills = Array.isArray(profile.skills)
             ? profile.skills.filter((s) => String(s || '').trim())
             : String(profile.skills || '')
@@ -39,16 +53,23 @@ router.post('/', auth, authorize('student'), async (req, res) => {
         if (!job) return res.status(404).json({ error: 'Job not found' });
         if (job.status !== 'approved') return res.status(400).json({ error: 'Job is not approved for applications' });
 
-        const existingApp = await Application.findOne({ job: jobId, student: req.user._id });
-        if (existingApp) return res.status(400).json({ error: 'Already applied for this job' });
-
+        // CRITICAL FIX: Use atomic check-and-insert to prevent duplicate applications race condition
         const application = new Application({
             job: jobId,
             student: req.user._id,
             coverLetter,
             resumeUrl: profile.resumeUrl
         });
-        await application.save();
+        
+        try {
+            await application.save();
+        } catch (err) {
+            // CRITICAL FIX: Catch duplicate key error properly
+            if (err.code === 11000) {
+                return res.status(400).json({ error: 'You have already applied for this job' });
+            }
+            throw err;
+        }
 
         // Notify recruiter
         await new Notification({

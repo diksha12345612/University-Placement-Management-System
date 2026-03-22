@@ -16,6 +16,7 @@
  * - StorageEvent listener for cross-tab sync
  * - Automatic cleanup on logout
  * - Secure localStorage operations
+ * - CRITICAL FIX: Proper event listener cleanup to prevent memory leaks
  */
 export class SessionStorageManager {
     constructor() {
@@ -23,16 +24,19 @@ export class SessionStorageManager {
         this.tokenKey = 'placement_token';
         this.userKey = 'placement_user';
         this.expiryKey = 'placement_token_expiry';
+        this.storageListener = null; // Store listener reference for cleanup
         this.setupCrossTabSync();
     }
 
     /**
      * Listen for storage changes from other tabs/windows
      * Ensures logout in one tab logs out all tabs
+     * CRITICAL FIX: Store listener reference for proper cleanup
      */
     setupCrossTabSync() {
         if (typeof window !== 'undefined') {
-            window.addEventListener('storage', (event) => {
+            // Create and store the listener function for proper cleanup
+            this.storageListener = (event) => {
                 // If token was cleared in another tab, clear it here too
                 if (event.key === this.tokenKey && event.newValue === null) {
                     this.clearSession();
@@ -46,7 +50,20 @@ export class SessionStorageManager {
                         detail: { token: event.newValue }
                     }));
                 }
-            });
+            };
+            
+            window.addEventListener('storage', this.storageListener);
+        }
+    }
+
+    /**
+     * CRITICAL FIX: Cleanup - Remove storage listener to prevent memory leaks
+     * Must be called on component unmount or logout
+     */
+    cleanup() {
+        if (typeof window !== 'undefined' && this.storageListener) {
+            window.removeEventListener('storage', this.storageListener);
+            this.storageListener = null;
         }
     }
 

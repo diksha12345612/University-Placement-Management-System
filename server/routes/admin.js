@@ -331,13 +331,26 @@ router.get('/announcements', auth, async (req, res) => {
 
 router.post('/announcements', auth, authorize('admin'), async (req, res) => {
     try {
+        // CRITICAL FIX: Validate targetAudience to prevent NoSQL injection
+        const validAudiences = ['students', 'recruiters', 'all'];
+        if (!req.body.targetAudience || !validAudiences.includes(String(req.body.targetAudience).toLowerCase())) {
+            return res.status(400).json({ error: `Invalid target audience. Must be one of: ${validAudiences.join(', ')}` });
+        }
+
         const announcement = new Announcement({ ...req.body, createdBy: req.user._id });
         await announcement.save();
 
-        // Notify target audience
+        // Notify target audience - using allowlisted values only
         let query = {};
-        if (req.body.targetAudience === 'students') query.role = 'student';
-        else if (req.body.targetAudience === 'recruiters') query.role = 'recruiter';
+        const audience = String(req.body.targetAudience).toLowerCase();
+        
+        if (audience === 'students') {
+            query.role = 'student';
+        } else if (audience === 'recruiters') {
+            query.role = 'recruiter';
+        } else if (audience === 'all') {
+            query.role = { $in: ['student', 'recruiter'] };
+        }
 
         const users = await User.find(query);
         for (const user of users) {

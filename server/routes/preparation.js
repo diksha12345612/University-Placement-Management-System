@@ -55,8 +55,29 @@ router.get('/interview/questions', auth, async (req, res) => {
         const { role, count = 5, types = 'technical,behavioral,hr' } = req.query;
         if (!role) return res.status(400).json({ error: 'Role is required' });
 
-        const questionCount = Math.min(5, Math.max(1, parseInt(count) || 5));
-        const requestedTypes = types.split(',').map(t => t.trim().toLowerCase());
+        // CRITICAL FIX: Validate role against allowlist to prevent injection
+        const validRoles = ['software-engineer', 'data-scientist', 'product-manager', 'designer', 'devops', 'frontend', 'backend', 'fullstack'];
+        if (!validRoles.includes(String(role).toLowerCase())) {
+            return res.status(400).json({ error: `Invalid role. Must be one of: ${validRoles.join(', ')}` });
+        }
+
+        // CRITICAL FIX: Validate count - must be numeric and within bounds
+        const countNum = parseInt(count);
+        if (isNaN(countNum)) {
+            return res.status(400).json({ error: 'Count must be a valid number' });
+        }
+        const questionCount = Math.min(10, Math.max(1, countNum)); // Reasonable bounds
+
+        // CRITICAL FIX: Validate types against allowlist (prevent injection)
+        const validTypes = ['technical', 'behavioral', 'hr', 'situational'];
+        const requestedTypes = String(types)
+            .split(',')
+            .map(t => t.trim().toLowerCase())
+            .filter(t => validTypes.includes(t)); // Only allow valid types
+
+        if (requestedTypes.length === 0) {
+            return res.status(400).json({ error: `Invalid types. Must be one of: ${validTypes.join(', ')}` });
+        }
 
         // Always generate fresh questions with the AI
         const aiGenerated = await generateInterviewQuestions(role, questionCount, requestedTypes);
