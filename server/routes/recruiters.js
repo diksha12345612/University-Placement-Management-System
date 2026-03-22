@@ -128,4 +128,30 @@ router.get('/profile-photo/:id', async (req, res) => {
     }
 });
 
+// PHASE 5: Recruiter Dashboard Summary - Real-time polling endpoint
+// GET /api/recruiters/dashboard/:recruiterId/summary
+router.get('/dashboard/:recruiterId/summary', auth, authorize('recruiter'), async (req, res) => {
+    try {
+        // Verify recruiter can only access their own dashboard
+        if (req.user._id.toString() !== req.params.recruiterId) {
+            return res.status(403).json({ error: 'Unauthorized to access this dashboard' });
+        }
+
+        const realtimeService = require('../services/realtimeService');
+        const summary = await realtimeService.getRecruiterDashboardSummary(req.params.recruiterId);
+        
+        res.status(200).json({
+            success: true,
+            timestamp: new Date().toISOString(),
+            ...summary
+        });
+    } catch (error) {
+        console.error('[DASHBOARD] Recruiter dashboard error:', error);
+        res.status(500).json({ 
+            error: 'Failed to fetch dashboard summary',
+            message: error.message 
+        });
+    }
+});
+
 module.exports = router;

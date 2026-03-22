@@ -156,16 +156,18 @@ async function setOTPWithVersioning(email, otp, type = 'registration') {
         const normalizedEmail = email.toLowerCase().trim();
         const now = new Date();
         
-        // Try to create new OTP record
+        // Try to create new OTP record with atomic version increment
         let result = await require('../models/OTP').findOneAndUpdate(
             { email: normalizedEmail },
             {
-                otp,
-                type,
-                createdAt: now,
-                expiresAt: new Date(now + 5 * 60 * 1000), // 5 minute TTL
-                attempts: 0,
-                version: 1
+                $set: {
+                    otp,
+                    type,
+                    createdAt: now,
+                    expiresAt: new Date(now + 5 * 60 * 1000), // 5 minute TTL
+                    attempts: 0
+                },
+                $inc: { version: 1 }  // Atomically increment version
             },
             { 
                 upsert: true, 

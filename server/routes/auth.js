@@ -332,10 +332,15 @@ router.post('/reset-password', [
             });
         }
 
-        // Check OTP (verify it's a password-reset type)
-        const otpRecord = await OTP.findOne({ email, otp, type: 'password-reset' });
-        if (!otpRecord) {
-            return res.status(400).json({ error: 'Invalid or expired OTP' });
+        // Check OTP (verify it's a password-reset type) using versioned verification
+        const { valid, otpRecord, error: otpError } = await concurrencyUtils.verifyOTPWithVersioning(
+            email, 
+            otp, 
+            'password-reset'
+        );
+        
+        if (!valid) {
+            return res.status(400).json({ error: otpError });
         }
 
         // Update password

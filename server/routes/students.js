@@ -383,4 +383,30 @@ router.get('/', auth, authorize('admin'), async (req, res) => {
     }
 });
 
+// PHASE 5: Student Dashboard Summary - Real-time polling endpoint
+// GET /api/students/dashboard/:studentId/summary
+router.get('/dashboard/:studentId/summary', auth, authorize('student'), async (req, res) => {
+    try {
+        // Verify student can only access their own dashboard
+        if (req.user._id.toString() !== req.params.studentId) {
+            return res.status(403).json({ error: 'Unauthorized to access this dashboard' });
+        }
+
+        const realtimeService = require('../services/realtimeService');
+        const summary = await realtimeService.getStudentDashboardSummary(req.params.studentId);
+        
+        res.status(200).json({
+            success: true,
+            timestamp: new Date().toISOString(),
+            ...summary
+        });
+    } catch (error) {
+        console.error('[DASHBOARD] Student dashboard error:', error);
+        res.status(500).json({ 
+            error: 'Failed to fetch dashboard summary',
+            message: error.message 
+        });
+    }
+});
+
 module.exports = router;

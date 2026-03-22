@@ -219,6 +219,36 @@ class RealtimeEventBus {
         this.listeners = new Map();
         this.eventQueue = [];
         this.maxQueueSize = 100;
+        this.cleanupInterval = null;
+        this.startCleanupTimer();
+    }
+
+    /**
+     * Periodically cleanup stale listeners (5-minute timeout)
+     * Prevents memory leaks from browser tab crashes
+     */
+    startCleanupTimer() {
+        this.cleanupInterval = setInterval(() => {
+            const now = Date.now();
+            const staleTimeout = 5 * 60 * 1000; // 5 minutes
+            
+            for (const [key, listeners] of this.listeners.entries()) {
+                // Remove stale listeners (no poll activity for 5+ minutes)
+                const activeListeners = listeners.filter(listener => {
+                    const isStale = (now - listener.lastPoll) > staleTimeout;
+                    if (isStale) {
+                        console.log(`[CLEANUP] Removed stale listener ${listener.id} from ${key}`);
+                    }
+                    return !isStale;
+                });
+                
+                if (activeListeners.length === 0) {
+                    this.listeners.delete(key);
+                } else {
+                    this.listeners.set(key, activeListeners);
+                }
+            }
+        }, 60 * 1000); // Run cleanup every minute
     }
 
     /**
@@ -235,7 +265,9 @@ class RealtimeEventBus {
         const listener = {
             id: Math.random().toString(36),
             events: [],
-            lastPoll: Date.now()
+            lastPoll: Date.now(),
+            createdAt: Date.now(),
+            maxEvents: 50  // Cap events per listener
         };
         
         this.listeners.get(key).push(listener);
@@ -250,10 +282,17 @@ class RealtimeEventBus {
                 return events;
             },
             unsubscribe: () => {
-                const listeners = this.listeners.get(key);
-                if (listeners) {
-                    const index = listeners.findIndex(l => l.id === listener.id);
-                    if (index > -1) listeners.splice(index, 1);
+                try {
+                    const listeners = this.listeners.get(key);
+                    if (listeners) {
+                        const index = listeners.findIndex(l => l.id === listener.id);
+                        if (index > -1) listeners.splice(index, 1);
+                        if (listeners.length === 0) {
+                            this.listeners.delete(key);
+                        }
+                    }
+                } catch (error) {
+                    console.error('[EVENTBUS] Error unsubscribing:', error);
                 }
             }
         };
@@ -261,27 +300,43 @@ class RealtimeEventBus {
 
     /**
      * Emit an event to all interested listeners
+     * With error boundaries and per-listener queue limits
      */
     emit(eventType, data, userId = null) {
-        const key = userId ? `${eventType}:${userId}` : eventType;
-        const event = {
-            type: eventType,
-            data,
-            timestamp: new Date(),
-            id: Math.random().toString(36)
-        };
-        
-        // Add to global queue
-        this.eventQueue.push(event);
-        if (this.eventQueue.length > this.maxQueueSize) {
-            this.eventQueue.shift();
-        }
-        
-        // Notify all listeners for this event type
-        if (this.listeners.has(key)) {
-            this.listeners.get(key).forEach(listener => {
-                listener.events.push(event);
-            });
+        try {
+            const key = userId ? `${eventType}:${userId}` : eventType;
+            const event = {
+                type: eventType,
+                data,
+                timestamp: new Date(),
+                id: Math.random().toString(36)
+            };
+            
+            // Add to global queue
+            this.eventQueue.push(event);
+            if (this.eventQueue.length > this.maxQueueSize) {
+                this.eventQueue.shift();
+            }
+            
+            // Notify all listeners for this event type with error boundaries
+            if (this.listeners.has(key)) {
+                this.listeners.get(key).forEach(listener => {
+                    try {
+                        // Enforce per-listener queue limit
+                        if (listener.events.length < (listener.maxEvents || 50)) {
+                            listener.events.push(event);
+                        } else {
+                            console.warn(`[EVENTBUS] Listener queue full for ${key}, dropping oldest event`);
+                            listener.events.shift();
+                            listener.events.push(event);
+                        }
+                    } catch (listenerError) {
+                        console.error(`[EVENTBUS] Error emitting to listener ${listener.id}:`, listenerError);
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('[EVENTBUS] Error emitting event:', error);
         }
     }
 
@@ -289,11 +344,27 @@ class RealtimeEventBus {
      * Get all events since a certain timestamp
      */
     getEventsSince(timestamp, eventType = null) {
-        return this.eventQueue.filter(e => {
-            const eventMatches = !eventType || e.type === eventType;
-            const timeMatches = e.timestamp > timestamp;
-            return eventMatches && timeMatches;
-        });
+        try {
+            return this.eventQueue.filter(e => {
+                const eventMatches = !eventType || e.type === eventType;
+                const timeMatches = e.timestamp > timestamp;
+                return eventMatches && timeMatches;
+            });
+        } catch (error) {
+            console.error('[EVENTBUS] Error getting events since timestamp:', error);
+            return [];
+        }
+    }
+
+    /**
+     * Shutdown and cleanup (for graceful shutdown)
+     */
+    shutdown() {
+        if (this.cleanupInterval) {
+            clearInterval(this.cleanupInterval);
+        }
+        this.listeners.clear();
+        this.eventQueue = [];
     }
 }
 
