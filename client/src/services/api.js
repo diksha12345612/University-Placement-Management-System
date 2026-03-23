@@ -134,6 +134,9 @@ export const adminAPI = {
     removeAdmin: (adminId) => api.delete(`/admin/admins/${adminId}`),
     triggerExpiryCheck: () => api.post('/admin/maintenance/trigger-expiry-check'),
     getExpiredItems: () => api.get('/admin/maintenance/expired-items'),
+    sendAdminSectionOTP: () => api.post('/admin/admin-section-otp/send'),
+    verifyAdminSectionOTP: (otp) => api.post('/admin/admin-section-otp/verify', { otp }),
+    checkAdminSectionAccess: () => api.get('/admin/admin-section/check-access'),
 };
 
 // Notifications

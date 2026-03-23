@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { auth, authorize } = require('../middleware/auth');
+const { checkAdminSectionAccess } = require('../middleware/adminSectionAccess');
 const User = require('../models/User');
 const Job = require('../models/Job');
 const Application = require('../models/Application');
@@ -8,7 +9,10 @@ const PlacementDrive = require('../models/PlacementDrive');
 const Announcement = require('../models/Announcement');
 const Notification = require('../models/Notification');
 const MockTest = require('../models/MockTest');
+const OTP = require('../models/OTP');
+const AdminSectionAccess = require('../models/AdminSectionAccess');
 const { sendRecruiterConfirmationEmail } = require('../services/emailService');
+const { sendEmail } = require('../services/emailService');
 
 // ==================== Student Management ====================
 
@@ -141,7 +145,8 @@ router.delete('/recruiters/:id', auth, authorize('admin'), async (req, res) => {
 // ==================== Admin Management ====================
 
 // Get all admins - PAGINATION SUPPORTED (backward compatible)
-router.get('/admins', auth, authorize('admin'), async (req, res) => {
+// PROTECTED: Requires OTP verification for admin section access
+router.get('/admins', auth, authorize('admin'), checkAdminSectionAccess, async (req, res) => {
     try {
         const hasPaginationParams = req.query.page || req.query.limit;
         
@@ -179,7 +184,8 @@ router.get('/admins', auth, authorize('admin'), async (req, res) => {
 });
 
 // Promote user to admin
-router.post('/promote/:userId', auth, authorize('admin'), async (req, res) => {
+// PROTECTED: Requires OTP verification for admin section access
+router.post('/promote/:userId', auth, authorize('admin'), checkAdminSectionAccess, async (req, res) => {
     try {
         const user = await User.findById(req.params.userId);
         if (!user) return res.status(404).json({ error: 'User not found' });
@@ -208,7 +214,8 @@ router.post('/promote/:userId', auth, authorize('admin'), async (req, res) => {
 });
 
 // Remove admin status
-router.delete('/admins/:id', auth, authorize('admin'), async (req, res) => {
+// PROTECTED: Requires OTP verification for admin section access
+router.delete('/admins/:id', auth, authorize('admin'), checkAdminSectionAccess, async (req, res) => {
     try {
         // Prevent removing the last admin (optional safety measure)
         const adminCount = await User.countDocuments({ role: 'admin' });
@@ -995,6 +1002,144 @@ router.get('/dashboard/summary', auth, authorize('admin'), async (req, res) => {
     } catch (error) {
         console.error('[REAL-TIME] Dashboard error:', error.message);
         res.status(500).json({ error: 'Server error retrieving dashboard summary', details: error.message });
+    }
+});
+
+// ==================== ADMIN SECTION OTP AUTHENTICATION ====================
+
+/**
+ * Send OTP to admin portal access email
+ * Requires: admin role
+ */
+router.post('/admin-section-otp/send', auth, authorize('admin'), async (req, res) => {
+    try {
+        const ADMIN_SECTION_EMAIL = 'mohitbindal106@gmail.com'; // Hardcoded email
+        const MAX_OTP_ATTEMPTS = 5;
+        
+        // Generate 6-digit OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        
+        // Delete any existing OTP for this email and type
+        await OTP.deleteMany({ email: ADMIN_SECTION_EMAIL, type: 'admin-section' });
+        
+        // Create new OTP with optimistic locking
+        const otpRecord = await OTP.create({
+            email: ADMIN_SECTION_EMAIL,
+            otp,
+            type: 'admin-section',
+            version: 1,
+            attempts: 0,
+            expiresAt: new Date(Date.now() + 5 * 60 * 1000) // 5 minutes
+        });
+        
+        // Send OTP email
+        await sendEmail(
+            ADMIN_SECTION_EMAIL,
+            'Admin Section Access OTP',
+            `Your OTP to access the admin management section is: <strong>${otp}</strong><br>This OTP will expire in 5 minutes.`
+        );
+        
+        res.json({
+            success: true,
+            message: `OTP sent to ${ADMIN_SECTION_EMAIL}`,
+            email: ADMIN_SECTION_EMAIL
+        });
+    } catch (error) {
+        console.error('[ADMIN-OTP] Send OTP error:', error.message);
+        res.status(500).json({ error: 'Failed to send OTP: ' + error.message });
+    }
+});
+
+/**
+ * Verify OTP and grant admin section access
+ * Requires: admin role + valid OTP
+ */
+router.post('/admin-section-otp/verify', auth, authorize('admin'), async (req, res) => {
+    try {
+        const { otp } = req.body;
+        const ADMIN_SECTION_EMAIL = 'mohitbindal106@gmail.com';
+        
+        if (!otp) {
+            return res.status(400).json({ error: 'OTP is required' });
+        }
+        
+        // Find OTP record
+        const otpRecord = await OTP.findOne({
+            email: ADMIN_SECTION_EMAIL,
+            type: 'admin-section'
+        });
+        
+        if (!otpRecord) {
+            return res.status(400).json({ error: 'OTP expired or not found. Request a new OTP.' });
+        }
+        
+        // Check if OTP is expired
+        if (new Date() > otpRecord.expiresAt) {
+            await OTP.deleteOne({ _id: otpRecord._id });
+            return res.status(400).json({ error: 'OTP expired. Request a new OTP.' });
+        }
+        
+        // Check failed attempts
+        if (otpRecord.attempts >= 5) {
+            return res.status(429).json({ error: 'Too many incorrect attempts. Request a new OTP.' });
+        }
+        
+        // Verify OTP
+        if (otpRecord.otp !== otp.trim()) {
+            // Increment failed attempts
+            otpRecord.attempts += 1;
+            await otpRecord.save();
+            
+            const remainingAttempts = 5 - otpRecord.attempts;
+            return res.status(400).json({ 
+                error: `Invalid OTP. ${remainingAttempts} attempts remaining.`,
+                attemptsRemaining: remainingAttempts
+            });
+        }
+        
+        // OTP verified - create admin section access record
+        const accessRecord = await AdminSectionAccess.create({
+            admin: req.user._id,
+            email: ADMIN_SECTION_EMAIL,
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
+        });
+        
+        // Delete OTP record
+        await OTP.deleteOne({ _id: otpRecord._id });
+        
+        res.json({
+            success: true,
+            message: 'OTP verified. Admin section access granted.',
+            accessToken: accessRecord._id.toString() // Use this as proof of verification
+        });
+    } catch (error) {
+        console.error('[ADMIN-OTP] Verify OTP error:', error.message);
+        res.status(500).json({ error: 'Failed to verify OTP: ' + error.message });
+    }
+});
+
+/**
+ * Check if admin has active admin section access
+ * Returns access status without requiring verification token in POST
+ */
+router.get('/admin-section/check-access', auth, authorize('admin'), async (req, res) => {
+    try {
+        // Check if admin has active access session
+        const accessRecord = await AdminSectionAccess.findOne({
+            admin: req.user._id
+        });
+        
+        const hasAccess = !!accessRecord;
+        
+        res.json({
+            success: true,
+            hasAccess,
+            accessExpiredAt: accessRecord?.verifiedAt
+        });
+    } catch (error) {
+        console.error('[ADMIN-OTP] Check access error:', error.message);
+        res.status(500).json({ error: 'Failed to check access status: ' + error.message });
     }
 });
 

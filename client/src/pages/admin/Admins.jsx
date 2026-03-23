@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Layout from '../../components/Layout';
+import AdminSectionOTPModal from '../../components/AdminSectionOTPModal';
 import { adminAPI, studentAPI, recruiterAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 
@@ -12,10 +13,45 @@ const AdminManagement = () => {
     const [searching, setSearching] = useState(false);
     const [selectedUser, setSelectedUser] = useState(null);
     const [promoting, setProfessional] = useState(false);
+    
+    // OTP State
+    const [otpModalOpen, setOtpModalOpen] = useState(false);
+    const [hasAccess, setHasAccess] = useState(false);
+    const [accessExpiresAt, setAccessExpiresAt] = useState(null);
+    const [checkingAccess, setCheckingAccess] = useState(true);
 
     useEffect(() => {
-        fetchAdmins();
+        checkAdminSectionAccess();
     }, []);
+
+    const checkAdminSectionAccess = async () => {
+        try {
+            setCheckingAccess(true);
+            const res = await adminAPI.checkAdminSectionAccess();
+            if (res.data.hasAccess) {
+                setHasAccess(true);
+                if (res.data.accessExpiresAt) {
+                    setAccessExpiresAt(new Date(res.data.accessExpiresAt));
+                }
+                fetchAdmins();
+            } else {
+                setHasAccess(false);
+                setOtpModalOpen(true);
+            }
+        } catch (error) {
+            // If no access, show OTP modal
+            if (error.response?.status === 403) {
+                setHasAccess(false);
+                setOtpModalOpen(true);
+            } else {
+                console.error('Error checking access:', error);
+                toast.error('Error verifying access');
+            }
+        } finally {
+            setCheckingAccess(false);
+            setLoading(false);
+        }
+    };
 
     const fetchAdmins = async () => {
         try {
@@ -23,7 +59,14 @@ const AdminManagement = () => {
             const res = await adminAPI.getAdmins();
             setAdmins(res.data);
         } catch (error) {
-            toast.error('Error loading admins');
+            // If 403, OTP session expired
+            if (error.response?.status === 403) {
+                toast.error('Your verification session has expired. Please verify again.');
+                setHasAccess(false);
+                setOtpModalOpen(true);
+            } else {
+                toast.error('Error loading admins');
+            }
             console.error(error);
         } finally {
             setLoading(false);
@@ -87,7 +130,13 @@ const AdminManagement = () => {
             setSearchResults([]);
             setShowAddModal(false);
         } catch (error) {
-            toast.error('Error promoting user to admin');
+            if (error.response?.status === 403) {
+                toast.error('Your verification session has expired. Please verify again.');
+                setHasAccess(false);
+                setOtpModalOpen(true);
+            } else {
+                toast.error('Error promoting user to admin');
+            }
             console.error(error);
         } finally {
             setProfessional(false);
@@ -104,20 +153,60 @@ const AdminManagement = () => {
             toast.success(`Admin privileges revoked for ${adminName}`);
             await fetchAdmins();
         } catch (error) {
-            toast.error('Error removing admin privileges');
+            if (error.response?.status === 403) {
+                toast.error('Your verification session has expired. Please verify again.');
+                setHasAccess(false);
+                setOtpModalOpen(true);
+            } else {
+                toast.error('Error removing admin privileges');
+            }
             console.error(error);
         }
     };
+
+    const handleOTPVerified = async () => {
+        setOtpModalOpen(false);
+        setHasAccess(true);
+        toast.success('Verified! You can now access admin management.');
+        await checkAdminSectionAccess();
+    };
+
+    if (checkingAccess) {
+        return (
+            <Layout title="Admin Management">
+                <div className="loading"><div className="spinner"></div></div>
+            </Layout>
+        );
+    }
+
+    if (!hasAccess) {
+        return (
+            <Layout title="Admin Management">
+                <AdminSectionOTPModal isOpen={otpModalOpen} onVerified={handleOTPVerified} />
+                <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
+                    <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔐</div>
+                    <h2>Access Restricted</h2>
+                    <p>You need to verify your identity to access the admin management section.</p>
+                </div>
+            </Layout>
+        );
+    }
 
     if (loading) return <Layout title="Admin Management"><div className="loading"><div className="spinner"></div></div></Layout>;
 
     return (
         <Layout title="Admin Management">
+            <AdminSectionOTPModal isOpen={otpModalOpen} onVerified={handleOTPVerified} />
             <div className="fade-in" style={{ maxWidth: '1000px', margin: '0 auto' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', gap: '1rem', flexWrap: 'wrap' }}>
                     <div>
                         <h2 style={{ margin: '0 0 0.25rem 0' }}>Admin Management</h2>
                         <p style={{ color: 'var(--text-muted)', margin: 0, fontSize: '0.95rem' }}>Manage administrators who have full access to the portal</p>
+                        {accessExpiresAt && (
+                            <p style={{ color: 'var(--warning)', margin: '0.5rem 0 0 0', fontSize: '0.85rem' }}>
+                                ⏱️ Access expires at {accessExpiresAt.toLocaleTimeString()}
+                            </p>
+                        )}
                     </div>
                     <button onClick={() => setShowAddModal(true)} className="btn btn-primary" style={{ padding: '0.5rem 1.25rem' }}>
                         + Add Admin
