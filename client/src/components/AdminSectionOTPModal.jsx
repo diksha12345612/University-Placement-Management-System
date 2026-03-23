@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import toast from 'react-hot-toast';
+import { adminAPI } from '../services/api';
 
 const AdminSectionOTPModal = ({ isOpen, onVerified, adminEmail = 'mohitbindal106@gmail.com' }) => {
     const [otp, setOtp] = useState('');
@@ -11,25 +12,13 @@ const AdminSectionOTPModal = ({ isOpen, onVerified, adminEmail = 'mohitbindal106
     const handleSendOTP = async () => {
         setSending(true);
         try {
-            const token = localStorage.getItem('authToken');
-            const response = await fetch('/api/admin/admin-section-otp/send', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            const data = await response.json();
-            
-            if (!response.ok) {
-                throw new Error(data.error || 'Failed to send OTP');
-            }
-
+            const res = await adminAPI.sendAdminSectionOTP();
             setOtpSent(true);
             toast.success(`OTP sent to ${adminEmail}`);
         } catch (error) {
-            toast.error('Error sending OTP: ' + (error.message || 'Please try again'));
+            const errorMsg = error.response?.data?.error || error.message || 'Failed to send OTP';
+            toast.error('Error sending OTP: ' + errorMsg);
+            console.error('Send OTP error:', error);
         } finally {
             setSending(false);
         }
@@ -43,31 +32,18 @@ const AdminSectionOTPModal = ({ isOpen, onVerified, adminEmail = 'mohitbindal106
 
         setLoading(true);
         try {
-            const token = localStorage.getItem('authToken');
-            const response = await fetch('/api/admin/admin-section-otp/verify', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ otp })
-            });
-
-            const data = await response.json();
-            
-            if (!response.ok) {
-                if (data.attemptsRemaining !== undefined) {
-                    setAttemptsRemaining(data.attemptsRemaining);
-                }
-                throw new Error(data.error || 'OTP verification failed');
-            }
-
+            const res = await adminAPI.verifyAdminSectionOTP(otp);
             toast.success('OTP verified! Access granted.');
             setOtp('');
             setOtpSent(false);
             onVerified();
         } catch (error) {
-            toast.error(error.message);
+            const errorMsg = error.response?.data?.error || error.message || 'OTP verification failed';
+            if (error.response?.data?.attemptsRemaining !== undefined) {
+                setAttemptsRemaining(error.response.data.attemptsRemaining);
+            }
+            toast.error(errorMsg);
+            console.error('Verify OTP error:', error);
         } finally {
             setLoading(false);
         }
