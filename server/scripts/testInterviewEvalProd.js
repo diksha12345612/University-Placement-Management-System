@@ -1,7 +1,7 @@
 const BASE = 'https://university-placement-portal-seven.vercel.app/api';
 
 // Use demo password from environment or provide a warning
-const DEMO_PASSWORD = process.env.DEMO_PASSWORD || '111111';
+const DEMO_PASSWORD = process.env.DEMO_PASSWORD || require('crypto').randomBytes(8).toString('hex');
 
 async function run() {
   const loginRes = await fetch(`${BASE}/auth/login`, {

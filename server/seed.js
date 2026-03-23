@@ -34,7 +34,7 @@ const seedData = async () => {
         // Create Admin
         const admin = await User.create({
             name: 'Placement Officer',
-            email: 'kumarmohit78774@gmail.com',
+            email: process.env.ADMIN_EMAIL || 'admin@university.edu',
             password: DEMO_PASSWORD,
             role: 'admin',
             isVerified: true
