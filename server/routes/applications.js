@@ -178,14 +178,33 @@ router.post('/:id/ai-evaluate', auth, authorize('recruiter'), async (req, res) =
 
         if (resumeUrl) {
             try {
-                // In production, we'd pass the actual file buffer from GridFS or Base64 here.
-                // For the mocked parser, we can just pass the user metadata or URL
+                // Parse resume with Affinda API (or fallback)
                 const parsedData = await parseResumeFile(studentProfile.resumeBase64 || resumeUrl);
                 
-                const jobDescription = `${application.job.title}\n${application.job.description}`;
-                const atsResult = calculateScore(parsedData, jobDescription, settings, application.job.title);
+                // Get resume full text - PRIORITY: Affinda's rawText > PDF extraction > fallback
+                let resumeText = parsedData.rawText || ''; // Affinda provides raw extracted text
+                if (!resumeText && studentProfile.resumeBase64) {
+                    try {
+                        const buffer = Buffer.from(studentProfile.resumeBase64, 'base64');
+                        resumeText = await extractTextFromPDF(buffer);
+                    } catch (e) {
+                        // Fallback to parsed data reconstruction
+                        resumeText = (parsedData.keywords || []).join(' ') + ' ' + (parsedData.skills || []).join(' ');
+                    }
+                }
 
-                application.atsEvaluation = atsResult;
+                const jobDescription = `${application.job.title}\n${application.job.description}`;
+                
+                // Calculate ATS score with new algorithm
+                // Pass: parsedResume (Affinda data), jobDescription, settings, jobRole, resumeText
+                const atsResult = calculateScore(parsedData, jobDescription, settings, application.job.title, resumeText);
+
+                application.atsEvaluation = {
+                    ...atsResult,
+                    evaluationVersion: 2, // Indicates new algorithm
+                    parsedBy: parsedData.parsedBy // Track: 'affinda' or 'fallback'
+                };
+                
                 application.aiEvaluation = {
                     matchScore: atsResult.atsScore,
                     matchPercentage: atsResult.atsScore,
@@ -196,13 +215,13 @@ router.post('/:id/ai-evaluate', auth, authorize('recruiter'), async (req, res) =
                 await application.save();
                 res.json(application);
             } catch (e) {
-                res.status(500).json({ error: 'ATS evaluation failed' });
+                res.status(500).json({ error: 'ATS evaluation failed: ' + e.message });
             }
         } else {
              res.status(400).json({ error: 'No resume found' });
         }
     } catch (error) {
-        res.status(500).json({ error: 'Evaluation failed' });
+        res.status(500).json({ error: 'Evaluation failed: ' + error.message });
     }
 });
 
@@ -236,10 +255,27 @@ router.post('/job/:jobId/ai-rank', auth, authorize('recruiter'), async (req, res
                     continue;
                 }
 
-                const jobDescription = `${app.job.title}\n${app.job.description}`;
-                const atsResult = calculateScore(parsedData, jobDescription, settings, app.job.title);
+                // Get resume full text - PRIORITY: Affinda's rawText > PDF extraction > fallback
+                let resumeText = parsedData.rawText || ''; // Affinda provides raw extracted text
+                if (!resumeText && studentProfile.resumeBase64) {
+                    try {
+                        const buffer = Buffer.from(studentProfile.resumeBase64, 'base64');
+                        resumeText = await extractTextFromPDF(buffer);
+                    } catch (e) {
+                        // Fallback to parsed data reconstruction
+                        resumeText = (parsedData.keywords || []).join(' ') + ' ' + (parsedData.skills || []).join(' ');
+                    }
+                }
 
-                app.atsEvaluation = atsResult;
+                const jobDescription = `${app.job.title}\n${app.job.description}`;
+                const atsResult = calculateScore(parsedData, jobDescription, settings, app.job.title, resumeText);
+
+                app.atsEvaluation = {
+                    ...atsResult,
+                    evaluationVersion: 2,
+                    parsedBy: parsedData.parsedBy // Track: 'affinda' or 'fallback'
+                };
+                
                 app.aiEvaluation = {
                     matchScore: atsResult.atsScore,
                     matchPercentage: atsResult.atsScore,
@@ -251,6 +287,7 @@ router.post('/job/:jobId/ai-rank', auth, authorize('recruiter'), async (req, res
                 await app.save();
                 rankedCount++;
             } catch (err) {
+                console.warn(`Error ranking application: ${err.message}`);
                 // Silent fail for individual apps, continue ranking
             }
         }
@@ -262,7 +299,7 @@ router.post('/job/:jobId/ai-rank', auth, authorize('recruiter'), async (req, res
 
         res.json(rankedApps);
     } catch (error) {
-        res.status(500).json({ error: 'Ranking failed' });
+        res.status(500).json({ error: 'Ranking failed: ' + error.message });
     }
 });
 
@@ -367,6 +404,87 @@ router.get('/', auth, authorize('admin'), async (req, res) => {
         }
     } catch (error) {
         res.status(500).json({ error: 'Error fetching applications' });
+    }
+});
+
+// RE-EVALUATE Resume (fresh ATS scoring) - student or recruiter
+router.post('/:id/re-evaluate', auth, authorize('student', 'recruiter'), async (req, res) => {
+    try {
+        const application = await Application.findById(req.params.id)
+            .populate('student', 'name studentProfile')
+            .populate('job', 'title description');
+
+        if (!application) {
+            return res.status(404).json({ error: 'Application not found' });
+        }
+
+        // Authorization: student can only re-evaluate their own applications, recruiter can re-evaluate all for their jobs
+        if (req.user.role === 'student' && application.student._id.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ error: 'You can only re-evaluate your own applications' });
+        }
+
+        const studentProfile = application.student.studentProfile || {};
+        const resumeUrl = application.resumeUrl || studentProfile.resumeUrl;
+
+        if (!resumeUrl) {
+            return res.status(400).json({ error: 'No resume found for re-evaluation' });
+        }
+
+        let settings = await ATSSettings.findOne({});
+        if (!settings) settings = new ATSSettings();
+
+        try {
+            // Parse resume with Affinda API (or fallback)
+            const parsedData = await parseResumeFile(studentProfile.resumeBase64 || resumeUrl);
+            
+            // Get resume full text - PRIORITY: Affinda's rawText > PDF extraction > fallback
+            let resumeText = parsedData.rawText || ''; // Affinda provides raw extracted text
+            if (!resumeText && studentProfile.resumeBase64) {
+                try {
+                    const buffer = Buffer.from(studentProfile.resumeBase64, 'base64');
+                    resumeText = await extractTextFromPDF(buffer);
+                } catch (e) {
+                    // Fallback to parsed data reconstruction
+                    resumeText = (parsedData.keywords || []).join(' ') + ' ' + (parsedData.skills || []).join(' ');
+                }
+            }
+
+            const jobDescription = `${application.job.title}\n${application.job.description}`;
+            
+            // Calculate fresh ATS score using improved algorithm
+            const atsResult = calculateScore(parsedData, jobDescription, settings, application.job.title, resumeText);
+
+            // Store evaluation with timestamp
+            application.atsEvaluation = {
+                ...atsResult,
+                lastEvaluatedAt: new Date(),
+                evaluationVersion: 2, // Indicates new algorithm
+                parsedBy: parsedData.parsedBy // Track: 'affinda' or 'fallback'
+            };
+
+            application.aiEvaluation = {
+                matchScore: atsResult.atsScore,
+                matchPercentage: atsResult.atsScore,
+                recommendation: atsResult.atsScore >= settings.thresholdScore ? 'Strong' : (atsResult.atsScore >= 50 ? 'Moderate' : 'Weak'),
+                strengthSummary: atsResult.suggestions?.length ? atsResult.suggestions.join('. ') : 'Resume analyzed.',
+                lastEvaluated: new Date()
+            };
+
+            await application.save();
+
+            res.json({
+                success: true,
+                atsEvaluation: application.atsEvaluation,
+                aiEvaluation: application.aiEvaluation,
+                message: 'Application re-evaluated successfully with fresh ATS scoring'
+            });
+        } catch (e) {
+            console.error('[RE-EVALUATE] Error:', e.message);
+            res.status(500).json({ error: 'ATS re-evaluation failed: ' + e.message });
+        }
+    } catch (error) {
+        console.error('[RE-EVALUATE] Route error:', error.message);
+        res.status(500).json({ error: 'Re-evaluation failed: ' + error.message });
     }
 });
 

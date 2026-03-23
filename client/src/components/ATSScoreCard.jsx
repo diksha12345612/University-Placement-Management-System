@@ -8,6 +8,7 @@ const ATSScoreCard = ({ result }) => {
     keywordMatch,
     skillsMatch,
     experienceMatch,
+    relevanceScore,
     formattingScore,
     missingKeywords = [],
     suggestions = []
@@ -56,6 +57,7 @@ const ATSScoreCard = ({ result }) => {
           { label: 'Keywords Match', score: keywordMatch },
           { label: 'Skills Alignment', score: skillsMatch },
           { label: 'Experience Level', score: experienceMatch },
+          ...(relevanceScore !== undefined ? [{ label: 'Role Relevance', score: relevanceScore }] : []),
           { label: 'Formatting & Layout', score: formattingScore },
         ].map((item, idx) => (
           <div key={idx} style={{ background: 'var(--bg-dark)', padding: '1rem', borderRadius: 'var(--radius-sm)' }}>

@@ -5,10 +5,28 @@ import ATSScoreCard from '../../components/ATSScoreCard';
 
 const statusColors = { applied: 'badge-info', shortlisted: 'badge-warning', interview: 'badge-primary', selected: 'badge-success', rejected: 'badge-danger' };
 
-const JobDetailModal = ({ app, onClose }) => {
+const JobDetailModal = ({ app, onClose, onReEvaluate }) => {
     const job = app.job || {};
     const recruiter = job.postedBy || {};
     const recruiterEmail = recruiter.email || (recruiter.recruiterProfile?.contactEmail) || 'N/A';
+    const [isReEvaluating, setIsReEvaluating] = useState(false);
+    const [atsResult, setAtsResult] = useState(app.atsEvaluation || null);
+
+    const handleReEvaluate = async () => {
+        setIsReEvaluating(true);
+        try {
+            const response = await applicationAPI.reEvaluateResume(app._id);
+            if (response.data.atsEvaluation) {
+                setAtsResult(response.data.atsEvaluation);
+                if (onReEvaluate) onReEvaluate(response.data.atsEvaluation);
+            }
+        } catch (error) {
+            console.error('Re-evaluation failed:', error);
+            alert('Failed to re-evaluate resume: ' + (error.response?.data?.error || error.message));
+        } finally {
+            setIsReEvaluating(false);
+        }
+    };
 
     return (
         <div
@@ -141,10 +159,29 @@ const JobDetailModal = ({ app, onClose }) => {
                 </div>
 
                 {/* ATS Evaluation ScoreCard if available */}
-                {app.atsEvaluation && (
+                {atsResult && (
                     <div style={{ marginTop: '1.75rem', paddingTop: '1.5rem', borderTop: '1px solid var(--border)' }}>
-                        <h4 style={{ marginTop: 0, marginBottom: '1rem', color: 'var(--primary)', fontSize: '0.95rem', fontWeight: 700 }}>🤖 AI ATS Feedback</h4>
-                        <ATSScoreCard result={app.atsEvaluation} />
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                            <h4 style={{ margin: 0, color: 'var(--primary)', fontSize: '0.95rem', fontWeight: 700 }}>🤖 AI ATS Feedback</h4>
+                            <button 
+                                onClick={handleReEvaluate} 
+                                disabled={isReEvaluating}
+                                style={{
+                                    padding: '0.4rem 0.8rem',
+                                    fontSize: '0.8rem',
+                                    background: isReEvaluating ? 'var(--text-muted)' : 'var(--primary)',
+                                    color: '#fff',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    cursor: isReEvaluating ? 'not-allowed' : 'pointer',
+                                    fontWeight: 600,
+                                    opacity: isReEvaluating ? 0.6 : 1
+                                }}
+                            >
+                                {isReEvaluating ? '⏳ Evaluating...' : '🔄 Re-evaluate'}
+                            </button>
+                        </div>
+                        <ATSScoreCard result={atsResult} />
                     </div>
                 )}
 

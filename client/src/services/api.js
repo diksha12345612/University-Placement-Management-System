@@ -105,6 +105,7 @@ export const applicationAPI = {
     updateStatus: (id, status) => api.put(`/applications/${id}/status`, { status }),
     aiEvaluate: (id) => api.post(`/applications/${id}/ai-evaluate`),
     aiRank: (jobId) => api.post(`/applications/job/${jobId}/ai-rank`),
+    reEvaluateResume: (id) => api.post(`/applications/${id}/re-evaluate`),
     getAll: () => api.get('/applications'),
 };
 

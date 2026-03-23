@@ -26,6 +26,7 @@ const MyJobs = () => {
     const [applicants, setApplicants] = useState([]);
     const [ranking, setRanking] = useState(false);
     const [selectedCandidate, setSelectedCandidate] = useState(null);
+    const [reEvaluating, setReEvaluating] = useState(false);
 
     useEffect(() => { loadJobs(); }, []);
 
@@ -61,6 +62,29 @@ const MyJobs = () => {
             toast.success(`Status updated to ${status}`);
         } catch {
             toast.error('Failed to update status');
+        }
+    };
+
+    const handleReEvaluate = async (candidateId) => {
+        setReEvaluating(true);
+        const toastId = toast.loading('Re-evaluating resume...');
+        try {
+            const res = await applicationAPI.reEvaluateResume(candidateId);
+            setApplicants(applicants.map(app => 
+                app._id === candidateId 
+                    ? { ...app, atsEvaluation: res.data.atsEvaluation, aiEvaluation: res.data.aiEvaluation }
+                    : app
+            ));
+            setSelectedCandidate(prev => ({ 
+                ...prev, 
+                atsEvaluation: res.data.atsEvaluation,
+                aiEvaluation: res.data.aiEvaluation 
+            }));
+            toast.success('Resume re-evaluated with fresh ATS scoring!', { id: toastId });
+        } catch (err) {
+            toast.error(err.response?.data?.error || 'Re-evaluation failed', { id: toastId });
+        } finally {
+            setReEvaluating(false);
         }
     };
 
@@ -375,6 +399,22 @@ const MyJobs = () => {
                             {/* ATS Match / AI Evaluation (if available) */}
                             {selectedCandidate.atsEvaluation ? (
                                 <div style={{ marginTop: '1.5rem' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                                        <h4 style={{ margin: 0, color: 'var(--primary)', fontSize: '0.95rem', fontWeight: 700 }}>🤖 ATS Evaluation</h4>
+                                        <button 
+                                            onClick={() => handleReEvaluate(selectedCandidate._id)} 
+                                            disabled={reEvaluating}
+                                            className="btn btn-secondary btn-sm"
+                                            style={{
+                                                padding: '0.4rem 0.8rem',
+                                                fontSize: '0.8rem',
+                                                cursor: reEvaluating ? 'not-allowed' : 'pointer',
+                                                opacity: reEvaluating ? 0.6 : 1
+                                            }}
+                                        >
+                                            {reEvaluating ? '⏳ Re-evaluating...' : '🔄 Re-evaluate'}
+                                        </button>
+                                    </div>
                                     <ATSScoreCard result={selectedCandidate.atsEvaluation} />
                                     {selectedCandidate.aiEvaluation?.recommendation && (() => {
                                         const recStyle = recommendationColors[selectedCandidate.aiEvaluation.recommendation];
