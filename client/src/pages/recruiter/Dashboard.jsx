@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import Layout from '../../components/Layout';
 import { useAuth } from '../../context/AuthContext';
 import { jobAPI, applicationAPI } from '../../services/api';
@@ -142,8 +143,15 @@ const RecruiterDashboard = () => {
                     </div>
                 </div>
 
-                {/* Applicants Modal */}
-                {showApplicantsModal && (
+                <div className="flex flex-col-mobile gap-3 mt-3">
+                    <Link to="/recruiter/post-job" className="btn btn-primary w-full-mobile flex justify-center">+ Post New Job</Link>
+                    <Link to="/recruiter/my-jobs" className="btn btn-secondary w-full-mobile flex justify-center">View My Jobs</Link>
+                </div>
+            </div>
+        </Layout>
+
+        {/* Applicants Modal - Rendered at document root using Portal */}
+        {showApplicantsModal && createPortal(
                     <div style={{
                         position: 'fixed',
                         inset: 0,
@@ -271,7 +279,7 @@ const RecruiterDashboard = () => {
                             )}
                         </div>
                     </div>
-                )}
+                ), document.body)}
 
                 <div className="flex flex-col-mobile gap-3 mt-3">
                     <Link to="/recruiter/post-job" className="btn btn-primary w-full-mobile flex justify-center">+ Post New Job</Link>
