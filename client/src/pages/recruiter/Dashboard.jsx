@@ -220,7 +220,6 @@ const RecruiterDashboard = () => {
                                                 <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '600' }}>Email</th>
                                                 <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '600' }}>Applied For</th>
                                                 <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '600' }}>Status</th>
-                                                <th style={{ padding: '1rem', textAlign: 'center', fontWeight: '600' }}>Resume</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -257,20 +256,6 @@ const RecruiterDashboard = () => {
                                                         }}>
                                                             {app.status?.charAt(0).toUpperCase() + app.status?.slice(1)}
                                                         </span>
-                                                    </td>
-                                                    <td style={{ padding: '1rem', textAlign: 'center' }}>
-                                                        {app.student?.resume ? (
-                                                            <a 
-                                                                href={app.student.resume} 
-                                                                target="_blank" 
-                                                                rel="noopener noreferrer"
-                                                                style={{ color: 'var(--primary)', cursor: 'pointer' }}
-                                                            >
-                                                                <FiExternalLink size={18} />
-                                                            </a>
-                                                        ) : (
-                                                            <span style={{ color: 'var(--text-muted)' }}>—</span>
-                                                        )}
                                                     </td>
                                                 </tr>
                                             ))}
