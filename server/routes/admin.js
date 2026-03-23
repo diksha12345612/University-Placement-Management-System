@@ -11,8 +11,7 @@ const Notification = require('../models/Notification');
 const MockTest = require('../models/MockTest');
 const OTP = require('../models/OTP');
 const AdminSectionAccess = require('../models/AdminSectionAccess');
-const { sendRecruiterConfirmationEmail } = require('../services/emailService');
-const { sendEmail } = require('../services/emailService');
+const { sendRecruiterConfirmationEmail, sendOTP } = require('../services/emailService');
 
 // ==================== Student Management ====================
 
@@ -1033,11 +1032,7 @@ router.post('/admin-section-otp/send', auth, authorize('admin'), async (req, res
         });
         
         // Send OTP email
-        await sendEmail(
-            ADMIN_SECTION_EMAIL,
-            'Admin Section Access OTP',
-            `Your OTP to access the admin management section is: <strong>${otp}</strong><br>This OTP will expire in 5 minutes.`
-        );
+        await sendOTP(ADMIN_SECTION_EMAIL, otp);
         
         res.json({
             success: true,
