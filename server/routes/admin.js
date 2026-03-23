@@ -9,8 +9,13 @@ const PlacementDrive = require('../models/PlacementDrive');
 const Announcement = require('../models/Announcement');
 const Notification = require('../models/Notification');
 const MockTest = require('../models/MockTest');
+const MockTestAttempt = require('../models/MockTestAttempt');
 const OTP = require('../models/OTP');
 const AdminSectionAccess = require('../models/AdminSectionAccess');
+const ResumeAnalysis = require('../models/ResumeAnalysis');
+const RecommendationPlan = require('../models/RecommendationPlan');
+const InterviewEvaluation = require('../models/InterviewEvaluation');
+const LoginAttempt = require('../models/LoginAttempt');
 const { sendRecruiterConfirmationEmail, sendOTP } = require('../services/emailService');
 
 // ==================== Student Management ====================
@@ -84,14 +89,24 @@ router.delete('/students/:id', auth, authorize('admin'), async (req, res) => {
             return res.status(404).json({ error: 'Student not found' });
         }
 
-        // Cleanup applications (atomic within transaction)
-        await Application.deleteMany({ student: req.params.id }, { session });
+        const studentId = req.params.id;
+        const studentEmail = student.email;
+
+        // Cleanup all related data (atomic within transaction)
+        await Application.deleteMany({ student: studentId }, { session });
+        await ResumeAnalysis.deleteMany({ student: studentId }, { session });
+        await RecommendationPlan.deleteMany({ student: studentId }, { session });
+        await InterviewEvaluation.deleteMany({ student: studentId }, { session });
+        await MockTestAttempt.deleteMany({ student: studentId }, { session });
+        await Notification.deleteMany({ user: studentId }, { session });
+        await OTP.deleteMany({ email: studentEmail }, { session });
+        await LoginAttempt.deleteMany({ email: studentEmail }, { session });
 
         // All succeeded - commit transaction
         await session.commitTransaction();
         session.endSession();
 
-        res.json({ message: 'Student account and data deleted successfully' });
+        res.json({ message: 'Student account and all related data deleted successfully' });
     } catch (error) {
         // Something failed - rollback all changes
         await session.abortTransaction();
@@ -103,6 +118,7 @@ router.delete('/students/:id', auth, authorize('admin'), async (req, res) => {
 
 // Delete recruiter account
 // PHASE 2: Now uses MongoDB transactions for safe cascade deletion
+// Deletes: Recruiter User, Jobs, Applications, and all related data
 router.delete('/recruiters/:id', auth, authorize('admin'), async (req, res) => {
     const session = await require('mongoose').startSession();
     session.startTransaction();
@@ -115,8 +131,11 @@ router.delete('/recruiters/:id', auth, authorize('admin'), async (req, res) => {
             return res.status(404).json({ error: 'Recruiter not found' });
         }
 
+        const recruiterId = req.params.id;
+        const recruiterEmail = recruiter.email;
+
         // Find all jobs posted by this recruiter (within transaction)
-        const recruiterJobs = await Job.find({ postedBy: req.params.id }, null, { session });
+        const recruiterJobs = await Job.find({ postedBy: recruiterId }, null, { session });
         const jobIds = recruiterJobs.map(j => j._id);
         
         // Cleanup applications for these jobs (atomic)
@@ -125,13 +144,18 @@ router.delete('/recruiters/:id', auth, authorize('admin'), async (req, res) => {
         }
         
         // Cleanup jobs (atomic)
-        await Job.deleteMany({ postedBy: req.params.id }, { session });
+        await Job.deleteMany({ postedBy: recruiterId }, { session });
+
+        // Cleanup all recruiter-specific data
+        await Notification.deleteMany({ user: recruiterId }, { session });
+        await OTP.deleteMany({ email: recruiterEmail }, { session });
+        await LoginAttempt.deleteMany({ email: recruiterEmail }, { session });
 
         // All succeeded - commit transaction
         await session.commitTransaction();
         session.endSession();
 
-        res.json({ message: 'Recruiter account and related job data deleted successfully' });
+        res.json({ message: 'Recruiter account and all related data deleted successfully' });
     } catch (error) {
         // Something failed - rollback all changes
         await session.abortTransaction();
