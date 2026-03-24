@@ -1,0 +1,23 @@
+
+> client@0.0.0 build
+> vite build
+
+[36mvite v7.3.1 [32mbuilding client environment for production...[36m[39m
+transforming...
+[32m✓[39m 3 modules transformed.
+[31m✗[39m Build failed in 2.42s
+[31merror during build:
+[31m[vite:css] [postcss] Cannot find module 'tailwindcss-animate'
+Require stack:
+- C:\Users\HP\OneDrive\Desktop\Minor_Project\client\tailwind.config.ts[31m
+file: [36mC:/Users/HP/OneDrive/Desktop/Minor_Project/client/src/index.css:undefined:NaN[31m
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)
+    at require.resolve (node:internal/modules/helpers:163:19)
+    at _resolve (C:\Users\HP\OneDrive\Desktop\Minor_Project\client\node_modules\jiti\dist\jiti.js:1:246378)
+    at jiti (C:\Users\HP\OneDrive\Desktop\Minor_Project\client\node_modules\jiti\dist\jiti.js:1:249092)
+    at C:\Users\HP\OneDrive\Desktop\Minor_Project\client\tailwind.config.ts:92:13
+    at evalModule (C:\Users\HP\OneDrive\Desktop\Minor_Project\client\node_modules\jiti\dist\jiti.js:1:251913)
+    at jiti (C:\Users\HP\OneDrive\Desktop\Minor_Project\client\node_modules\jiti\dist\jiti.js:1:249841)
+    at C:\Users\HP\OneDrive\Desktop\Minor_Project\client\node_modules\tailwindcss\lib\lib\load-config.js:53:30
+    at loadConfig (C:\Users\HP\OneDrive\Desktop\Minor_Project\client\node_modules\tailwindcss\lib\lib\load-config.js:55:6)
+    at getTailwindConfig (C:\Users\HP\OneDrive\Desktop\Minor_Project\client\node_modules\tailwindcss\lib\lib\setupTrackingContext.js:74:116)[39m

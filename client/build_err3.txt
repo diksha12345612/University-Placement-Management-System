@@ -1,0 +1,27 @@
+
+> client@0.0.0 build
+> vite build
+
+[36mvite v7.3.1 [32mbuilding client environment for production...[36m[39m
+transforming...
+[32m✓[39m 2520 modules transformed.
+[31m✗[39m Build failed in 15.39s
+[31merror during build:
+[31msrc/landing-components/Footer.tsx (1:32): "Twitter" is not exported by "node_modules/lucide-react/dist/esm/lucide-react.js", imported by "src/landing-components/Footer.tsx".[31m
+file: [36mC:/Users/HP/OneDrive/Desktop/Minor_Project/client/src/landing-components/Footer.tsx:1:32[31m
+[33m
+1: import { GraduationCap, Github, Twitter, Linkedin, Mail } from "lucide-react";
+                                   ^
+2: 
+3: const footerLinks = {
+[31m
+    at getRollupError (file:///C:/Users/HP/OneDrive/Desktop/Minor_Project/client/node_modules/rollup/dist/es/shared/parseAst.js:402:41)
+    at error (file:///C:/Users/HP/OneDrive/Desktop/Minor_Project/client/node_modules/rollup/dist/es/shared/parseAst.js:398:42)
+    at Module.error (file:///C:/Users/HP/OneDrive/Desktop/Minor_Project/client/node_modules/rollup/dist/es/shared/node-entry.js:17040:16)
+    at Module.traceVariable (file:///C:/Users/HP/OneDrive/Desktop/Minor_Project/client/node_modules/rollup/dist/es/shared/node-entry.js:17452:29)
+    at ModuleScope.findVariable (file:///C:/Users/HP/OneDrive/Desktop/Minor_Project/client/node_modules/rollup/dist/es/shared/node-entry.js:15070:39)
+    at ReturnValueScope.findVariable (file:///C:/Users/HP/OneDrive/Desktop/Minor_Project/client/node_modules/rollup/dist/es/shared/node-entry.js:5673:38)
+    at FunctionBodyScope.findVariable (file:///C:/Users/HP/OneDrive/Desktop/Minor_Project/client/node_modules/rollup/dist/es/shared/node-entry.js:5673:38)
+    at Identifier.bind (file:///C:/Users/HP/OneDrive/Desktop/Minor_Project/client/node_modules/rollup/dist/es/shared/node-entry.js:5447:40)
+    at ArrayExpression.bind (file:///C:/Users/HP/OneDrive/Desktop/Minor_Project/client/node_modules/rollup/dist/es/shared/node-entry.js:2825:28)
+    at MemberExpression.bind (file:///C:/Users/HP/OneDrive/Desktop/Minor_Project/client/node_modules/rollup/dist/es/shared/node-entry.js:2829:23)[39m
