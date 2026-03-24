@@ -195,9 +195,9 @@ textarea {
   background: var(--bg-input);
   color: var(--text-primary);
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 0.75rem 1rem;
-  font-size: 0.95rem;
+  border-radius: 6px;
+  padding: 0.85rem 1.125rem;
+  font-size: 1rem;
   transition: var(--transition);
   width: 100%;
 }
@@ -586,9 +586,9 @@ textarea:focus {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.65rem 1.25rem;
-  border-radius: var(--radius-full);
-  font-size: 0.95rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
   font-weight: 600;
   transition: var(--transition-bounce);
   font-family: 'Outfit', sans-serif;
@@ -880,8 +880,8 @@ tr:last-child td {
 .auth-card .btn {
   width: 100%;
   justify-content: center;
-  padding: 0.85rem;
-  font-size: 1rem;
+  padding: 0.9rem;
+  font-size: 1.05rem;
 }
 
 .auth-footer {
@@ -899,10 +899,10 @@ tr:last-child td {
 
 .role-tab {
   flex: 1;
-  padding: 0.65rem;
-  border-radius: var(--radius-sm);
+  padding: 0.8rem;
+  border-radius: 6px;
   text-align: center;
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
   background: var(--bg-input);
