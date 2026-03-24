@@ -206,20 +206,20 @@ const HeroSection = () => {
                 {authTab === "register" && step === 2 ? (
                   <div className="form-group" style={{ textAlign: 'left', marginTop: '1rem' }}>
                     <label style={{ color: 'var(--text-primary)', fontWeight: 500, display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>One-Time Password (OTP)</label>
-                    <input type="text" value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))} placeholder="Enter 6-digit OTP" required style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '0.5rem', border: '1px solid var(--border)', background: 'var(--bg-primary)', color: 'var(--text-primary)', outline: 'none' }} />
+                    <input type="text" value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))} placeholder="Enter 6-digit OTP" required style={{ width: '100%', padding: '1rem 1.2rem', borderRadius: '0.5rem', border: '1px solid var(--border)', background: 'var(--bg-primary)', color: 'var(--text-primary)', outline: 'none' }} />
                   </div>
                 ) : (
                   <>
                     {authTab === "register" && (
                       <div className="form-group" style={{ textAlign: 'left' }}>
                         <label style={{ color: 'var(--text-primary)', fontWeight: 500, display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Full Name</label>
-                        <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Enter your full name" required style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '0.5rem', border: '1px solid var(--border)', background: 'var(--bg-primary)', color: 'var(--text-primary)', outline: 'none' }} />
+                        <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Enter your full name" required style={{ width: '100%', padding: '1rem 1.2rem', borderRadius: '0.5rem', border: '1px solid var(--border)', background: 'var(--bg-primary)', color: 'var(--text-primary)', outline: 'none' }} />
                       </div>
                     )}
                     {authTab === "register" && (
                       <div className="form-group" style={{ textAlign: 'left', marginTop: '1rem' }}>
                         <label style={{ color: 'var(--text-primary)', fontWeight: 500, display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Role</label>
-                        <select value={role} onChange={(e) => setRole(e.target.value)} required style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '0.5rem', border: '1px solid var(--border)', background: 'var(--bg-primary)', color: 'var(--text-primary)', outline: 'none' }}>
+                        <select value={role} onChange={(e) => setRole(e.target.value)} required style={{ width: '100%', padding: '1rem 1.2rem', borderRadius: '0.5rem', border: '1px solid var(--border)', background: 'var(--bg-primary)', color: 'var(--text-primary)', outline: 'none' }}>
                           <option value="student">Student</option>
                           <option value="recruiter">Recruiter</option>
                         </select>
@@ -227,12 +227,12 @@ const HeroSection = () => {
                     )}
                     <div className="form-group" style={{ textAlign: 'left', marginTop: '1rem' }}>
                       <label style={{ color: 'var(--text-primary)', fontWeight: 500, display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Email Address</label>
-                      <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter your email" required style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '0.5rem', border: '1px solid var(--border)', background: 'var(--bg-primary)', color: 'var(--text-primary)', outline: 'none' }} />
+                      <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter your email" required style={{ width: '100%', padding: '1rem 1.2rem', borderRadius: '0.5rem', border: '1px solid var(--border)', background: 'var(--bg-primary)', color: 'var(--text-primary)', outline: 'none' }} />
                     </div>
                     <div className="form-group" style={{ textAlign: 'left', marginTop: '1rem' }}>
                       <label style={{ color: 'var(--text-primary)', fontWeight: 500, display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Password</label>
                       <div style={{ position: 'relative' }}>
-                        <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder={authTab === "register" ? "Min 6 characters" : "Enter your password"} required style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '0.5rem', border: '1px solid var(--border)', background: 'var(--bg-primary)', color: 'var(--text-primary)', outline: 'none' }} />
+                        <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder={authTab === "register" ? "Min 6 characters" : "Enter your password"} required style={{ width: '100%', padding: '1rem 1.2rem', borderRadius: '0.5rem', border: '1px solid var(--border)', background: 'var(--bg-primary)', color: 'var(--text-primary)', outline: 'none' }} />
                         <button type="button" onClick={() => setShowPassword(!showPassword)} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}>
                           {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                         </button>
