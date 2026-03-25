@@ -126,7 +126,7 @@ const AdminSectionOTPModal = ({ isOpen, onVerified, adminEmail = 'mohitbindal106
                             maxLength="6"
                             style={{
                                 width: '100%',
-                                padding: '0.75rem',
+                                padding: '1.2rem',
                                 borderRadius: '8px',
                                 border: '2px solid var(--border)',
                                 fontSize: '1.2rem',
