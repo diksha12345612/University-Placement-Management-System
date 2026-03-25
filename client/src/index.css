@@ -196,10 +196,11 @@ textarea {
   color: var(--text-primary);
   border: 1px solid var(--border);
   border-radius: 10px;
-  padding: 1.15rem 1.35rem;
-  font-size: 1.05rem;
+  padding: 1.75rem 2rem;
+  font-size: 1.15rem;
   transition: var(--transition);
   width: 100%;
+  min-height: 3rem;
 }
 
 input:focus,
