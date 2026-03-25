@@ -477,15 +477,16 @@ h4 { font-size: 1.25rem; }
 
 .form-input {
   width: 100%;
-  padding: 1rem 1.2rem;
+  padding: 1.5rem 1.75rem;
   background: rgba(0, 0, 0, 0.05);
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 8px;
-  font-size: 0.95rem;
+  font-size: 1rem;
   color: var(--text-primary);
   outline: none;
   transition: all 0.3s ease;
   font-family: 'DM Sans', sans-serif;
+  min-height: 2.8rem;
 }
 
 .form-input:focus {
