@@ -101,7 +101,7 @@ const ForgotPassword = () => {
                     padding: '0.5rem 1rem',
                     background: 'var(--bg-card)',
                     border: '1px solid var(--border)',
-                    borderRadius: '999px',
+                    borderRadius: '4px',
                     fontSize: '0.85rem',
                     fontWeight: 500,
                     color: 'var(--text-primary)',
