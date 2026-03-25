@@ -16,7 +16,7 @@ const CTASection = () => {
           <div className="blob w-[300px] h-[300px] bg-purple-400 absolute -bottom-20 -left-20 opacity-20 animate-float-delayed" />
 
           <div className="relative z-10 text-center py-16 lg:py-20 px-6">
-            <motion.div initial={{ opacity: 0, y: 16 }} animate={isInView ? { opacity: 1, y: 0 } : {}} transition={{ delay: 0.2 }} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 border border-white/20 text-white text-xs font-semibold mb-6 shadow-sm backdrop-blur-md">
+            <motion.div initial={{ opacity: 0, y: 16 }} animate={isInView ? { opacity: 1, y: 0 } : {}} transition={{ delay: 0.2 }} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-none bg-white/10 border border-white/20 text-white text-xs font-semibold mb-6 shadow-sm backdrop-blur-md">
               <Sparkles className="w-4 h-4 text-cyan-300" />
               Start Your Journey Today
             </motion.div>

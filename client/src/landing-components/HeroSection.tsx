@@ -103,7 +103,7 @@ const HeroSection = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
           {/* Left */}
           <motion.div initial={{ opacity: 0, x: -40 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}>
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 text-white text-xs font-semibold mb-4 border border-white/20">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-none bg-white/10 text-white text-xs font-semibold mb-4 border border-white/20">
               <GraduationCap className="w-3.5 h-3.5" />
               University Placement & Preparation Portal
             </div>
@@ -267,8 +267,8 @@ const HeroSection = () => {
       {/* Scroll indicator */}
       <div className="flex justify-center pb-4">
         <div className="animate-scroll-indicator">
-          <div className="w-5 h-8 rounded-full border-2 border-muted-foreground/30 flex justify-center pt-1.5">
-            <div className="w-1 h-1 rounded-full bg-primary" />
+          <div className="w-5 h-8 rounded-none border-2 border-muted-foreground/30 flex justify-center pt-1.5">
+            <div className="w-1 h-1 rounded-none bg-primary" />
           </div>
         </div>
       </div>

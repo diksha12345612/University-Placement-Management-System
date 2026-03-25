@@ -32,7 +32,7 @@ const FeaturesSection = () => {
           transition={{ duration: 0.5 }}
           className="text-center max-w-2xl mx-auto mb-10"
         >
-          <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-3">
+          <span className="inline-block px-4 py-1.5 rounded-none bg-primary/10 text-primary text-xs font-semibold mb-3">
             Features
           </span>
           <h2 className="font-display text-3xl lg:text-4xl font-bold text-foreground">

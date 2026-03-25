@@ -61,7 +61,7 @@ const AIFeaturesSection = () => {
           transition={{ duration: 0.5 }}
           className="text-center max-w-2xl mx-auto mb-10"
         >
-          <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-accent/10 text-accent text-xs font-semibold mb-3">
+          <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-none bg-accent/10 text-accent text-xs font-semibold mb-3">
             <Brain className="w-3.5 h-3.5" />
             AI-Powered Preparation Hub
           </span>
