@@ -548,4 +548,3 @@ For enterprises deploying to production:
 
 
 
-<!-- Database Schema v3.0: Migration scripts ready -->
