@@ -145,53 +145,11 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
-// Enhanced Error handling middleware - prevents information disclosure in production
-app.use((err, req, res, next) => {
-  // Log full error server-side for debugging with request context
-  const errorId = req.id || Date.now().toString(36) + Math.random().toString(36).substr(2);
-  console.error(`[${errorId}] Error: ${err.stack || err.message}`);
-  
-  // Determine status code
-  const statusCode = err.statusCode || err.status || 500;
-  
-  // Build safe response with consistent format
-  let errorResponse = {
-    success: false,
-    message: 'An error occurred processing your request',
-    status: statusCode,
-    errorId: errorId
-  };
+// Global error and 404 handlers
+const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
+app.use(notFoundHandler);
+app.use(errorHandler);
 
-  // Include specific safe error messages for known error types
-  if (err.name === 'ValidationError') {
-    errorResponse.message = 'Validation failed. Please check required fields.';
-  } else if (err.name === 'CastError') {
-    errorResponse.message = 'Invalid request parameters';
-  } else if (err.name === 'MongooseError' || err.name === 'MongoError') {
-    errorResponse.message = 'Database operation failed';
-  } else if (statusCode === 401) {
-    errorResponse.message = 'Authentication required. Please log in.';
-  } else if (statusCode === 403) {
-    errorResponse.message = 'You do not have permission to access this resource';
-  } else if (statusCode === 404) {
-    errorResponse.message = 'The requested resource was not found';
-  } else if (statusCode >= 400 && statusCode < 500) {
-    // Use original message for client errors (validation, bad requests)
-    errorResponse.message = err.message || 'Invalid request';
-  }
-
-  // In development, include additional details
-  if (process.env.NODE_ENV === 'development') {
-    errorResponse.details = err.stack;
-  }
-
-  res.status(statusCode).json(errorResponse);
-});
-
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({ error: 'Route not found' });
-});
 
 // Initialize expiry check service (runs on startup and periodically)
 // Only run in local dev, NOT in Vercel production (serverless can't maintain intervals)
