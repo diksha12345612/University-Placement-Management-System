@@ -1,9 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
-// const cors = require('cors'); // Moved to middleware/corsConfig.js
-
 const morgan = require('morgan');
-// const helmet = require('helmet'); // Moved to middleware/securityConfig.js
+
 
 const rateLimit = require('express-rate-limit');
 const path = require('path');
