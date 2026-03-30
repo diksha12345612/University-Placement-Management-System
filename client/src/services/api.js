@@ -8,49 +8,74 @@ const api = axios.create({
     headers: { 'Content-Type': 'application/json' }
 });
 
+const isDev = import.meta.env.MODE === 'development';
+
 api.interceptors.request.use((config) => {
     const token = localStorage.getItem('token');
     if (token) config.headers.Authorization = `Bearer ${token}`;
+    
     // Don't set Content-Type for blob requests or file uploads
     if (config.responseType === 'blob' || config.headers['Content-Type'] === 'multipart/form-data') {
         delete config.headers['Content-Type'];
     }
+
+    if (isDev) {
+        console.log(`[API Request] ${config.method.toUpperCase()} ${config.url}`, config.data || '');
+    }
+    
     return config;
 });
 
 api.interceptors.response.use(
-    (res) => res,
+    (res) => {
+        if (isDev) {
+            console.log(`[API Response] ${res.config.method.toUpperCase()} ${res.config.url}`, res.data);
+        }
+        return res;
+    },
     (err) => {
-        if (err.response?.status === 401) {
+        const status = err.response?.status;
+        const url = err.config?.url;
+
+        if (status === 401) {
             localStorage.removeItem('token');
             localStorage.removeItem('user');
-            if (window.location.pathname !== '/login') window.location.href = '/login';
+            if (window.location.pathname !== '/login') {
+                console.warn(`[API] Unauthorized access to ${url}. Redirecting to login.`);
+                window.location.href = '/login';
+            }
         }
 
-        // Normalize serverless / gateway error objects (e.g. Vercel timeouts) to prevent React #31 child rendering errors
+        // Normalize serverless / gateway error objects
         if (err.response && err.response.data) {
-            // Vercel raw HTML 500 error
-            if (typeof err.response.data === 'string' && err.response.data.includes('A server error has occurred')) {
-                err.response.data = { error: 'Vercel Server Crash (Check Vercel Logs): ' + err.message };
+            const data = err.response.data;
+
+            // Handle Vercel/Gateway specific string errors
+            if (typeof data === 'string') {
+                if (data.includes('A server error has occurred')) {
+                    err.response.data = { error: 'Node.js runtime error (Vercel). Check server logs.' };
+                } else {
+                    err.response.data = { error: data.substring(0, 200) };
+                }
             } 
-            // Vercel raw string (exact match)
-            else if (typeof err.response.data === 'string') {
-                // If it's pure string, we cannot do .error on it, wrap it:
-                err.response.data = { error: err.response.data.substring(0, 150) };
+            // Handle error objects
+            else if (data.error && typeof data.error === 'object') {
+                err.response.data.error = data.error.message || JSON.stringify(data.error);
             }
-            // Objects incorrectly parsed
-            else if (typeof err.response.data.error === 'object') {
-                err.response.data.error = err.response.data.error.message || JSON.stringify(err.response.data.error);
+            // Fallback for missing error field but having message (new standard)
+            else if (!data.error && data.message && !data.success) {
+                err.response.data.error = data.message;
             }
-            // If the exact backend string matches Vercel's generic error
-            else if (err.response.data.error === 'A server error has occurred' || err.response.data.error === 'A server error has occurred.') {
-                 err.response.data.error = 'Vercel Serverless Error! Node crashed on boot. Please check Vercel Dashboard -> Logs.';
-            }
+        }
+
+        if (isDev) {
+            console.error(`[API Error] ${err.config?.method?.toUpperCase()} ${url}`, status, err.response?.data || err.message);
         }
 
         return Promise.reject(err);
     }
 );
+
 
 // Auth
 export const authAPI = {
