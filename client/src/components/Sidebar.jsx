@@ -72,6 +72,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                             to={link.path}
                             className={isActive(link.path)}
                             onClick={handleLinkClick}
+                            title={link.label}
                         >
                             {link.icon}
                             <span>{link.label}</span>

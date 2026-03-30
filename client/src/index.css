@@ -407,29 +407,33 @@ textarea:focus {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.65rem 0.75rem;
-  border-radius: var(--radius-sm);
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
   color: var(--text-secondary);
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   font-weight: 500;
-  transition: var(--transition);
+  transition: var(--transition-bounce);
+  margin: 0.2rem 0;
 }
 
 .sidebar-link:hover {
-  background: #f8fafc;
+  background: #f1f5f9;
   color: var(--primary);
+  transform: translateX(4px);
 }
 
 .sidebar-link.active {
-  background: #f1f5f9;
-  color: var(--primary);
+  background: var(--primary);
+  color: white;
   font-weight: 600;
+  box-shadow: 0 4px 12px var(--primary-glow);
 }
 
 .sidebar-link svg {
-  font-size: 1.1rem;
-  min-width: 1.1rem;
+  font-size: 1.2rem;
+  min-width: 1.2rem;
 }
+
 
 .sidebar-footer {
   padding: 1rem 0.75rem;
