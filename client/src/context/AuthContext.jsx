@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import { authAPI } from '../services/api';
 
 const AuthContext = createContext(null);
@@ -10,18 +10,30 @@ export const AuthProvider = ({ children }) => {
     const [token, setToken] = useState(localStorage.getItem('token'));
     const [loading, setLoading] = useState(true);
 
-    const loadUser = useCallback(async () => {
+    useEffect(() => {
+        if (token) {
+            loadUser();
+        } else {
+            setLoading(false);
+        }
+    }, [token]);
+
+    const loadUser = async () => {
         try {
             const res = await authAPI.getMe();
             setUser(res.data);
         } catch (err) {
             console.error('[AuthContext] Load user error:', err?.message);
+            // Only clear session for a definitive 401 Unauthorized response.
+            // Do NOT clear on network errors, CORS issues, or server errors —
+            // this was causing new accounts to silently log out after registration.
             if (err.response?.status === 401) {
                 localStorage.removeItem('token');
                 localStorage.removeItem('user');
                 setToken(null);
                 setUser(null);
             } else {
+                // Network or server error — restore user from localStorage as fallback
                 const savedUser = localStorage.getItem('user');
                 if (savedUser) {
                     try { setUser(JSON.parse(savedUser)); } catch { /* ignore */ }
@@ -30,16 +42,7 @@ export const AuthProvider = ({ children }) => {
         } finally {
             setLoading(false);
         }
-    }, []);
-
-    useEffect(() => {
-        if (token) {
-            loadUser();
-        } else {
-            setLoading(false);
-        }
-    }, [token, loadUser]);
-
+    };
 
     const login = async (email, password) => {
         const res = await authAPI.login({ email, password });

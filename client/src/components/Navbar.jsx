@@ -1,24 +1,22 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useNotifications } from '../hooks/useNotifications';
+import { notificationAPI } from '../services/api';
 import { FiBell } from 'react-icons/fi';
 
-/**
- * Navbar Component
- * Displays the page title, notification center, and user profile information.
- * 
- * @param {Object} props - Component props
- * @param {string} [props.title='Placement Portal'] - The title to display in the navbar
- */
-const Navbar = ({ title = 'Placement Portal' }) => {
-
-
+const Navbar = ({ title }) => {
     const { user } = useAuth();
     const navigate = useNavigate();
-    const { notifications, unreadCount, fetchNotifications, markAsRead } = useNotifications();
+    const [notifications, setNotifications] = useState([]);
+    const [unreadCount, setUnreadCount] = useState(0);
     const [showDropdown, setShowDropdown] = useState(false);
     const dropdownRef = useRef(null);
+
+    useEffect(() => {
+        fetchUnreadCount();
+        const interval = setInterval(fetchUnreadCount, 30000);
+        return () => clearInterval(interval);
+    }, []);
 
     useEffect(() => {
         const handleClick = (e) => {
@@ -30,13 +28,30 @@ const Navbar = ({ title = 'Placement Portal' }) => {
         return () => document.removeEventListener('mousedown', handleClick);
     }, []);
 
+    const fetchUnreadCount = async () => {
+        try {
+            const res = await notificationAPI.getUnreadCount();
+            setUnreadCount(res.data.count);
+        } catch { }
+    };
+
     const handleBellClick = async () => {
         setShowDropdown(!showDropdown);
         if (!showDropdown) {
-            fetchNotifications(10);
+            try {
+                const res = await notificationAPI.getAll();
+                setNotifications(res.data.slice(0, 10));
+            } catch { }
         }
     };
 
+    const markAsRead = async (id) => {
+        try {
+            await notificationAPI.markRead(id);
+            setNotifications(notifications.map(n => n._id === id ? { ...n, isRead: true } : n));
+            setUnreadCount(Math.max(0, unreadCount - 1));
+        } catch { }
+    };
 
     const resolveNotificationRoute = (notification) => {
         if (notification?.link) return notification.link;
@@ -96,37 +111,20 @@ const Navbar = ({ title = 'Placement Portal' }) => {
             <h2>{title}</h2>
             <div className="navbar-actions">
                 <div ref={dropdownRef} style={{ position: 'relative' }}>
-                    <button 
-                        className="notification-btn" 
-                        onClick={handleBellClick}
-                        aria-label={`View notifications${unreadCount > 0 ? `, ${unreadCount} unread` : ''}`}
-                        aria-haspopup="true"
-                        aria-expanded={showDropdown}
-                    >
-                        <FiBell aria-hidden="true" />
-                        {unreadCount > 0 && <span className="notification-badge" aria-hidden="true">{unreadCount}</span>}
+                    <button className="notification-btn" onClick={handleBellClick}>
+                        <FiBell />
+                        {unreadCount > 0 && <span className="notification-badge">{unreadCount}</span>}
                     </button>
-
                     {showDropdown && (
-                        <div className="notification-dropdown" role="menu">
-                            <div 
-                                style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--border)', fontWeight: 600, fontSize: '0.9rem' }}
-                                role="presentation"
-                            >
+                        <div className="notification-dropdown">
+                            <div style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--border)', fontWeight: 600, fontSize: '0.9rem' }}>
                                 Notifications
                             </div>
                             {notifications.length === 0 ? (
-                                <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }} role="menuitem">No notifications</div>
+                                <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>No notifications</div>
                             ) : (
                                 notifications.map((n) => (
-                                    <div 
-                                        key={n._id} 
-                                        className={`notification-item ${!n.isRead ? 'unread' : ''}`} 
-                                        onClick={() => handleNotificationClick(n)}
-                                        role="menuitem"
-                                        tabIndex="0"
-                                        onKeyDown={(e) => e.key === 'Enter' && handleNotificationClick(n)}
-                                    >
+                                    <div key={n._id} className={`notification-item ${!n.isRead ? 'unread' : ''}`} onClick={() => handleNotificationClick(n)}>
                                         <h4>{n.title}</h4>
                                         <p>{n.message}</p>
                                         <div className="time">{timeAgo(n.createdAt)}</div>
@@ -135,21 +133,11 @@ const Navbar = ({ title = 'Placement Portal' }) => {
                             )}
                         </div>
                     )}
-
                 </div>
-                <div 
-                    className="user-menu clickable-profile" 
-                    onClick={handleProfileClick} 
-                    title="View Profile"
-                    role="button"
-                    aria-label={`User profile: ${user?.name}`}
-                    tabIndex="0"
-                    onKeyDown={(e) => e.key === 'Enter' && handleProfileClick()}
-                >
-                    <div className="user-avatar" aria-hidden="true">{user?.name?.[0]?.toUpperCase()}</div>
+                <div className="user-menu clickable-profile" onClick={handleProfileClick} title="View Profile">
+                    <div className="user-avatar">{user?.name?.[0]?.toUpperCase()}</div>
                     <span className="user-name">{user?.name}</span>
                 </div>
-
             </div>
         </div>
     );

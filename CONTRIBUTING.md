@@ -1,53 +1,29 @@
-# 🤝 Contributing to University Placement & Preparation Portal
+# Contributing to University Placement & Preparation Portal
 
-First off, thank you for considering contributing to this project! Your support helps make this platform better for students and recruiters everywhere.
+First off, thank you for considering contributing to this project!
 
-## 🛣️ Development Workflow
+## How Can I Contribute?
 
-To ensure a smooth contribution process, please follow these steps:
+### Reporting Bugs
+* Check the existing issues to see if the bug has already been reported.
+* If not, open a new issue using the Bug Report template.
+* Include a clear title and description, as much relevant information as possible, and a code sample or an executable test case demonstrating the expected behavior that is not occurring.
 
-1. **Fork the Repository**: Create your own copy of the project.
-2. **Setup Local Environment**: Follow the instructions in the [README.md](./README.md#🛠️-local-development-setup) to get the project running locally.
-3. **Branching Strategy**:
-   - Create a new branch from `main`.
-   - Use descriptive branch names: `feature/your-feature`, `fix/your-fix`, `docs/your-change`.
-4. **Code Standards**:
-   - Follow the existing project structure and naming conventions.
-   - Use functional components and hooks for React code.
-   - Maintain a clear separation of concerns between frontend and backend.
-5. **Testing**:
-   - If you've added new logic, include relevant tests.
-   - Ensure the server starts and the client builds without errors.
+### Suggesting Enhancements
+* Open a new issue using the Feature Request template.
+* Explain the behavior you would like to see and why!
 
-## 📝 Commit Message Guidelines
+### Pull Requests
+* Fork the repo and create your branch from `main`.
+* If you've added code that should be tested, add tests.
+* Ensure the test suite passes.
+* Issue that PR!
 
-We follow a consistent commit message format to maintain a clear history:
+## Style Guide
+* Use clear, descriptive commit messages.
+* Follow the project's existing coding style (Standard JS / React patterns).
 
-- **Format**: `[CATEGORY] Short descriptive summary`
-- **Categories**:
-  - `[FEAT]` - New features
-  - `[FIX]` - Bug fixes
-  - `[DOCS]` - Documentation updates
-  - `[UI]` - UI/UX improvements
-  - `[SERVER]` - Backend/Server-side changes
-  - `[REFACTOR]` - Code restructuring without functional changes
-  - `[CONFIG]` - Configuration or environment changes
+## Community
+* Please be respectful and professional in all interactions.
 
-*Example*: `[FEAT] Add AI-powered interview question skipping`
-
-## 🚀 Pull Request Process
-
-1. **Keep it Focused**: A PR should ideally address a single issue or feature.
-2. **Update Documentation**: If your change affects how the system works, update the relevant `.md` files.
-3. **Describe Your Changes**: Provide a clear summary in your PR description, including:
-   - What was changed?
-   - Why was it changed?
-   - How can it be tested?
-4. **Wait for Review**: Your PR will be reviewed as soon as possible. Please be patient and prepared to make suggested changes.
-
-## 👔 Community Standards
-
-We are committed to providing a professional and welcoming environment. Please be respectful, constructive, and collaborative in all interactions.
-
-Happy coding! 🚀
-
+Happy coding!

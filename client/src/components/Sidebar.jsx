@@ -63,24 +63,21 @@ const Sidebar = ({ isOpen, onClose }) => {
                 </div>
                 <p style={{ marginLeft: '3.75rem', fontSize: '0.75rem', opacity: 0.8 }}>{user?.role === 'admin' ? 'Placement Officer' : user?.role}</p>
             </div>
-            <nav className="sidebar-nav" role="navigation" aria-label="Main Navigation">
+            <nav className="sidebar-nav">
                 <div className="sidebar-section">
-                    <div className="sidebar-section-title" role="presentation">Navigation</div>
+                    <div className="sidebar-section-title">Navigation</div>
                     {links.map((link) => (
                         <Link
                             key={link.path}
                             to={link.path}
                             className={isActive(link.path)}
                             onClick={handleLinkClick}
-                            title={link.label}
-                            aria-label={link.label}
                         >
-                            <span aria-hidden="true">{link.icon}</span>
+                            {link.icon}
                             <span>{link.label}</span>
                         </Link>
                     ))}
                 </div>
-
                 {user?.role === 'student' && (
                     <div className="sidebar-section">
                         <div className="sidebar-section-title">Prep Resources</div>
@@ -94,15 +91,10 @@ const Sidebar = ({ isOpen, onClose }) => {
                 )}
             </nav>
             <div className="sidebar-footer">
-                <button 
-                    className="logout-btn" 
-                    onClick={logout}
-                    aria-label="Log out from system"
-                >
-                    <FiLogOut aria-hidden="true" /> <span>Log Out</span>
+                <button className="logout-btn" onClick={logout}>
+                    <FiLogOut /> <span>Log Out</span>
                 </button>
             </div>
-
         </div>
     );
 };

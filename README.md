@@ -141,19 +141,15 @@ Integrated with **GitHub Models**, **OpenRouter**, and **Affinda Resume Parser**
 - **Security by Default**: Middleware applied to all routes with fail-secure patterns
 
 ### Technology Stack
-## 🛠️ Technology Stack
-
-The platform is built on a modern, high-performance stack designed for scalability, security, and developer productivity.
-
-| Layer | Technologies | Key Features |
-|-------|--------------|--------------|
-| **Frontend** | ![React](https://img.shields.io/badge/-React-61DAFB?logo=react&logoColor=white) ![Vite](https://img.shields.io/badge/-Vite-646CFF?logo=vite&logoColor=white) | Fast HMR, Component-based architecture, Tailwind CSS |
-| **Backend** | ![Node.js](https://img.shields.io/badge/-Node.js-339933?logo=node.js&logoColor=white) ![Express](https://img.shields.io/badge/-Express-000000?logo=express&logoColor=white) | RESTful API, Middleware-driven, Stateless scaling |
-| **Database** | ![MongoDB](https://img.shields.io/badge/-MongoDB-47A248?logo=mongodb&logoColor=white) | Flexible schema, Indexed queries, ACID transactions |
-| **AI/ML** | ![GitHub Models](https://img.shields.io/badge/-GitHub%20Models-181717?logo=github&logoColor=white) ![OpenRouter](https://img.shields.io/badge/-OpenRouter-7E22CE) | Intelligent preparation, Resume ATS scoring |
-| **Security** | ![JWT](https://img.shields.io/badge/-JWT-000000?logo=json-web-tokens&logoColor=white) ![Helmet](https://img.shields.io/badge/-Helmet.js-blue) | RBAC, XSS/NoSQLi protection, Rate limiting |
-| **Infrastructure**| ![Vercel](https://img.shields.io/badge/-Vercel-000000?logo=vercel&logoColor=white) | Serverless functions, CI/CD, Global CDN |
-
+| Layer | Technologies |
+|-------|--------------|
+| **Frontend** | React.js, Vite, React Router, Axios, DOMPurify, Hot Toast |
+| **Backend** | Node.js, Express.js, Mongoose, Helmet.js |
+| **Database** | MongoDB (Atlas), Redis (optional caching) |
+| **AI/ML** | GitHub Models, OpenRouter, Affinda API |
+| **Auth** | JWT (7-day expiration), RBAC middleware |
+| **Deployment** | Vercel (serverless), GitHub (version control) |
+| **Testing** | Comprehensive security test suite (9 phases) |
 
 ### Performance Metrics
 - **Frontend**: Vite bundling for <100KB initial load

@@ -11,7 +11,7 @@ const { validateSchema } = require('../utils/validationSchemas');
 const { authSchemas } = require('../utils/validationSchemas');
 const { createApiSecurityMiddleware, securityProfiles } = require('../middleware/apiSecurity');
 const { validatePasswordStrength } = require('../utils/passwordValidator');
-// PHASE 2: Import concurrency utilities for distributed state management
+// Import concurrency helpers for distributed session management
 const { 
     recordFailedLoginAttempt, 
     recordSuccessfulLogin, 
@@ -19,15 +19,13 @@ const {
     setOTPWithVersioning,
     verifyOTPWithVersioning
 } = require('../utils/concurrencyUtils');
-const responseHandler = require('../utils/responseHandler');
-
 
 const getAdminContactEmail = () => {
     return process.env.ADMIN_EMAIL || process.env.EMAIL_USER || 'admin@university.edu';
 };
 
-// Phase 1: Request OTP for Signup - with strict API security
-// PHASE 2: Enforce strong password rules for NEW registrations
+// Initiate OTP flow for new user registration
+// Password strength is enforced before proceeding
 router.post('/register-otp', [
     ...createApiSecurityMiddleware(securityProfiles.auth),
     otpRequestLimiter,
@@ -40,13 +38,16 @@ router.post('/register-otp', [
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
+            // Format validation errors for better UX
             const formattedErrors = errors.array().map(err => ({
                 field: err.param,
                 message: err.msg
             }));
-            return responseHandler.error(res, 'Validation failed. Please check your input.', 400, formattedErrors);
+            return res.status(400).json({ 
+                error: 'Validation failed. Please check your input.',
+                errors: formattedErrors
+            });
         }
-
 
         const { email, password } = req.body;
         const normalizedEmail = email.toLowerCase().trim();
@@ -54,12 +55,12 @@ router.post('/register-otp', [
         // Additional validation: Check password strength with detailed feedback
         const passwordValidation = validatePasswordStrength(password);
         if (!passwordValidation.isValid) {
-            return responseHandler.error(res, 'Password does not meet security requirements.', 400, {
+            return res.status(400).json({ 
+                error: 'Password does not meet security requirements.',
                 passwordErrors: passwordValidation.errors,
-                requirement: 'Password must be at least 8 characters long and include uppercase, lowercase, number, and special character (!@#$%^&*)'
+                details: 'Password must be at least 8 characters long and include uppercase, lowercase, number, and special character (!@#$%^&*)'
             });
         }
-
 
         // Check if user already exists
         const existingUser = await User.findOne({ email: normalizedEmail });
@@ -95,18 +96,21 @@ router.post('/register-otp', [
         const isDev = process.env.NODE_ENV !== 'production';
 
         if (!emailResult.sent) {
-            return responseHandler.error(res, 'Unable to deliver OTP email right now. Please try again in a minute.', 530, 
-                isDev ? { emailError: emailResult.error } : null
-            );
+            return res.status(503).json({
+                error: 'Unable to deliver OTP email right now. Please try again in a minute.',
+                ...(isDev ? { emailError: emailResult.error } : {})
+            });
         }
 
-        return responseHandler.success(res, 'OTP sent to your email successfully.', { emailSent: true });
+        res.status(200).json({
+            message: 'OTP sent to your email successfully.',
+            emailSent: true
+        });
     } catch (error) {
         console.error('Register-OTP Error:', error);
-        return responseHandler.error(res, `Server error: ${error.message || 'OTP request failed'}`, 500);
+        res.status(500).json({ error: `Server error: ${error.message || 'OTP request failed'}` });
     }
 });
-
 
 // Phase 2: Verify OTP and Create Account - with strict API security
 // PHASE 2: Enforce strong password rules for NEW registrations
@@ -196,21 +200,21 @@ router.post('/register-verify', [
 
         // Phase 11: Do not issue token if recruiter is not approved
         if (user.role === 'recruiter' && user.isApprovedByAdmin !== true) {
-            return responseHandler.success(res, 'Account verified! Pending admin approval.', {
+            return res.status(201).json({
                 user,
+                message: 'Account verified! Pending admin approval.',
                 adminEmail: getAdminContactEmail()
-            }, 201);
+            });
         }
 
         const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRE || '7d' });
 
-        return responseHandler.success(res, 'Account verified and created successfully!', { token, user }, 201);
+        res.status(201).json({ token, user, message: 'Account verified and created successfully!' });
     } catch (error) {
         console.error('Verify-OTP Error:', error);
-        return responseHandler.error(res, 'Server error during verification');
+        res.status(500).json({ error: 'Server error during verification' });
     }
 });
-
 
 // GET handler for debugging - register-verify should be POST only
 router.get('/register-verify', (req, res) => {
@@ -246,12 +250,12 @@ router.post('/login', [
         const lockStatus = await isLoginLocked(email);
         if (lockStatus.locked) {
             console.warn(`[SECURITY] Login attempt from locked account: ${email}`);
-            return responseHandler.error(res, `Account temporarily locked due to too many failed attempts. Try again in ${lockStatus.minutesRemaining} minutes.`, 429, {
+            return res.status(429).json({
+                error: `Account temporarily locked due to too many failed attempts. Try again in ${lockStatus.minutesRemaining} minutes.`,
                 errorCode: 'ACCOUNT_LOCKED',
                 minutesRemaining: lockStatus.minutesRemaining
             });
         }
-
 
         const user = await User.findOne({ email });
         if (!user) {
@@ -304,13 +308,12 @@ router.post('/login', [
             }
         );
 
-        return responseHandler.success(res, 'Login successful', { token, user });
+        res.json({ token, user });
     } catch (error) {
         console.error('Login Error:', error);
-        return responseHandler.error(res, 'Server error during login');
+        res.status(500).json({ error: 'Server error during login' });
     }
 });
-
 
 // Get current user
 router.get('/me', auth, async (req, res) => {
