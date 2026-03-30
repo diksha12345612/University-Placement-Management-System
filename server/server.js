@@ -1,13 +1,12 @@
 const express = require('express');
-// const mongoose = require('mongoose'); // Moved to config/db.js
-
-const morgan = require('morgan');
-
-
-// const rateLimit = require('express-rate-limit'); // Moved to middleware/rateLimiter.js
-
 const path = require('path');
+const morgan = require('morgan');
+const mongoSanitize = require('express-mongo-sanitize');
+const xss = require('xss-clean');
 const logger = require('./utils/logger');
+const connectDB = require('./config/db');
+const { globalLimiter, aiLimiter } = require('./middleware/rateLimiter');
+const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 
 /**
  * Validate critical environment variables
@@ -21,83 +20,42 @@ if (!process.env.JWT_SECRET) {
   process.exit(1);
 }
 
-
 const app = express();
 
 // Trust proxy - CRITICAL for Vercel
-// Vercel sets X-Forwarded-For header, Express needs to trust it
 app.set('trust proxy', 1);
 
-/**
- * Security middleware registration.
- * Includes CORS, Helmet, NoSQL sanitization, and XSS protection.
- */
+// Security middleware
 const securityMiddleware = require('./middleware/securityConfig');
 const corsMiddleware = require('./middleware/corsConfig');
 app.use(securityMiddleware);
 app.use(corsMiddleware);
 
-/**
- * Input Sanitization - Prevent NoSQL injection attacks
- * Escapes characters like $ and . in user-supplied object keys.
- */
-const mongoSanitize = require('express-mongo-sanitize');
+// Input Sanitization
 app.use(mongoSanitize({
   onSanitize: ({ req, key }) => {
     logger.security(`Sanitized potentially malicious key in request: ${key}`, { path: req.path });
   }
 }));
 
+// XSS Protection
+app.use(xss());
 
-/**
- * XSS Protection - Prevent Cross-Site Scripting attacks
- * Strips potentially malicious HTML/JS patterns from user input.
- */
-const xss = require('xss-clean');
-app.use(xss({
-  whiteList: {}, // Strict: remove all HTML tags
-  stripIgnoreTag: true,
-  onTag: (tag, html, options) => {
-    if (tag && !['b', 'strong', 'i', 'em', 'u', 'br'].includes(tag.toLowerCase())) {
-      logger.security(`HTML tag attempt detected: ${tag}`, { tag });
-    }
-  }
-}));
-
-
-const connectDB = require('./config/db');
-
-/**
- * MongoDB Connection Middleware (Serverless-optimized)
- * Guarantees a database connection is active before routing.
- */
+// MongoDB Connection Middleware
 app.use(async (req, res, next) => {
   try {
     await connectDB();
     next();
   } catch (err) {
-    // If it falls through here, connectDB already handled the process.exit(1) for initial
-    // But middleware needs to handle runtime failures
     return res.status(500).json({ error: 'Database connection failed' });
   }
 });
 
-
-
-/**
- * Global and AI-specific Rate Limiting
- * Prevents abuse and manages resource consumption for LLM endpoints.
- */
-const { globalLimiter, aiLimiter } = require('./middleware/rateLimiter');
+// Rate Limiting
 app.use('/api/', globalLimiter);
-app.use(['/api/preparation/generate-questions', '/api/preparation/generate-test', '/api/students/analyze-resume'], aiLimiter);
-app.use('/api/applications/.*\\/ai-', aiLimiter);
+app.use(['/api/preparation/generate-test', '/api/students/analyze-resume'], aiLimiter);
 
-
-/**
- * Standard Express Middleware
- * Handles body parsing, logging, and static file serving.
- */
+// Standard Middleware
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
@@ -109,20 +67,14 @@ if (process.env.NODE_ENV !== 'production') {
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-/**
- * Request ID Middleware
- * Assigns a unique trace ID to each incoming request for auditing and debugging.
- */
+// Request ID Middleware
 app.use((req, res, next) => {
   req.id = `REQ_${Date.now().toString(36)}_${Math.random().toString(36).substr(2, 5)}`.toUpperCase();
   res.setHeader('X-Request-ID', req.id);
   next();
 });
 
-/**
- * API Route Registration
- * Defines the main entry points for the application's REST API.
- */
+// --- API Routes ---
 app.use('/api/public', require('./routes/public'));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/students', require('./routes/students'));
@@ -130,47 +82,29 @@ app.use('/api/recruiters', require('./routes/recruiters'));
 app.use('/api/jobs', require('./routes/jobs'));
 app.use('/api/applications', require('./routes/applications'));
 app.use('/api/admin', require('./routes/admin'));
-app.use('/api/admin-ats', require('./routes/adminRoutes'));
-app.use('/api/resume', require('./routes/resumeRoutes'));
+app.use('/api/resume', require('./routes/resume'));
 app.use('/api/preparation', require('./routes/preparation'));
 app.use('/api/notifications', require('./routes/notifications'));
 
-/**
- * Health Check Endpoint
- */
+// Health Check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
-
-// Global error and 404 handlers
-const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
+// Error Handlers
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-
-// Initialize expiry check service (runs on startup and periodically)
-// Only run in local dev, NOT in Vercel production (serverless can't maintain intervals)
-if (process.env.NODE_ENV !== 'production' && require.main === module) {
-  // Run expiry check every 1 hour
-  setupExpiryCheckInterval(60 * 60 * 1000);
-}
-
 /**
  * Graceful Shutdown Handler
- * Closes the database connection and stops the server cleanly.
  */
 const gracefulShutdown = (signal) => {
   logger.warn(`Received ${signal}. Starting graceful shutdown...`);
-  
-  // Close database connection
   const mongoose = require('mongoose');
   mongoose.connection.close(false, () => {
     logger.info('MongoDB connection closed.');
     process.exit(0);
   });
-
-  // Force shutdown after 10 seconds if it haven't closed
   setTimeout(() => {
     logger.error('Could not close connections in time, forcefully shutting down.');
     process.exit(1);
@@ -180,14 +114,12 @@ const gracefulShutdown = (signal) => {
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
-// Server start (only if not in a serverless environment like Vercel production)
+// Server Start
 if (process.env.NODE_ENV !== 'production' || require.main === module) {
   const PORT = process.env.PORT || 5000;
   app.listen(PORT, () => {
     logger.info(`Server running on port ${PORT}`, { port: PORT, env: process.env.NODE_ENV });
   });
 }
-
-
 
 module.exports = app;
