@@ -3,7 +3,8 @@ const mongoose = require('mongoose');
 const morgan = require('morgan');
 
 
-const rateLimit = require('express-rate-limit');
+// const rateLimit = require('express-rate-limit'); // Moved to middleware/rateLimiter.js
+
 const path = require('path');
 const logger = require('./utils/logger');
 
@@ -91,23 +92,11 @@ app.use(async (req, res, next) => {
  * Global and AI-specific Rate Limiting
  * Prevents abuse and manages resource consumption for LLM endpoints.
  */
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 2000,
-  message: { error: 'Too many requests, please try again later.' },
-  standardHeaders: false,
-  skip: (req, res) => req.path === '/api/health' || req.path === '/health'
-});
-app.use('/api/', limiter);
-
-const aiLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 10,
-  message: { success: false, message: 'Too many AI requests. Please wait.' },
-  standardHeaders: false
-});
+const { globalLimiter, aiLimiter } = require('./middleware/rateLimiter');
+app.use('/api/', globalLimiter);
 app.use(['/api/preparation/generate-questions', '/api/preparation/generate-test', '/api/students/analyze-resume'], aiLimiter);
 app.use('/api/applications/.*\\/ai-', aiLimiter);
+
 
 /**
  * Standard Express Middleware
