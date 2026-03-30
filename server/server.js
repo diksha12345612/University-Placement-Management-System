@@ -20,6 +20,15 @@ if (!process.env.JWT_SECRET) {
   process.exit(1);
 }
 
+// Warn about missing secondary but important variables
+const secondaryVars = ['EMAIL_USER', 'EMAIL_PASS', 'OPENAI_API_KEY'];
+secondaryVars.forEach(v => {
+  if (!process.env[v]) {
+    logger.warn(`Missing environment variable: ${v}. Related features may be disabled.`);
+  }
+});
+
+
 const app = express();
 
 // Trust proxy - CRITICAL for Vercel
