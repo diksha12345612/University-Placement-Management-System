@@ -1,8 +1,63 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import ProtectedRoute from './components/ProtectedRoute';
+import LoadingSpinner from './components/LoadingSpinner';
+
+const AppContent = () => {
+  const { loading } = useAuth();
+  
+  if (loading) {
+    return <LoadingSpinner fullPage message="Securely connecting to portal..." />;
+  }
+
+  return (
+    <Routes>
+      {/* Public Routes */}
+      <Route path="/" element={<Landing />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+
+      {/* Student Routes */}
+      <Route path="/student/dashboard" element={<ProtectedRoute roles={['student']}><StudentDashboard /></ProtectedRoute>} />
+      <Route path="/student/profile" element={<ProtectedRoute roles={['student']}><StudentProfile /></ProtectedRoute>} />
+      <Route path="/student/jobs" element={<ProtectedRoute roles={['student']}><StudentJobs /></ProtectedRoute>} />
+      <Route path="/student/applications" element={<ProtectedRoute roles={['student']}><StudentApplications /></ProtectedRoute>} />
+      <Route path="/student/preparation" element={<ProtectedRoute roles={['student']}><Preparation /></ProtectedRoute>} />
+      <Route path="/student/preparation/mock-test" element={<ProtectedRoute roles={['student']}><MockTest /></ProtectedRoute>} />
+      <Route path="/student/preparation/tips" element={<ProtectedRoute roles={['student']}><InterviewTips /></ProtectedRoute>} />
+      <Route path="/student/notifications" element={<ProtectedRoute roles={['student']}><Notifications /></ProtectedRoute>} />
+
+      {/* Recruiter Routes */}
+      <Route path="/recruiter/dashboard" element={<ProtectedRoute roles={['recruiter']}><RecruiterDashboard /></ProtectedRoute>} />
+      <Route path="/recruiter/profile" element={<ProtectedRoute roles={['recruiter']}><RecruiterProfile /></ProtectedRoute>} />
+      <Route path="/recruiter/post-job" element={<ProtectedRoute roles={['recruiter']}><PostJob /></ProtectedRoute>} />
+      <Route path="/recruiter/my-jobs" element={<ProtectedRoute roles={['recruiter']}><MyJobs /></ProtectedRoute>} />
+      <Route path="/recruiter/notifications" element={<ProtectedRoute roles={['recruiter']}><Notifications /></ProtectedRoute>} />
+
+      {/* Admin Routes */}
+      <Route path="/admin/dashboard" element={<ProtectedRoute roles={['admin']}><AdminDashboard /></ProtectedRoute>} />
+      <Route path="/admin/students" element={<ProtectedRoute roles={['admin']}><AdminStudents /></ProtectedRoute>} />
+      <Route path="/admin/students/:id" element={<ProtectedRoute roles={['admin']}><AdminStudentDetail /></ProtectedRoute>} />
+      <Route path="/admin/recruiters" element={<ProtectedRoute roles={['admin']}><AdminRecruiters /></ProtectedRoute>} />
+      <Route path="/admin/recruiters/:id" element={<ProtectedRoute roles={['admin']}><AdminRecruiterDetail /></ProtectedRoute>} />
+      <Route path="/admin/jobs" element={<ProtectedRoute roles={['admin']}><AdminJobs /></ProtectedRoute>} />
+      <Route path="/admin/drives" element={<ProtectedRoute roles={['admin']}><AdminDrives /></ProtectedRoute>} />
+      <Route path="/admin/announcements" element={<ProtectedRoute roles={['admin']}><AdminAnnouncements /></ProtectedRoute>} />
+      <Route path="/admin/admins" element={<ProtectedRoute roles={['admin']}><AdminManagement /></ProtectedRoute>} />
+      <Route path="/admin/reports" element={<ProtectedRoute roles={['admin']}><AdminReports /></ProtectedRoute>} />
+      <Route path="/admin/profile" element={<ProtectedRoute roles={['admin']}><AdminProfile /></ProtectedRoute>} />
+      <Route path="/admin/ats-settings" element={<ProtectedRoute roles={['admin']}><AdminATSPanel /></ProtectedRoute>} />
+      <Route path="/admin/notifications" element={<ProtectedRoute roles={['admin']}><Notifications /></ProtectedRoute>} />
+
+      {/* Catch-all */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+};
+
 
 // Public Pages
 import Landing from './pages/Landing';
@@ -52,48 +107,7 @@ function App() {
             success: { iconTheme: { primary: '#10b981', secondary: '#f0f0f5' } },
             error: { iconTheme: { primary: '#ef4444', secondary: '#f0f0f5' } }
           }} />
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<Landing />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-
-            {/* Student Routes */}
-            <Route path="/student/dashboard" element={<ProtectedRoute roles={['student']}><StudentDashboard /></ProtectedRoute>} />
-            <Route path="/student/profile" element={<ProtectedRoute roles={['student']}><StudentProfile /></ProtectedRoute>} />
-            <Route path="/student/jobs" element={<ProtectedRoute roles={['student']}><StudentJobs /></ProtectedRoute>} />
-            <Route path="/student/applications" element={<ProtectedRoute roles={['student']}><StudentApplications /></ProtectedRoute>} />
-            <Route path="/student/preparation" element={<ProtectedRoute roles={['student']}><Preparation /></ProtectedRoute>} />
-            <Route path="/student/preparation/mock-test" element={<ProtectedRoute roles={['student']}><MockTest /></ProtectedRoute>} />
-            <Route path="/student/preparation/tips" element={<ProtectedRoute roles={['student']}><InterviewTips /></ProtectedRoute>} />
-            <Route path="/student/notifications" element={<ProtectedRoute roles={['student']}><Notifications /></ProtectedRoute>} />
-
-            {/* Recruiter Routes */}
-            <Route path="/recruiter/dashboard" element={<ProtectedRoute roles={['recruiter']}><RecruiterDashboard /></ProtectedRoute>} />
-            <Route path="/recruiter/profile" element={<ProtectedRoute roles={['recruiter']}><RecruiterProfile /></ProtectedRoute>} />
-            <Route path="/recruiter/post-job" element={<ProtectedRoute roles={['recruiter']}><PostJob /></ProtectedRoute>} />
-            <Route path="/recruiter/my-jobs" element={<ProtectedRoute roles={['recruiter']}><MyJobs /></ProtectedRoute>} />
-            <Route path="/recruiter/notifications" element={<ProtectedRoute roles={['recruiter']}><Notifications /></ProtectedRoute>} />
-
-            {/* Admin Routes */}
-            <Route path="/admin/dashboard" element={<ProtectedRoute roles={['admin']}><AdminDashboard /></ProtectedRoute>} />
-            <Route path="/admin/students" element={<ProtectedRoute roles={['admin']}><AdminStudents /></ProtectedRoute>} />
-            <Route path="/admin/students/:id" element={<ProtectedRoute roles={['admin']}><AdminStudentDetail /></ProtectedRoute>} />
-            <Route path="/admin/recruiters" element={<ProtectedRoute roles={['admin']}><AdminRecruiters /></ProtectedRoute>} />
-            <Route path="/admin/recruiters/:id" element={<ProtectedRoute roles={['admin']}><AdminRecruiterDetail /></ProtectedRoute>} />
-            <Route path="/admin/jobs" element={<ProtectedRoute roles={['admin']}><AdminJobs /></ProtectedRoute>} />
-            <Route path="/admin/drives" element={<ProtectedRoute roles={['admin']}><AdminDrives /></ProtectedRoute>} />
-            <Route path="/admin/announcements" element={<ProtectedRoute roles={['admin']}><AdminAnnouncements /></ProtectedRoute>} />
-            <Route path="/admin/admins" element={<ProtectedRoute roles={['admin']}><AdminManagement /></ProtectedRoute>} />
-            <Route path="/admin/reports" element={<ProtectedRoute roles={['admin']}><AdminReports /></ProtectedRoute>} />
-            <Route path="/admin/profile" element={<ProtectedRoute roles={['admin']}><AdminProfile /></ProtectedRoute>} />
-            <Route path="/admin/ats-settings" element={<ProtectedRoute roles={['admin']}><AdminATSPanel /></ProtectedRoute>} />
-            <Route path="/admin/notifications" element={<ProtectedRoute roles={['admin']}><Notifications /></ProtectedRoute>} />
-
-            {/* Catch-all */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
+          <AppContent />
         </AuthProvider>
       </Router>
     </ErrorBoundary>
@@ -101,3 +115,4 @@ function App() {
 }
 
 export default App;
+
