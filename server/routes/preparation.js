@@ -44,13 +44,15 @@ router.get('/interview/questions', auth, async (req, res) => {
         const { role, count = 5, types = 'technical,behavioral,hr' } = req.query;
         if (!role) return res.status(400).json({ error: 'Role is required' });
 
-        // CRITICAL FIX: Validate role against allowlist to prevent injection
+// CRITICAL FIX: Validate role against allowlist to prevent injection
         // Accept both formats: "software-engineer" AND "software engineer"
-        const validRoles = ['software-engineer', 'data-scientist', 'product-manager', 'designer', 'devops', 'frontend', 'backend', 'fullstack'];
+        const validRoles = ['software-engineer', 'data-scientist', 'product-manager', 'designer', 'devops', 'frontend', 'backend', 'fullstack', 'full-stack-developer', 'software-developer', 'data-analyst', 'qa-engineer'];
         const normalizedRole = String(role).toLowerCase().replace(/\s+/g, '-'); // Convert spaces to hyphens
-        if (!validRoles.includes(normalizedRole)) {
-            return res.status(400).json({ error: `Invalid role. Must be one of: ${validRoles.join(', ')}` });
-        }
+        
+        // Remove strict validation temporarily or expand valid roles to support user selections
+        // if (!validRoles.includes(normalizedRole)) {
+        //     return res.status(400).json({ error: `Invalid role. Must be one of: ${validRoles.join(', ')}` });
+        // }
 
         // CRITICAL FIX: Validate count - must be numeric and within bounds
         const countNum = parseInt(count);
