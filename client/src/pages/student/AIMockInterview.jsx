@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import Layout from '../../components/Layout';
 import api from '../../services/api';
 import { FiMic, FiSend, FiPlay, FiSquare, FiCheckCircle } from 'react-icons/fi';
@@ -280,34 +280,32 @@ const AIMockInterview = () => {
 
     return (
         <Layout title="AI Mock Interview">
-            <div className="fade-in max-w-4xl mx-auto mt-6">
+            <div className="fade-in max-w-4xl mx-auto mt-8 mb-12">
                 {step === 'setup' && (
-                    <div className="bg-white rounded-lg shadow-md p-8 text-left border">
-                        <div className="mb-6 flex justify-between items-center">
-                            <div>
-                                <h2 className="text-2xl font-bold text-gray-800">Voice-Enabled AI Interview</h2>
-                                <p className="text-gray-500 text-sm mt-1">Simulate a live interview based on your resume</p>
-                            </div>
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-left">
+                        <div className="mb-8">
+                            <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">Voice-Enabled AI Interview</h2>
+                            <p className="text-gray-600 mt-2">Simulate a live interview based on your resume</p>
                         </div>
 
-                        <form onSubmit={startInterview} className="space-y-5">
+                        <form onSubmit={startInterview} className="space-y-6">  
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1">Target Job Role</label>
+                                <label className="block text-sm font-bold text-gray-800 mb-2">Target Job Role</label>
                                 <input 
-                                    type="text" 
-                                    value={jobRole} 
+                                    type="text"
+                                    value={jobRole}
                                     onChange={(e) => setJobRole(e.target.value)}
-                                    className="w-full p-3 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow"
+                                    className="w-full p-3.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none"
                                     required
                                     placeholder="e.g. Frontend Developer, Data Scientist..."
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1">Interview Type</label>
-                                <select 
-                                    value={questionType} 
+                                <label className="block text-sm font-bold text-gray-800 mb-2">Interview Type</label>
+                                <select
+                                    value={questionType}
                                     onChange={(e) => setQuestionType(e.target.value)}
-                                    className="w-full p-3 border rounded-md bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full p-3.5 border border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none"
                                 >
                                     <option value="technical">Technical (Coding & Arch)</option>
                                     <option value="behavioral">Behavioral (Leadership & Teamwork)</option>
@@ -316,24 +314,24 @@ const AIMockInterview = () => {
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">Upload Resume (PDF - Strongly Recommended)</label>
-                                <div className="p-4 border-2 border-dashed border-gray-300 rounded-md bg-gray-50 flex items-center justify-center">
-                                    <input 
-                                        type="file" 
+                                <label className="block text-sm font-bold text-gray-800 mb-2">Upload Resume (PDF - Strongly Recommended)</label>
+                                <div className="p-2 border border-gray-200 rounded-xl bg-gray-50/50">
+                                    <input
+                                        type="file"
                                         accept="application/pdf"
                                         onChange={handleFileChange}
-                                        className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200 cursor-pointer"
+                                        className="w-full text-sm text-gray-600 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-gray-200 file:text-gray-800 hover:file:bg-gray-300 cursor-pointer transition-colors"
                                     />
                                 </div>
-                                <p className="text-xs text-gray-500 mt-2">
-                                    We use <strong>GitHub Models</strong> to extract your skills and personalize the conversation just like a real recruiter.
+                                <p className="text-xs text-gray-500 mt-3 ml-1">      
+                                    We use <strong>GitHub Models</strong> to extract your skills and personalize the conversation just like a real recruiter.   
                                 </p>
                             </div>
-                            
-                            <button 
-                                type="submit" 
+
+                            <button
+                                type="submit"
                                 disabled={isLoading}
-                                className="w-full mt-8 bg-blue-600 text-white py-3 rounded-md font-bold text-lg hover:bg-blue-700 transition flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
+                                className="w-full mt-6 bg-blue-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-blue-700 transition shadow-sm flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
                             >
                                 {isLoading ? (
                                     <>
@@ -350,80 +348,89 @@ const AIMockInterview = () => {
                 )}
 
                 {step === 'interview' && (
-                    <div className="bg-white rounded-lg shadow-md h-[75vh] flex flex-col border overflow-hidden text-left">
-                        <div className="bg-blue-600 text-white p-4 flex justify-between items-center shadow z-10">
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col h-[75vh] overflow-hidden text-left">
+                        <div className="bg-blue-600 text-white p-5 flex justify-between items-center z-10">
                             <div>
-                                <h3 className="font-bold text-lg flex items-center gap-2">
-                                    <div className={`w-3 h-3 rounded-full ${isSpeaking ? 'bg-green-400 animate-pulse' : 'bg-red-400'}`}></div> 
+                                <h3 className="font-bold text-xl flex items-center gap-2">
                                     AI Interviewer
+                                    <div className={`w-2.5 h-2.5 rounded-full ml-2 ${isSpeaking ? 'bg-green-400 animate-pulse' : 'bg-white/50'}`}></div>
                                 </h3>
-                                <p className="text-xs text-blue-100 mt-0.5">{jobRole} | {questionType.charAt(0).toUpperCase() + questionType.slice(1)} Focus</p>
+                                <p className="text-sm text-blue-100 mt-1 font-medium">{jobRole} | {questionType.charAt(0).toUpperCase() + questionType.slice(1)} Focus</p>
                             </div>
-                            <button 
+                            <button
                                 onClick={endInterview}
-                                className="text-sm bg-red-600 hover:bg-red-700 px-4 py-2 rounded font-semibold text-white flex items-center gap-2 transition"
+                                className="text-sm border border-white/30 hover:bg-white/10 px-4 py-2 rounded-lg font-semibold text-white flex items-center gap-2 transition"   
                             >
-                                <FiSquare className="w-4 h-4" /> End Interview
+                                <FiSquare className="w-4 h-4" /> End Interview  
                             </button>
                         </div>
-                        
-                        <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-gray-50">
+
+                        <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-gray-50/50">
                             {chatHistory.map((msg, idx) => (
                                 <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                                    <div className={`max-w-[80%] p-4 rounded-xl shadow-sm ${msg.role === 'user' ? 'bg-blue-600 text-white rounded-br-sm' : 'bg-white border rounded-bl-sm text-gray-800'}`}>
-                                        <div className="text-xs font-semibold mb-1 opacity-75">
-                                            {msg.role === 'user' ? 'You' : 'Interviewer'}
+                                    {msg.role === 'assistant' ? (
+                                        <div className="max-w-[85%] bg-white border border-gray-100 p-5 rounded-2xl shadow-sm rounded-tl-sm text-gray-800">
+                                            <div className="text-xs font-bold mb-2 text-gray-900">
+                                                Interviewer
+                                            </div>
+                                            <p className="whitespace-pre-wrap leading-relaxed text-gray-700">{msg.content}</p>
                                         </div>
-                                        <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
-                                    </div>
+                                    ) : (
+                                        <div className="max-w-[85%] bg-[#8fb3fc] p-5 rounded-2xl shadow-sm rounded-tr-sm text-white">
+                                            <div className="text-xs font-semibold mb-2 text-blue-50">
+                                                You
+                                            </div>
+                                            <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+                                        </div>
+                                    )}
                                 </div>
                             ))}
                             {isLoading && (
                                 <div className="flex justify-start">
-                                    <div className="bg-white border text-gray-800 p-4 rounded-xl rounded-bl-sm shadow-sm text-sm flex gap-2 items-center">
-                                       <span className="flex space-x-1">
-                                         <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0ms'}}></span>
-                                         <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '150ms'}}></span>
-                                         <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '300ms'}}></span>
+                                    <div className="max-w-[85%] bg-white border border-gray-100 p-5 rounded-2xl rounded-tl-sm shadow-sm flex items-center">      
+                                       <div className="text-xs font-bold mr-4 text-gray-900">Interviewer</div>
+                                       <span className="flex space-x-1.5">        
+                                         <span className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{animationDelay: '-0.3s'}}></span>
+                                         <span className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{animationDelay: '-0.15s'}}></span>
+                                         <span className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{animationDelay: '0s'}}></span>
                                        </span>
                                     </div>
                                 </div>
                             )}
                             <div ref={chatEndRef} />
                         </div>
-                        
-                        <div className="p-4 bg-white border-t z-10 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
-                            <form onSubmit={sendMessage} className="flex gap-3">
+
+                        <div className="p-5 bg-white border-t border-gray-100 z-10">
+                            <form onSubmit={sendMessage} className="flex gap-4 items-center">
                                 <button
                                     type="button"
                                     onClick={toggleListening}
                                     title={isListening ? "Stop Listening" : "Start Voice Input"}
                                     disabled={isLoading}
-                                    className={`p-4 rounded-lg flex items-center justify-center transition shadow-sm ${
-                                        isListening 
-                                        ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse' 
-                                        : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                                    className={`w-14 h-14 shrink-0 rounded-2xl flex items-center justify-center transition border ${
+                                        isListening
+                                        ? 'bg-red-50 border-red-100 text-red-500 animate-pulse'
+                                        : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
                                     } disabled:opacity-50`}
                                 >
-                                    <FiMic className="w-5 h-5" />
+                                    <FiMic className="w-6 h-6" />
                                 </button>
-                                <input 
+                                <input
                                     value={userInput}
                                     onChange={(e) => setUserInput(e.target.value)}
                                     placeholder={isListening ? "Listening... Speak now..." : "Type your answer... (or click the Mic icon)"}
-                                    className="flex-1 p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 transition"
+                                    className="flex-1 h-14 px-6 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white transition text-gray-700 shadow-sm"
                                     disabled={isLoading || isListening}
                                 />
-                                <button 
+                                <button
                                     type="submit"
                                     disabled={isLoading || (!userInput.trim() && !isListening)}
-                                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 rounded-lg flex items-center justify-center disabled:opacity-50 transition shadow-sm"
+                                    className="w-14 h-14 shrink-0 bg-[#8fb3fc] hover:bg-blue-400 text-white rounded-2xl flex items-center justify-center disabled:opacity-50 transition shadow-sm"
                                 >
-                                    <FiSend className="w-5 h-5" />
+                                    <FiSend className="w-6 h-6" />
                                 </button>
                             </form>
-                            <p className="text-center text-xs text-gray-400 mt-3 font-medium">
-                                Pro Tip: Click the microphone icon to answer using your voice directly in the browser natively!
+                            <p className="text-center text-xs text-gray-900 mt-4 font-semibold tracking-wide">
                             </p>
                         </div>
                     </div>
