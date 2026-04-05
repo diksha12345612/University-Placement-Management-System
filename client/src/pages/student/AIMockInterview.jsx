@@ -3,6 +3,7 @@ import Layout from '../../components/Layout';
 import api from '../../services/api';
 import { FiMic, FiSend, FiSquare, FiCheckCircle, FiUpload, FiClock, FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import { toast } from 'react-hot-toast';
+// eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 
 // ─── Animated Score Ring ───
@@ -125,9 +126,13 @@ const AIMockInterview = () => {
     const userInputRef = useRef(userInput);
     const timerRef = useRef(null);
     const autoEndTriggeredRef = useRef(false);
+    const endInterviewRef = useRef(null);
     const [voices, setVoices] = useState([]);
 
+    const isListeningRef = useRef(false);
+
     useEffect(() => { userInputRef.current = userInput; }, [userInput]);
+    useEffect(() => { isListeningRef.current = isListening; }, [isListening]);
 
     // Cleanup
     useEffect(() => {
@@ -179,14 +184,16 @@ const AIMockInterview = () => {
             if (!isInterviewActiveRef.current) return;
             // Schedule automatic listening after AI finishes speaking
             speakingTimeoutRef.current = setTimeout(() => { 
-                if (isInterviewActiveRef.current && isListening === false) {
+                if (isInterviewActiveRef.current && !isListeningRef.current) {
                     setIsListening(true);
-                    if (recognitionRef.current) recognitionRef.current.start();
+                    if (recognitionRef.current) {
+                        try { recognitionRef.current.start(); } catch { /* ignore */ }
+                    }
                 }
             }, 500);
         };
         window.speechSynthesis.speak(utterance);
-    }, [voices, isListening]);
+    }, [voices]);
 
     const stopSpeaking = () => {
         if ('speechSynthesis' in window) { window.speechSynthesis.cancel(); setIsSpeaking(false); }
@@ -202,15 +209,31 @@ const AIMockInterview = () => {
         stopSpeaking();
         const newMessage = { role: 'user', content: textToSubmit };
         const updatedChat = [...chatHistory, newMessage];
+        const newUserAnswerCount = updatedChat.filter(m => m.role === 'user').length;
         setChatHistory(updatedChat);
         setUserInput('');
         setIsLoading(true);
         try {
-            const res = await api.post('/preparation/mock-interview/chat', {
-                candidateProfile, jobRole, questionType, chatHistory: updatedChat, difficulty, questionCount
-            });
-            setChatHistory([...updatedChat, { role: 'assistant', content: res.data.reply }]);
-            speakText(res.data.reply);
+            if (newUserAnswerCount >= questionCount) {
+                const wrapUpMessage = {
+                    role: 'assistant',
+                    content: "Thank you for completing this interview! You've demonstrated great effort and answered all the questions thoughtfully. Your interview has been recorded and will be evaluated shortly. This session will end now, and you'll see your detailed performance report.",
+                    isWrapUp: true
+                };
+                setChatHistory([...updatedChat, wrapUpMessage]);
+                speakText(wrapUpMessage.content);
+                setTimeout(() => {
+                    if (isInterviewActiveRef.current && endInterviewRef.current) {
+                        endInterviewRef.current();
+                    }
+                }, 3000);
+            } else {
+                const res = await api.post('/preparation/mock-interview/chat', {
+                    candidateProfile, jobRole, questionType, chatHistory: updatedChat, difficulty, questionCount
+                });
+                setChatHistory([...updatedChat, { role: 'assistant', content: res.data.reply }]);
+                speakText(res.data.reply);
+            }
         } catch (err) { 
             console.error('Failed to send message', err);
             toast.error('Failed to send message.'); 
@@ -229,7 +252,7 @@ const AIMockInterview = () => {
                 for (let i = 0; i < event.results.length; i++) t += event.results[i][0].transcript;
                 setUserInput(t);
                 if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
-                silenceTimerRef.current = setTimeout(() => submitChat(userInputRef.current), 10000);
+                silenceTimerRef.current = setTimeout(() => submitChat(userInputRef.current), 5000);
             };
             recognition.onerror = () => setIsListening(false);
             recognition.onend = () => setIsListening(false);
@@ -249,7 +272,7 @@ const AIMockInterview = () => {
             if (!recognitionRef.current) { toast.error('Voice Recognition not supported.'); return; }
             setUserInput(''); recognitionRef.current.start(); setIsListening(true);
             if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
-            silenceTimerRef.current = setTimeout(() => submitChat(""), 10000);
+            silenceTimerRef.current = setTimeout(() => submitChat(""), 5000);
         }
     }, [isListening, submitChat]);
 
@@ -270,6 +293,16 @@ const AIMockInterview = () => {
             setChatHistory([{ role: 'assistant', content: res.data.initialReply }]);
             autoEndTriggeredRef.current = false;
             isInterviewActiveRef.current = true; setStep('interview'); setInterviewTime(0);
+            
+            // Try to go fullscreen
+            try {
+                if (document.documentElement.requestFullscreen) {
+                    await document.documentElement.requestFullscreen();
+                }
+            } catch (err) {
+                console.warn('Fullscreen request failed:', err);
+            }
+
             speakText(res.data.initialReply);
         } catch (err) { toast.error(err.response?.data?.error || 'Failed to start.'); }
         finally { setIsLoading(false); }
@@ -318,11 +351,20 @@ const AIMockInterview = () => {
         if (recognitionRef.current) recognitionRef.current.stop();
         setIsListening(false); setIsLoading(true);
         try {
+            if (document.exitFullscreen && document.fullscreenElement) {
+                await document.exitFullscreen();
+            }
+        } catch (err) {
+            console.warn('Exit fullscreen failed:', err);
+        }
+        try {
             const res = await api.post('/preparation/mock-interview/evaluate', { jobRole, questionType, chatHistory, difficulty });
             setEvaluation(res.data.evaluation); setStep('evaluation');
         } catch { toast.error('Failed to generate evaluation.'); }
         finally { setIsLoading(false); }
     }, [jobRole, questionType, chatHistory, difficulty]);
+
+    useEffect(() => { endInterviewRef.current = endInterview; }, [endInterview]);
 
     const resetInterview = () => { 
         setStep('setup'); 
