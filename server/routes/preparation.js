@@ -182,7 +182,7 @@ router.post('/generate-test', auth, async (req, res) => {
         // Pass userId to generateMockTest for student-specific deduplication
         const testData = await generateMockTest(topic, difficulty, questionCount, questionTypes, userId);
 
-        const title = `${topic} ??? ${difficulty} (AI Generated)`;
+        const title = `${topic} — ${difficulty} (AI Generated)`;
         // Calculate duration based on question types
         const duration = calculateTestDuration(testData.questions);
 
@@ -289,7 +289,7 @@ router.post('/mock-tests/:id/submit', auth, async (req, res) => {
         const test = await MockTest.findById(req.params.id);
         if (!test) return res.status(404).json({ error: 'Test not found' });
 
-        // ??? PERMISSION CHECK: Student can only submit tests they created or published tests
+        // PERMISSION CHECK: Student can only submit tests they created or published tests
         const isCreator = test.createdBy && test.createdBy.equals(userId);
         const isPublished = test.isPublished === true;
         
@@ -379,31 +379,35 @@ const fs = require('fs');
 // 1. Upload Resume & Start Mock Interview
 router.post('/mock-interview/start', auth, upload.single('resume'), async (req, res) => {
     try {
-        const { jobRole, questionType } = req.body;
+        const { jobRole, questionType, difficulty = 'Medium', questionCount = 8 } = req.body;
         
         if (!jobRole || !questionType) {
             return res.status(400).json({ error: 'Job role and question type are required.' });
         }
+
+        // Validate difficulty
+        const validDifficulties = ['Easy', 'Medium', 'Hard'];
+        const safeDifficulty = validDifficulties.includes(difficulty) ? difficulty : 'Medium';
+        const safeQuestionCount = Math.min(10, Math.max(3, parseInt(questionCount) || 8));
         
         let candidateProfile = { skills: [], experience: [], projects: [], summary: "Student" };
         
         if (req.file) {
-            // Parse the uploaded PDF with GitHub Models directly from memory buffer
             const pdfBuffer = req.file.buffer;
             candidateProfile = await extractResumeForInterview(pdfBuffer);
-            // No cleanup needed for memory storage
         }
         
         // Generate the very first introductory AI message
-        const initialReply = await generateInterviewReply(candidateProfile, jobRole, questionType, []);
+        const initialReply = await generateInterviewReply(candidateProfile, jobRole, questionType, [], safeDifficulty, safeQuestionCount);
         
         res.json({
             candidateProfile,
-            initialReply
+            initialReply,
+            questionCount: safeQuestionCount,
+            difficulty: safeDifficulty
         });
     } catch (err) {
         console.error('[Mock Interview Start Error]:', err);
-        // No file to unlink since it's in memory
         res.status(500).json({ error: 'Failed to start interview. ' + err.message });
     }
 });
@@ -411,13 +415,13 @@ router.post('/mock-interview/start', auth, upload.single('resume'), async (req, 
 // 2. Continue Chat
 router.post('/mock-interview/chat', auth, async (req, res) => {
     try {
-        const { candidateProfile, jobRole, questionType, chatHistory } = req.body;
+        const { candidateProfile, jobRole, questionType, chatHistory, difficulty = 'Medium', questionCount = 8 } = req.body;
         
         if (!chatHistory || !Array.isArray(chatHistory)) {
              return res.status(400).json({ error: 'Valid chatHistory array is required.' });
         }
 
-        const reply = await generateInterviewReply(candidateProfile, jobRole, questionType, chatHistory);
+        const reply = await generateInterviewReply(candidateProfile, jobRole, questionType, chatHistory, difficulty, questionCount);
         
         res.json({ reply });
     } catch (err) {
@@ -429,13 +433,13 @@ router.post('/mock-interview/chat', auth, async (req, res) => {
 // 3. Finish and Evaluate
 router.post('/mock-interview/evaluate', auth, async (req, res) => {
     try {
-        const { jobRole, questionType, chatHistory } = req.body;
+        const { jobRole, questionType, chatHistory, difficulty = 'Medium' } = req.body;
         
         if (!chatHistory || !Array.isArray(chatHistory)) {
              return res.status(400).json({ error: 'Valid chatHistory array is required.' });
         }
 
-        const evaluation = await analyzeInterviewPerformance(jobRole, questionType, chatHistory);
+        const evaluation = await analyzeInterviewPerformance(jobRole, questionType, chatHistory, difficulty);
         
         res.json({ evaluation });
     } catch (err) {
@@ -443,6 +447,5 @@ router.post('/mock-interview/evaluate', auth, async (req, res) => {
         res.status(500).json({ error: 'Failed to evaluate interview.' });
     }
 });
-
 
 module.exports = router;

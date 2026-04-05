@@ -1,4 +1,4 @@
-﻿/**
+/**
  * AI Service ΓÇö University Placement Portal
  * Primary: GitHub Models (gpt-4o-mini)
  * Fallback: OpenRouter (openrouter/free)
@@ -1222,14 +1222,42 @@ ${text.substring(0, 15000)}`;
     }
 };
 
-const generateInterviewReply = async (candidateProfile, jobRole, questionType, chatHistory) => {
+const generateInterviewReply = async (candidateProfile, jobRole, questionType, chatHistory, difficulty = 'Medium', questionCount = 8) => {
     try {
-        const systemPrompt = `You are a strict but fair interviewer for a ${jobRole} position. The interview focus is ${questionType}.
+        // Randomization seed to ensure unique questions every session
+        const sessionSeed = `SEED-${Date.now()}-${crypto.randomBytes(4).toString('hex')}`;
+        
+        // Count how many questions have been asked so far
+        const questionsAsked = chatHistory.filter(m => m.role === 'assistant').length;
+        const currentQuestionNum = questionsAsked + 1;
+        const isFirstMessage = chatHistory.length === 0;
+        const isLastQuestion = currentQuestionNum >= questionCount;
+
+        const difficultyGuide = {
+            'Easy': 'Ask straightforward, foundational questions. Focus on basics and common concepts. Be encouraging.',
+            'Medium': 'Ask moderately challenging questions that test practical knowledge and problem-solving. Mix theory with application.',
+            'Hard': 'Ask advanced, in-depth questions. Include edge cases, system design tradeoffs, and complex scenarios. Be rigorous.'
+        };
+
+        const systemPrompt = `You are Sarah Chen, a senior interviewer at a top tech company, conducting a ${difficulty}-level interview for a ${jobRole} position. The focus is ${questionType}.
+
+Session ID: ${sessionSeed} — Use this to ensure you NEVER repeat questions from any prior session.
+
 Candidate background: ${JSON.stringify(candidateProfile)}.
-Conduct a realistic interview. Ask one concise question at a time. Do not give away the answer.
-Listen to their previous answer, provide a very brief acknowledgment (e.g. "Good.", "I see."), and ask the next logically related question.
-If it's the very first message from you, just introduce yourself briefly and ask the first question based on their background.
-Keep your response exactly what an interviewer would say out loud in conversation. Avoid markdown formatting like asterisks or bold text, just plain text ready for text-to-speech.`;
+
+Difficulty guidance: ${difficultyGuide[difficulty] || difficultyGuide['Medium']}
+
+INTERVIEW PROGRESS: Question ${currentQuestionNum} of ${questionCount}.
+${isLastQuestion ? 'This is the FINAL question. After their answer, wrap up the interview professionally.' : ''}
+
+RULES:
+- Ask exactly ONE concise question at a time.
+- ${isFirstMessage ? 'Introduce yourself briefly as Sarah Chen, mention the role and focus, then ask the first question based on their background.' : 'Briefly acknowledge their previous answer (1 short sentence), then ask the next question.'}
+- Vary question topics: do NOT ask about the same concept twice.
+- Tailor questions to their resume skills and the job role.
+- Keep responses conversational and natural — this will be read aloud by text-to-speech.
+- NEVER use markdown formatting (no asterisks, bold, bullet points). Use plain spoken English only.
+- Do NOT reveal correct answers or give hints.`;
 
         const messages = [
             { role: 'system', content: systemPrompt },
@@ -1244,33 +1272,136 @@ Keep your response exactly what an interviewer would say out loud in conversatio
     }
 };
 
-const analyzeInterviewPerformance = async (jobRole, questionType, chatHistory) => {
+const analyzeInterviewPerformance = async (jobRole, questionType, chatHistory, difficulty = 'Medium') => {
     try {
-         const prompt = `You are a senior technical evaluator reviewing a candidate for a ${jobRole} role (${questionType} focus).
-Review the interview transcript and evaluate the candidate.
-Return ONLY a JSON object with the following structure:
+        // Extract Q&A pairs for per-question analysis
+        const qaPairs = [];
+        for (let i = 0; i < chatHistory.length; i++) {
+            if (chatHistory[i].role === 'assistant' && chatHistory[i + 1]?.role === 'user') {
+                qaPairs.push({
+                    question: chatHistory[i].content,
+                    answer: chatHistory[i + 1].content
+                });
+            }
+        }
+
+        const transcriptText = chatHistory.map(m => `${m.role.toUpperCase()}: ${m.content}`).join('\n');
+
+        const prompt = `You are an elite interview performance evaluator. Analyze this ${jobRole} interview (${questionType} focus, ${difficulty} difficulty).
+
+SCORING RUBRIC — 5 criteria, each scored 0-20:
+
+1. TECHNICAL ACCURACY (0-20): Correctness of answers, depth of knowledge, understanding of concepts.
+   - 0-5: Mostly incorrect or irrelevant answers
+   - 6-10: Basic understanding but significant gaps
+   - 11-15: Good knowledge with minor errors
+   - 16-20: Expert-level, precise answers
+
+2. COMMUNICATION CLARITY (0-20): How clearly and concisely they express ideas.
+   - 0-5: Incoherent or very unclear
+   - 6-10: Understandable but rambling or disorganized
+   - 11-15: Clear and structured
+   - 16-20: Exceptionally articulate and concise
+
+3. PROBLEM SOLVING (0-20): Approach to breaking down problems, analytical thinking.
+   - 0-5: No structured approach
+   - 6-10: Some attempt at structure but incomplete
+   - 11-15: Good systematic approach
+   - 16-20: Excellent methodology, considers edge cases
+
+4. CONFIDENCE & DELIVERY (0-20): Professionalism, composure, and conviction.
+   - 0-5: Very hesitant, unsure
+   - 6-10: Somewhat confident but inconsistent
+   - 11-15: Generally confident and professional
+   - 16-20: Highly poised and commanding
+
+5. ROLE RELEVANCE (0-20): How well answers align with the specific ${jobRole} role requirements.
+   - 0-5: Answers unrelated to role
+   - 6-10: Tangentially related
+   - 11-15: Good alignment with role needs
+   - 16-20: Perfect alignment, demonstrates role-specific expertise
+
+CALIBRATION: Most candidates score 35-65 overall. Only truly exceptional performances exceed 80. Be strict but fair.
+
+If the candidate gave blank or "did not respond" answers, score those questions at 0-2.
+
+INTERVIEW TRANSCRIPT:
+${transcriptText}
+
+Q&A PAIRS FOR INDIVIDUAL SCORING:
+${qaPairs.map((qa, i) => `Q${i + 1}: ${qa.question}\nA${i + 1}: ${qa.answer}`).join('\n\n')}
+
+Return ONLY valid JSON with this EXACT structure:
 {
-    "score": 85,
-    "feedback": "Overall good, but struggled with XYZ. Good communication.",
-    "strengths": ["...", "..."],
-    "improvements": ["...", "..."]
+    "score": 0,
+    "criteria": {
+        "technicalAccuracy": { "score": 0, "feedback": "specific feedback" },
+        "communicationClarity": { "score": 0, "feedback": "specific feedback" },
+        "problemSolving": { "score": 0, "feedback": "specific feedback" },
+        "confidenceDelivery": { "score": 0, "feedback": "specific feedback" },
+        "roleRelevance": { "score": 0, "feedback": "specific feedback" }
+    },
+    "perQuestion": [
+        { "question": "short question text", "score": 0, "feedback": "brief feedback" }
+    ],
+    "feedback": "2-3 sentence overall assessment",
+    "strengths": ["strength 1", "strength 2", "strength 3"],
+    "improvements": ["improvement 1", "improvement 2", "improvement 3"]
 }`;
 
-         const transcriptText = chatHistory.map(m => `${m.role.toUpperCase()}: ${m.content}`).join("\\n");
+        const messages = [
+            { role: 'system', content: 'You are an elite interview evaluator. You ONLY respond with valid JSON. No markdown, no explanation outside JSON.' },
+            { role: 'user', content: prompt }
+        ];
 
-         const messages = [
-             { role: 'system', content: prompt },
-             { role: 'user', content: "Transcript:\\n" + transcriptText }
-         ];
-         const response = await callAI(messages, 0, 1000);
-         const jsonMatch = response.match(/\{[\s\S]*\}/);
-         if (jsonMatch) {
-            return JSON.parse(jsonMatch[0]);
-         }
-         return JSON.parse(response);
+        const response = await callAI(messages, 0, 2000);
+        const jsonMatch = response.match(/\{[\s\S]*\}/);
+        let data;
+        if (jsonMatch) {
+            data = JSON.parse(jsonMatch[0]);
+        } else {
+            data = JSON.parse(response);
+        }
+
+        // Validate and clamp criteria scores
+        const clamp20 = (v) => Math.min(20, Math.max(0, Number(v) || 0));
+        if (data.criteria) {
+            for (const key of ['technicalAccuracy', 'communicationClarity', 'problemSolving', 'confidenceDelivery', 'roleRelevance']) {
+                if (data.criteria[key]) {
+                    data.criteria[key].score = clamp20(data.criteria[key].score);
+                } else {
+                    data.criteria[key] = { score: 8, feedback: 'Unable to fully assess this criterion.' };
+                }
+            }
+            // Recalculate total from criteria
+            data.score = Object.values(data.criteria).reduce((sum, c) => sum + c.score, 0);
+        } else {
+            data.score = Math.min(100, Math.max(0, Number(data.score) || 40));
+        }
+
+        data.strengths = Array.isArray(data.strengths) ? data.strengths : ['Completed the interview'];
+        data.improvements = Array.isArray(data.improvements) ? data.improvements : ['Practice more interview scenarios'];
+        data.perQuestion = Array.isArray(data.perQuestion) ? data.perQuestion : [];
+        data.feedback = data.feedback || 'Interview performance has been evaluated.';
+
+        return data;
     } catch (err) {
-         console.error('[AI] Interview evaluation failed:', err);
-         throw new Error('Failed to evaluate interview performance.');
+        console.error('[AI] Interview evaluation failed:', err);
+        // Return a structured fallback instead of throwing
+        return {
+            score: 40,
+            criteria: {
+                technicalAccuracy: { score: 8, feedback: 'Unable to fully evaluate due to service issue.' },
+                communicationClarity: { score: 8, feedback: 'Unable to fully evaluate due to service issue.' },
+                problemSolving: { score: 8, feedback: 'Unable to fully evaluate due to service issue.' },
+                confidenceDelivery: { score: 8, feedback: 'Unable to fully evaluate due to service issue.' },
+                roleRelevance: { score: 8, feedback: 'Unable to fully evaluate due to service issue.' }
+            },
+            perQuestion: [],
+            feedback: 'Evaluation service encountered an issue. A baseline score has been assigned. Please retry for accurate results.',
+            strengths: ['Completed the interview session'],
+            improvements: ['Retry the interview for a full AI-powered evaluation']
+        };
     }
 };
 
