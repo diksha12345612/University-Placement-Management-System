@@ -597,8 +597,8 @@ const AIMockInterview = () => {
 
             {/* ═══ EVALUATION ═══ */}
             {step === 'evaluation' && evaluation && (
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ width: '100%', padding: '3rem 2rem 4rem', background: 'var(--bg-primary)' }}>
-                    <div style={{ width: '100%', maxWidth: '1000px', margin: '0 auto' }}>
+                <div className="interview-fullscreen bg-white overflow-y-auto" style={{ background: 'var(--bg-primary)' }}>
+                    <div style={{ width: '100%', maxWidth: '1000px', margin: '0 auto', padding: '3rem 2rem 4rem' }}>
                         {/* Header with Success */}
                         <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
                             <div style={{
@@ -613,7 +613,9 @@ const AIMockInterview = () => {
                                 margin: '0 auto 1.5rem',
                                 boxShadow: '0 10px 30px rgba(34, 197, 94, 0.2)'
                             }}>✨</div>
-                            <h1 style={{ fontSize: '2.5rem', fontWeight: 800, margin: '0 0 0.5rem', color: 'var(--text-primary)' }}>Interview Complete!</h1>
+                            <h1 style={{ fontSize: '2.5rem', fontWeight: 800, margin: '0 0 0.5rem', color: 'var(--text-primary)' }}>
+                                Interview Complete!
+                            </h1>
                             <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', margin: 0, marginTop: '0.5rem' }}>
                                 {jobRole} • {questionType} • {difficulty} • {formatTime(interviewTime)}
                             </p>
@@ -657,7 +659,7 @@ const AIMockInterview = () => {
                                             <span style={{ color: 'var(--text-secondary)' }}>Score</span>
                                             <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{evaluation.criteria.technicalAccuracy?.score || 0}/20</span>
                                         </div>
-                                        {evaluation.criteria.technicalAccuracy?.feedback && <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>{evaluation.criteria.technicalAccuracy.feedback}</p>}
+                                        {evaluation.criteria.technicalAccuracy?.feedback && <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.5rem', margin: '0.5rem 0 0' }}>{evaluation.criteria.technicalAccuracy.feedback}</p>}
                                     </div>
                                     <div>
                                         <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Communication Clarity</div>
@@ -668,7 +670,7 @@ const AIMockInterview = () => {
                                             <span style={{ color: 'var(--text-secondary)' }}>Score</span>
                                             <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{evaluation.criteria.communicationClarity?.score || 0}/20</span>
                                         </div>
-                                        {evaluation.criteria.communicationClarity?.feedback && <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>{evaluation.criteria.communicationClarity.feedback}</p>}
+                                        {evaluation.criteria.communicationClarity?.feedback && <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.5rem', margin: '0.5rem 0 0' }}>{evaluation.criteria.communicationClarity.feedback}</p>}
                                     </div>
                                     <div>
                                         <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Problem Solving</div>
@@ -679,7 +681,7 @@ const AIMockInterview = () => {
                                             <span style={{ color: 'var(--text-secondary)' }}>Score</span>
                                             <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{evaluation.criteria.problemSolving?.score || 0}/20</span>
                                         </div>
-                                        {evaluation.criteria.problemSolving?.feedback && <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>{evaluation.criteria.problemSolving.feedback}</p>}
+                                        {evaluation.criteria.problemSolving?.feedback && <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.5rem', margin: '0.5rem 0 0' }}>{evaluation.criteria.problemSolving.feedback}</p>}
                                     </div>
                                     <div>
                                         <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Confidence & Delivery</div>
@@ -690,7 +692,7 @@ const AIMockInterview = () => {
                                             <span style={{ color: 'var(--text-secondary)' }}>Score</span>
                                             <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{evaluation.criteria.confidenceDelivery?.score || 0}/20</span>
                                         </div>
-                                        {evaluation.criteria.confidenceDelivery?.feedback && <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>{evaluation.criteria.confidenceDelivery.feedback}</p>}
+                                        {evaluation.criteria.confidenceDelivery?.feedback && <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.5rem', margin: '0.5rem 0 0' }}>{evaluation.criteria.confidenceDelivery.feedback}</p>}
                                     </div>
                                 </div>
                             </div>
@@ -769,7 +771,7 @@ const AIMockInterview = () => {
                             </button>
                         </div>
                     </div>
-                </motion.div>
+                </div>
             )}
         </Layout>
     );
