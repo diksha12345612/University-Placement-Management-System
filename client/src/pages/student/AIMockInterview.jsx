@@ -277,134 +277,192 @@ const AIMockInterview = () => {
         <Layout title="AI Mock Interview">
             <style>{`
                 @keyframes waveform { from { transform: scaleY(0.4); } to { transform: scaleY(1); } }
-                @keyframes shimmer { 0% { backgroundPosition: -1000px 0; } 100% { backgroundPosition: 1000px 0; } }
-                @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-8px); } }
-                .interview-bg { background: var(--bg-dark); }
-                .interview-bg-alt { background: var(--bg-dark); }
-                .glass-card { background: rgba(255,255,255,0.6); backdrop-filter: blur(12px) saturate(180%); border: 1px solid var(--border-glass); box-shadow: var(--shadow-glass); }
-                .glass-card-sm { background: rgba(255,255,255,0.5); backdrop-filter: blur(8px); border: 1px solid var(--border-light); }
-                .glow-btn { box-shadow: 0 0 20px rgba(37,99,235,0.3), 0 0 40px rgba(37,99,235,0.1); transition: box-shadow 0.3s ease; }
-                .gradient-btn { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: white; }
-                .gradient-btn:hover { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); box-shadow: 0 0 20px rgba(37,99,235,0.5); }
-                .input-field { background: rgba(255,255,255,1); border: 1px solid var(--border); transition: all 0.3s ease; color: var(--text-primary); }
-                .input-field:focus { background: var(--bg-input); border-color: #2563eb; box-shadow: inset 0 0 0 2px rgba(37,99,235,0.1); }
-                .input-field::placeholder { color: var(--text-muted); }
-                .float-animation { animation: float 3s ease-in-out infinite; }
                 .interview-fullscreen { position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100vh; z-index: 999; margin: 0 !important; padding: 0 !important; overflow: hidden; }
             `}</style>
 
             {/* ═══ SETUP ═══ */}
             {step === 'setup' && (
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="min-h-screen interview-bg py-12 px-4">
-                    <div className="max-w-2xl mx-auto">
-                        <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} className="bg-white rounded-3xl p-8 shadow-lg border border-gray-200">
-                            <div className="text-center mb-10">
-                                <motion.div initial={{ scale: 0, rotate: -10 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: 'spring', delay: 0.1 }}
-                                    className="mx-auto w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center mb-6 shadow-lg float-animation">
-                                    <svg viewBox="0 0 40 40" className="w-12 h-12" fill="none">
-                                        <circle cx="20" cy="14" r="7" fill="white" opacity="0.95"/>
-                                        <path d="M9 33c0-6 5-11 11-11s11 5 11 11" fill="white" opacity="0.85"/>
-                                        <circle cx="13" cy="12" r="1.5" fill="#1d4ed8" opacity="0.8"/><circle cx="27" cy="12" r="1.5" fill="#1d4ed8" opacity="0.8"/>
-                                    </svg>
-                                </motion.div>
-                                <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">
-                                    AI Mock Interview
-                                </h1>
-                                <p className="text-gray-600 mt-3 text-lg">Practice with AI-powered realistic interviews powered by advanced language models</p>
+                <div className="fade-in" style={{ width: '100%', padding: '2rem 0 3rem 0' }}>
+                    <div style={{ width: '100%', paddingBottom: '1rem', textAlign: 'left' }}>
+                        {/* Header */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', marginBottom: '2rem' }}>
+                            <div style={{
+                                width: '80px',
+                                height: '80px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                background: 'rgba(37, 99, 235, 0.1)',
+                                borderRadius: 'var(--radius-sm)',
+                                fontSize: '2.5rem',
+                                color: 'var(--primary)',
+                                boxShadow: '0 10px 25px rgba(37, 99, 235, 0.2)'
+                            }}>🤖</div>
+                            <div>
+                                <h2 style={{ fontSize: '2.5rem', fontWeight: 800, margin: 0, color: 'var(--text-primary)' }}>AI Mock Interview</h2>
+                                <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', marginTop: '0.5rem', lineHeight: 1.6, maxWidth: '800px' }}>
+                                    Experience real-time voice-powered interviews with AI. Get instant feedback on your technical knowledge, communication, and problem-solving.
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Configuration Panel */}
+                        <div style={{
+                            width: '100%',
+                            background: 'var(--bg-card)',
+                            borderRadius: 'var(--radius-sm)',
+                            padding: '3rem',
+                            border: '1px solid var(--border)',
+                            boxShadow: 'var(--shadow)'
+                        }}>
+                            {/* Row 1: Role + Difficulty */}
+                            <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+                                <div>
+                                    <label style={{ fontWeight: 800, color: 'var(--text-muted)', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '2px', display: 'block', marginBottom: '0.5rem' }}>Target Role</label>
+                                    <input type="text" value={jobRole} onChange={e => setJobRole(e.target.value)} required placeholder="e.g. Software Engineer"
+                                        style={{
+                                            width: '100%',
+                                            padding: '0.9rem 1.25rem',
+                                            borderRadius: 'var(--radius-sm)',
+                                            fontSize: '1rem',
+                                            fontWeight: 700,
+                                            border: '2px solid var(--border)',
+                                            background: 'var(--bg-card)',
+                                            color: 'var(--text-primary)',
+                                            cursor: 'pointer',
+                                            boxShadow: 'var(--shadow-sm)'
+                                        }} />
+                                </div>
+                                <div>
+                                    <label style={{ fontWeight: 800, color: 'var(--text-muted)', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '2px', display: 'block', marginBottom: '0.5rem' }}>Difficulty</label>
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        {['Easy', 'Medium', 'Hard'].map(d => (
+                                            <button key={d} type="button" onClick={() => setDifficulty(d)}
+                                                style={{
+                                                    flex: 1,
+                                                    padding: '0.65rem 1.25rem',
+                                                    borderRadius: 'var(--radius-sm)',
+                                                    fontSize: '0.9rem',
+                                                    fontWeight: 700,
+                                                    border: `2px solid ${difficulty === d ? 'var(--primary)' : 'var(--border)'}`,
+                                                    background: difficulty === d ? 'rgba(37, 99, 235, 0.15)' : 'transparent',
+                                                    color: difficulty === d ? 'var(--primary)' : 'var(--text-muted)',
+                                                    cursor: 'pointer',
+                                                    transition: 'all 0.2s ease'
+                                                }}>
+                                                {d}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
 
-                            <form onSubmit={startInterview} className="space-y-6">
-                                {/* Job Role */}
-                                <div className="group">
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2.5 uppercase tracking-wider">
-                                        🎯 Target Role *
-                                    </label>
-                                    <input type="text" value={jobRole} onChange={e => setJobRole(e.target.value)} required placeholder="e.g. Senior Frontend Engineer"
-                                        className="input-field w-full px-4 py-3.5 rounded-xl focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 outline-none" />
+                            {/* Row 2: Interview Type */}
+                            <div style={{ marginBottom: '1.5rem' }}>
+                                <label style={{ fontWeight: 800, color: 'var(--text-muted)', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '2px', display: 'block', marginBottom: '0.75rem' }}>Interview Type</label>
+                                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                                    {[
+                                        { value: 'technical', label: '⚙️ Technical' },
+                                        { value: 'behavioral', label: '🧠 Behavioral' },
+                                        { value: 'hr', label: '👔 HR' },
+                                        { value: 'system-design', label: '🏛️ System Design' }
+                                    ].map(type => (
+                                        <button key={type.value} type="button" onClick={() => setQuestionType(type.value)}
+                                            style={{
+                                                padding: '0.65rem 1.25rem',
+                                                borderRadius: 'var(--radius-sm)',
+                                                fontSize: '0.9rem',
+                                                fontWeight: 700,
+                                                border: `2px solid ${questionType === type.value ? 'var(--primary)' : 'var(--border)'}`,
+                                                background: questionType === type.value ? 'rgba(37, 99, 235, 0.15)' : 'transparent',
+                                                color: questionType === type.value ? 'var(--primary)' : 'var(--text-muted)',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.2s ease'
+                                            }}>
+                                            {type.label}
+                                        </button>
+                                    ))}
                                 </div>
+                            </div>
 
-                                {/* Interview Type & Difficulty */}
-                                <div className="grid grid-cols-2 gap-5">
-                                    <div className="group">
-                                        <label className="block text-sm font-semibold text-gray-700 mb-2.5 uppercase tracking-wider">
-                                            📚 Interview Type
-                                        </label>
-                                        <select value={questionType} onChange={e => setQuestionType(e.target.value)}
-                                            className="input-field w-full px-4 py-3.5 rounded-xl focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 outline-none appearance-none cursor-pointer">
-                                            <option value="technical" className="bg-white">Technical</option>
-                                            <option value="behavioral" className="bg-white">Behavioral</option>
-                                            <option value="hr" className="bg-white">HR</option>
-                                            <option value="system-design" className="bg-white">System Design</option>
-                                        </select>
-                                    </div>
-                                    <div className="group">
-                                        <label className="block text-sm font-semibold text-gray-700 mb-2.5 uppercase tracking-wider">
-                                            ⚡ Difficulty
-                                        </label>
-                                        <div className="flex gap-2">
-                                            {['Easy','Medium','Hard'].map(d => (
-                                                <button key={d} type="button" onClick={() => setDifficulty(d)}
-                                                    className={`flex-1 py-3 rounded-lg text-sm font-bold transition-all ${difficulty === d
-                                                        ? 'gradient-btn text-white shadow-lg shadow-blue-500/30' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'}`}>
-                                                    {d}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
+                            {/* Row 3: Question Count */}
+                            <div style={{ marginBottom: '1.5rem' }}>
+                                <label style={{ fontWeight: 800, color: 'var(--text-muted)', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '2px', display: 'block', marginBottom: '0.75rem' }}>
+                                    Number of Questions: <span style={{ color: 'var(--primary)', fontSize: '1rem', fontWeight: 900 }}>{questionCount}</span>
+                                </label>
+                                <input type="range" min="3" max="10" value={questionCount} onChange={e => setQuestionCount(Number(e.target.value))}
+                                    style={{
+                                        width: '100%',
+                                        marginTop: '0.75rem',
+                                        accentColor: 'var(--primary)',
+                                        cursor: 'pointer',
+                                        height: '6px'
+                                    }} />
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                                    <span>3 (Quick)</span>
+                                    <span>10 (Full)</span>
                                 </div>
+                            </div>
 
-                                {/* Question Count */}
-                                <div className="glass-card rounded-2xl p-5">
-                                    <div className="flex items-center justify-between mb-3">
-                                        <label className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
-                                            📝 Number of Questions
-                                        </label>
-                                        <span className="text-lg font-bold text-blue-600">
-                                            {questionCount}
-                                        </span>
-                                    </div>
-                                    <input type="range" min="3" max="10" value={questionCount} onChange={e => setQuestionCount(Number(e.target.value))}
-                                        className="w-full accent-blue-500 h-2 bg-gray-200 rounded-full cursor-pointer" />
-                                    <div className="flex justify-between text-xs text-gray-600 mt-2"><span>3 (Quick)</span><span>10 (Full)</span></div>
+                            {/* Resume Upload */}
+                            <div style={{ marginBottom: '1.5rem' }}>
+                                <label style={{ fontWeight: 800, color: 'var(--text-muted)', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '2px', display: 'block', marginBottom: '0.75rem' }}>Resume (Optional)</label>
+                                <div style={{
+                                    width: '100%',
+                                    padding: '2rem',
+                                    border: '2px dashed rgba(37, 99, 235, 0.3)',
+                                    borderRadius: 'var(--radius-sm)',
+                                    background: 'rgba(37, 99, 235, 0.05)',
+                                    textAlign: 'center',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s ease'
+                                }}
+                                    onClick={() => document.getElementById('resume-input').click()}
+                                    onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--primary)'}
+                                    onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(37, 99, 235, 0.3)'}
+                                >
+                                    <FiUpload style={{ fontSize: '1.5rem', color: 'var(--primary)', marginBottom: '0.5rem', display: 'block', margin: '0 auto 0.5rem' }} />
+                                    <p style={{ color: 'var(--text-primary)', fontWeight: 600, margin: '0.25rem 0' }}>
+                                        {resume ? resume.name : 'Choose PDF resume'}
+                                    </p>
+                                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: 0 }}>or drag and drop</p>
+                                    <input id="resume-input" type="file" accept="application/pdf" onChange={e => setResume(e.target.files[0])} style={{ display: 'none' }} />
                                 </div>
+                            </div>
 
-                                {/* Resume Upload */}
-                                <div className="group">
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2.5 uppercase tracking-wider">
-                                        📄 Resume (PDF - Optional)
-                                    </label>
-                                    <div className="border-2 border-dashed border-blue-300 hover:border-blue-500 rounded-xl p-8 text-center transition-all cursor-pointer bg-blue-50"
-                                        onClick={() => document.getElementById('resume-input').click()}>
-                                        <div className="flex justify-center mb-3">
-                                            <FiUpload className="w-10 h-10 text-blue-600" />
-                                        </div>
-                                        <p className="text-sm font-semibold text-gray-700">{resume ? resume.name : 'Upload your resume'}</p>
-                                        <p className="text-xs text-gray-600 mt-1">PDF format • Max 5MB</p>
-                                        <input id="resume-input" type="file" accept="application/pdf" onChange={e => setResume(e.target.files[0])} className="hidden" />
-                                    </div>
-                                </div>
-
-                                {/* Start Button */}
-                                <button type="submit" disabled={isLoading}
-                                    className="gradient-btn w-full text-white py-4 rounded-xl font-bold text-lg hover:shadow-lg glow-btn disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 transition-all mt-8">
-                                    {isLoading ? (
-                                        <>
-                                            <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
-                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-                                            </svg>
-                                            Preparing Your Interview...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <span>🚀</span> Start Interview
-                                        </>
-                                    )}
-                                </button>
-                            </form>
-                        </motion.div>
+                            {/* Start Button */}
+                            <button type="button" onClick={startInterview} disabled={isLoading}
+                                style={{
+                                    width: '100%',
+                                    padding: '1.1rem',
+                                    fontWeight: 800,
+                                    borderRadius: 'var(--radius-sm)',
+                                    fontSize: '1.15rem',
+                                    background: 'var(--primary)',
+                                    color: 'white',
+                                    border: 'none',
+                                    boxShadow: '0 10px 25px -5px rgba(37, 99, 235, 0.4)',
+                                    cursor: isLoading ? 'not-allowed' : 'pointer',
+                                    opacity: isLoading ? 0.6 : 1,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '0.5rem',
+                                    transition: 'all 0.2s ease'
+                                }}>
+                                {isLoading ? (
+                                    <>
+                                        <svg className="animate-spin" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                                        </svg>
+                                        Starting Interview...
+                                    </>
+                                ) : '🎤 Start Interview'}
+                            </button>
+                        </div>
                     </div>
-                </motion.div>
+                </div>
             )}
 
             {/* ═══ INTERVIEW ═══ */}
