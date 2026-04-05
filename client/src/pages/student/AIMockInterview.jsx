@@ -20,6 +20,61 @@ const AIMockInterview = () => {
     const [isSpeaking, setIsSpeaking] = useState(false);
     const chatEndRef = useRef(null);
 
+    // For voice input (Web Speech API)
+    const [isListening, setIsListening] = useState(false);
+    const recognitionRef = useRef(null);
+
+    useEffect(() => {
+        // Initialize Speech Recognition
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRecognition) {
+            const recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+
+            recognition.onresult = (event) => {
+                let currentTranscript = '';
+                for (let i = 0; i < event.results.length; i++) {
+                    currentTranscript += event.results[i][0].transcript;
+                }
+                setUserInput(currentTranscript);
+            };
+
+            recognition.onerror = (event) => {
+                console.error("Speech recognition error", event.error);
+                setIsListening(false);
+            };
+
+            recognition.onend = () => {
+                setIsListening(false);
+            };
+
+            recognitionRef.current = recognition;
+        }
+
+        return () => {
+            if (recognitionRef.current) {
+                recognitionRef.current.stop();
+            }
+        };
+    }, []);
+
+    const toggleListening = () => {
+        if (isListening) {
+            recognitionRef.current?.stop();
+            setIsListening(false);
+        } else {
+            if (!recognitionRef.current) {
+                toast.error('Your browser does not support Voice Recognition.');
+                return;
+            }
+            setUserInput('');
+            recognitionRef.current.start();
+            setIsListening(true);
+        }
+    };
+
     useEffect(() => {
         if (chatEndRef.current) {
             chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -74,6 +129,13 @@ const AIMockInterview = () => {
 
     const sendMessage = async (e) => {
         e?.preventDefault();
+        
+        // Stop listening if active
+        if (isListening && recognitionRef.current) {
+            recognitionRef.current.stop();
+            setIsListening(false);
+        }
+
         if (!userInput.trim()) return;
         
         stopSpeaking();
@@ -235,23 +297,36 @@ const AIMockInterview = () => {
                         
                         <div className="p-4 bg-white border-t z-10 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
                             <form onSubmit={sendMessage} className="flex gap-3">
+                                <button
+                                    type="button"
+                                    onClick={toggleListening}
+                                    title={isListening ? "Stop Listening" : "Start Voice Input"}
+                                    disabled={isLoading}
+                                    className={`p-4 rounded-lg flex items-center justify-center transition shadow-sm ${
+                                        isListening 
+                                        ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse' 
+                                        : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                                    } disabled:opacity-50`}
+                                >
+                                    <FiMic className="w-5 h-5" />
+                                </button>
                                 <input 
                                     value={userInput}
                                     onChange={(e) => setUserInput(e.target.value)}
-                                    placeholder="Type your answer... (or use voice dictation on your OS)"
+                                    placeholder={isListening ? "Listening... Speak now..." : "Type your answer... (or click the Mic icon)"}
                                     className="flex-1 p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 transition"
-                                    disabled={isLoading}
+                                    disabled={isLoading || isListening}
                                 />
                                 <button 
                                     type="submit"
-                                    disabled={isLoading || !userInput.trim()}
+                                    disabled={isLoading || (!userInput.trim() && !isListening)}
                                     className="bg-blue-600 hover:bg-blue-700 text-white px-6 rounded-lg flex items-center justify-center disabled:opacity-50 transition shadow-sm"
                                 >
                                     <FiSend className="w-5 h-5" />
                                 </button>
                             </form>
                             <p className="text-center text-xs text-gray-400 mt-3 font-medium">
-                                Pro Tip: Press <kbd className="bg-gray-100 border px-1 rounded mx-1">Windows + H</kbd> or <kbd className="bg-gray-100 border px-1 rounded mx-1">Cmd + Dictate</kbd> to type with your voice!
+                                Pro Tip: Click the microphone icon to answer using your voice directly in the browser natively!
                             </p>
                         </div>
                     </div>
