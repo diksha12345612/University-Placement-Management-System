@@ -81,6 +81,12 @@ router.post('/', auth, authorize('student'), async (req, res) => {
             link: '/recruiter/my-jobs'
         }).save();
 
+        // Analytics Tracking: Increment jobs applied
+        await User.findByIdAndUpdate(req.user._id, {
+            $inc: { 'studentProfile.analyticsData.behavioralData.jobsAppliedCount': 1 },
+            $set: { 'studentProfile.analyticsData.behavioralData.lastActiveDate': new Date() }
+        });
+
         res.status(201).json(application);
     } catch (error) {
         if (error.code === 11000) return res.status(400).json({ error: 'Already applied for this job' });
@@ -340,11 +346,20 @@ router.put('/:id/status', auth, authorize('recruiter', 'admin'), async (req, res
             try {
                 await User.findByIdAndUpdate(application.student, {
                     'studentProfile.isPlaced': true,
-                    'studentProfile.placedAt': jobCompany
+                    'studentProfile.placedAt': jobCompany,
+                    $inc: { 'studentProfile.analyticsData.behavioralData.shortlistCount': 1 }
                 });
             } catch (userErr) {
                 console.error('User update error:', userErr.message);
                 // Don't fail if user update fails
+            }
+        } else if (status === 'shortlisted' || status === 'interview') {
+            try {
+                await User.findByIdAndUpdate(application.student, {
+                    $inc: { 'studentProfile.analyticsData.behavioralData.shortlistCount': 1 }
+                });
+            } catch (userErr) {
+                console.error('Analytics update error:', userErr.message);
             }
         }
 

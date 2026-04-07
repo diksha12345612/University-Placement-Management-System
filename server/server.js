@@ -180,6 +180,7 @@ app.use('/api/admin-ats', require('./routes/adminRoutes')); // ATS custom routes
 app.use('/api/resume', require('./routes/resumeRoutes'));   // Resume parsing functionality
 app.use('/api/preparation', require('./routes/preparation'));
 app.use('/api/notifications', require('./routes/notifications'));
+app.use('/api/insights', require('./routes/insights')); // New AI Chatbot route
 
 // Health check
 app.get('/api/health', (req, res) => {

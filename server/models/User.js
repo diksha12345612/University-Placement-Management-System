@@ -59,6 +59,30 @@ const userSchema = new mongoose.Schema({
             atsCompatibility: String,
             lastAnalyzed: Date
         },
+        analyticsData: {
+            careerGoals: {
+                targetRoles: [String], // e.g., ["Frontend Engineer", "Data Scientist"]
+                preferredLocations: [String], // e.g., ["Bangalore", "Remote"]
+                expectedSalary: Number,
+                preferredWorkMode: { type: String, enum: ['Remote', 'On-site', 'Hybrid', 'Any'], default: 'Any' }
+            },
+            performanceMetrics: {
+                overallReadinessScore: { type: Number, default: 0 }, // Calculated 0-100 score
+                topicProficiencies: [{
+                    topic: String, // e.g., 'React', 'System Design', 'Algorithms'
+                    score: Number, // Average score 0-100
+                    testsTaken: { type: Number, default: 0 }
+                }],
+                mockInterviewsAverage: { type: Number, default: 0 },
+                totalMockInterviews: { type: Number, default: 0 }
+            },
+            behavioralData: {
+                jobsAppliedCount: { type: Number, default: 0 },
+                shortlistCount: { type: Number, default: 0 },
+                applicationSuccessRate: { type: Number, default: 0 }, // Derived metric: shortlists / jobsAppliedCount
+                lastActiveDate: Date
+            }
+        },
         aiRecommendations: {
             targetRole: String,
             overallAssessment: String,

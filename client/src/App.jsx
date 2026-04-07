@@ -42,6 +42,7 @@ import AdminATSPanel from './components/AdminATSPanel';
 
 // Shared
 import Notifications from './pages/Notifications';
+import AIChat from './pages/AIChat';
 
 function App() {
   return (
@@ -70,6 +71,7 @@ function App() {
             <Route path="/student/preparation/tips" element={<ProtectedRoute roles={['student']}><InterviewTips /></ProtectedRoute>} />
             <Route path="/student/preparation/ai-mock" element={<ProtectedRoute roles={['student']}><AIMockInterview /></ProtectedRoute>} />
             <Route path="/student/notifications" element={<ProtectedRoute roles={['student']}><Notifications /></ProtectedRoute>} />
+            <Route path="/student/ai-assistant" element={<ProtectedRoute roles={['student']}><AIChat /></ProtectedRoute>} />
 
             {/* Recruiter Routes */}
             <Route path="/recruiter/dashboard" element={<ProtectedRoute roles={['recruiter']}><RecruiterDashboard /></ProtectedRoute>} />
@@ -92,6 +94,7 @@ function App() {
             <Route path="/admin/profile" element={<ProtectedRoute roles={['admin']}><AdminProfile /></ProtectedRoute>} />
             <Route path="/admin/ats-settings" element={<ProtectedRoute roles={['admin']}><AdminATSPanel /></ProtectedRoute>} />
             <Route path="/admin/notifications" element={<ProtectedRoute roles={['admin']}><Notifications /></ProtectedRoute>} />
+            <Route path="/admin/ai-assistant" element={<ProtectedRoute roles={['admin']}><AIChat /></ProtectedRoute>} />
 
             {/* Catch-all */}
             <Route path="*" element={<Navigate to="/" replace />} />

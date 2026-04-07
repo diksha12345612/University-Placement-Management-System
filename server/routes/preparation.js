@@ -4,6 +4,7 @@ const multer = require('multer');
 const upload = multer({ storage: multer.memoryStorage() });
 const router = express.Router();
 const { auth } = require('../middleware/auth');
+const User = require('../models/User');
 const InterviewQuestion = require('../models/InterviewQuestion');
 const InterviewEvaluation = require('../models/InterviewEvaluation');
 const MockTest = require('../models/MockTest');
@@ -358,6 +359,16 @@ router.post('/mock-tests/:id/submit', auth, async (req, res) => {
         });
 
         await attempt.save();
+
+        // Update Analytics Data
+        try {
+            await User.findByIdAndUpdate(req.user.id, {
+                $inc: { 'studentProfile.analyticsData.performanceMetrics.totalMockInterviews': 1 },
+                $set: { 'studentProfile.analyticsData.behavioralData.lastActiveDate': new Date() }
+            });
+        } catch (analyticsErr) {
+            console.error('Analytics Update Error:', analyticsErr.message);
+        }
 
         res.json({
             id: attempt._id,

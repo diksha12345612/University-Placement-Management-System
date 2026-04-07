@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { FiHome, FiUser, FiBriefcase, FiFileText, FiBook, FiUsers, FiCheckSquare, FiBarChart2, FiCalendar, FiBell, FiLogOut, FiCode, FiHelpCircle, FiEdit, FiClipboard, FiX, FiSettings, FiCpu } from 'react-icons/fi';
+import { FiHome, FiUser, FiBriefcase, FiFileText, FiBook, FiUsers, FiCheckSquare, FiBarChart2, FiCalendar, FiBell, FiLogOut, FiCode, FiHelpCircle, FiEdit, FiClipboard, FiX, FiSettings, FiCpu, FiMessageSquare } from 'react-icons/fi';
 
 const Sidebar = ({ isOpen, onClose }) => {
     const { user, logout } = useAuth();
@@ -21,6 +21,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         { path: '/student/jobs', icon: <FiBriefcase />, label: 'Job Listings' },
         { path: '/student/applications', icon: <FiFileText />, label: 'My Applications' },
         { path: '/student/preparation', icon: <FiBook />, label: 'Preparation' },
+        { path: '/student/ai-assistant', icon: <FiMessageSquare />, label: 'AI Assistant' },
         { path: '/student/notifications', icon: <FiBell />, label: 'Notifications' },
     ];
 
@@ -42,6 +43,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         { path: '/admin/admins', icon: <FiUser />, label: 'Admin Management' },
         { path: '/admin/reports', icon: <FiBarChart2 />, label: 'Reports' },
         { path: '/admin/ats-settings', icon: <FiSettings />, label: 'Resume Scoring' },
+        { path: '/admin/ai-assistant', icon: <FiMessageSquare />, label: 'AI Assistant' },
         { path: '/admin/notifications', icon: <FiBell />, label: 'Notifications' },
     ];
 

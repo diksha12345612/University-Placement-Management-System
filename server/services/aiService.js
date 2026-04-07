@@ -1432,6 +1432,8 @@ Return ONLY valid JSON with this EXACT structure:
 };
 
 module.exports = {
+    // Generic API
+    callAI,
     // New API
     generateMockTest,
     evaluateTestAnswer,
