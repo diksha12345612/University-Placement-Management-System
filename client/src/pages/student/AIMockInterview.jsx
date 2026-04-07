@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import Layout from '../../components/Layout';
 import api from '../../services/api';
 import { FiMic, FiSend, FiSquare, FiCheckCircle, FiUpload, FiClock, FiChevronDown, FiChevronUp } from 'react-icons/fi';
@@ -88,8 +89,11 @@ const AIAvatar = ({ isSpeaking }) => (
 );
 
 const AIMockInterview = () => {
+    const location = useLocation();
+    const jobPrep = location.state?.jobPrep || null;
+
     // Job roles with tech and management options
-    const jobRoles = [
+    const ObjectRoles = [
         'Software Engineer',
         'Frontend Developer',
         'Backend Developer',
@@ -101,11 +105,15 @@ const AIMockInterview = () => {
         'Engineering Manager',
         'Technical Lead',
         'Solutions Architect',
-        'QA Engineer'
+        'QA Engineer',
+        'Custom Role'
     ];
+    
+    // Add dynamically chosen role to list if it doesn't exist
+    const jobRoles = jobPrep ? [jobPrep.title, ...ObjectRoles.filter(r => r !== jobPrep.title)] : ObjectRoles;
 
     const [step, setStep] = useState('setup');
-    const [jobRole, setJobRole] = useState('Software Engineer');
+    const [jobRole, setJobRole] = useState(jobPrep ? jobPrep.title : 'Software Engineer');
     const [questionType, setQuestionType] = useState('technical');
     const [difficulty, setDifficulty] = useState('Medium');
     const [questionCount, setQuestionCount] = useState(8);

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import Layout from '../../components/Layout';
 import { prepAPI } from '../../services/api';
 import toast from 'react-hot-toast';
@@ -19,6 +20,9 @@ const ScoreBar = ({ label, score, max, color }) => (
 );
 
 const MockTest = () => {
+    const location = useLocation();
+    const jobPrep = location.state?.jobPrep || null;
+
     const [tests, setTests] = useState([]);
     const [activeTest, setActiveTest] = useState(null);
     const [answers, setAnswers] = useState({});
@@ -32,7 +36,7 @@ const MockTest = () => {
 
     // AI Generator state
     const [generating, setGenerating] = useState(false);
-    const [aiTopic, setAiTopic] = useState('');
+    const [aiTopic, setAiTopic] = useState(jobPrep ? `${jobPrep.title} at ${jobPrep.company} (Skills: ${jobPrep.skills?.join(', ') || 'N/A'}) Role Assessment` : '');
     const [aiDifficulty, setAiDifficulty] = useState('Medium');
     const [aiCount, setAiCount] = useState(5);
     const [aiQuestionType, setAiQuestionType] = useState('mix');

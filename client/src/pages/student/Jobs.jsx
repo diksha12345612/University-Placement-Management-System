@@ -445,6 +445,13 @@ const StudentJobs = () => {
                             {/* Action Buttons */}
                             <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
                                 <button className="btn btn-secondary" onClick={() => setSelectedJob(null)}>Close</button>
+                                <button 
+                                    className="btn btn-primary" 
+                                    style={{ background: 'var(--bg-card)', border: '1px solid var(--primary)', color: 'var(--primary)' }}
+                                    onClick={() => navigate('/student/preparation', { state: { jobPrep: selectedJob } })}
+                                >
+                                    🚀 Prepare for this Role
+                                </button>
                                 {!selectedJob.viewOnly && !appliedJobs.includes(selectedJob._id) && (
                                     <button
                                         className="btn btn-primary"
