@@ -106,7 +106,7 @@ GUIDELINES:
             const globalStats = stats[0] || { avgReadiness: 0, avgMockInterview: 0, avgSuccessRate: 0, totalApps: 0 };
             
             // Full Database Access: Iterate over all students to compile exhaustive details
-            const allStudents = await User.find({ role: 'student' }).select('name email studentProfile').lean();
+            const allStudents = await User.find({ role: 'student' }).select('-studentProfile.resumeBase64').lean();
             
             let topicStats = {};
             let roleStats = {};
@@ -134,8 +134,9 @@ GUIDELINES:
                 
                 const rolesStr = (g.targetRoles || []).join(', ') || 'None';
                 const topicsStr = (m.topicProficiencies || []).map(t => `${t.topic}(${t.score}%)`).join(', ') || 'None';
+                const hasResume = (p.resumeUrl || p.resumeBase64) ? `Yes (Link: [View Resume](/api/students/resume/${s._id}))` : 'No Resume';
 
-                return `Name: ${s.name} | Status: ${p.isPlaced ? 'Placed at ' + p.placedAt : 'Not Placed'} | Readiness: ${m.overallReadinessScore || 'N/A'}/100 | Roles Wanted: ${rolesStr} | Topic Scores: ${topicsStr}`;
+                return `Name: ${s.name} | Status: ${p.isPlaced ? 'Placed at ' + p.placedAt : 'Not Placed'} | Readiness: ${m.overallReadinessScore || 'N/A'}/100 | Roles Wanted: ${rolesStr} | Topic Scores: ${topicsStr} | Resume: ${hasResume}`;
             }).join('\n');
 
             // Format Topic Averages
@@ -170,8 +171,9 @@ COMPLETE LIST OF ALL STUDENTS IN DATABASE:
 ${studentsList}
 
 GUIDELINES:
-1. You have access to some aggregate data above. If the admin asks questions like "which topic students are weak the most" or "which tech job students want the most", answer directly using the aggregate context provided.
-2. ⚠️ AUTONOMOUS DATABASE QUERY CAPABILITY ⚠️
+1. You have access to aggregate data above. If the admin asks "which topic students are weak the most" or "which tech job students want the most", answer directly using the aggregate context provided.
+2. If the admin asks "show me the resume of [Student Name]", find the student in the COMPLETE LIST above and output their exact Markdown Resume Link (e.g. [View Resume](/api/students/resume/XYZ)). Never say you cannot provide documents because you have the direct link above.
+3. ⚠️ AUTONOMOUS DATABASE QUERY CAPABILITY ⚠️
 If the admin asks to "list all jobs", "show me job postings", "find jobs", or "list unplaced students", YOU MUST TRIGGER A DATABASE QUERY.
 To trigger a query, output EXACTLY THIS JSON FORMAT and NOTHING ELSE (no markdown, no backticks):
 {"_query": true, "collection": "Job", "query": {}}
