@@ -105,13 +105,48 @@ GUIDELINES:
 
             const globalStats = stats[0] || { avgReadiness: 0, avgMockInterview: 0, avgSuccessRate: 0, totalApps: 0 };
             
-            // Full Database Access: List all students
+            // Full Database Access: Iterate over all students to compile exhaustive details
             const allStudents = await User.find({ role: 'student' }).select('name email studentProfile').lean();
+            
+            let topicStats = {};
+            let roleStats = {};
+
             const studentsList = allStudents.map(s => {
                 const p = s.studentProfile || {};
                 const m = p.analyticsData?.performanceMetrics || {};
-                return `Name: ${s.name} | Status: ${p.isPlaced ? 'Placed at ' + p.placedAt : 'Not Placed'} | Readiness: ${m.overallReadinessScore || 'N/A'}/100`;
+                const g = p.analyticsData?.careerGoals || {};
+                
+                // Aggregate Topics
+                if (m.topicProficiencies && Array.isArray(m.topicProficiencies)) {
+                    m.topicProficiencies.forEach(t => {
+                        if (!topicStats[t.topic]) topicStats[t.topic] = { totalScore: 0, count: 0 };
+                        topicStats[t.topic].totalScore += t.score;
+                        topicStats[t.topic].count += 1;
+                    });
+                }
+                
+                // Aggregate Target Roles
+                if (g.targetRoles && Array.isArray(g.targetRoles)) {
+                    g.targetRoles.forEach(role => {
+                        roleStats[role] = (roleStats[role] || 0) + 1;
+                    });
+                }
+                
+                const rolesStr = (g.targetRoles || []).join(', ') || 'None';
+                const topicsStr = (m.topicProficiencies || []).map(t => `${t.topic}(${t.score}%)`).join(', ') || 'None';
+
+                return `Name: ${s.name} | Status: ${p.isPlaced ? 'Placed at ' + p.placedAt : 'Not Placed'} | Readiness: ${m.overallReadinessScore || 'N/A'}/100 | Roles Wanted: ${rolesStr} | Topic Scores: ${topicsStr}`;
             }).join('\n');
+
+            // Format Topic Averages
+            const avgTopics = Object.keys(topicStats).map(topic => {
+                return `${topic}: ${Math.round(topicStats[topic].totalScore / topicStats[topic].count)}%`;
+            }).join(', ');
+            
+            // Format Role Popularity
+            const popularRoles = Object.keys(roleStats).map(role => {
+                return `${role} (Wanted by ${roleStats[role]} students)`;
+            }).join(', ');
 
             systemContext = `
 You are the AI "Placement Director Assistant" for a University Placement Portal. You are talking to an Admin.
@@ -125,14 +160,22 @@ AGGREGATED ENTIRE UNIVERSITY DATABASE CONTEXT:
 - Average Application Success (Shortlist) Rate: ${Math.round(globalStats.avgSuccessRate * 100)}%
 - Total Global Job Applications Sent: ${globalStats.totalApps}
 
+UNIVERSITY TOPICS PERFORMANCE (Average Scores):
+${avgTopics || 'Not enough data yet'}
+
+MOST WANTED JOB ROLES BY STUDENTS:
+${popularRoles || 'Not enough data yet'}
+
 COMPLETE LIST OF ALL STUDENTS IN DATABASE:
 ${studentsList}
 
 GUIDELINES:
-1. YOU NOW HAVE FULL ACCESS TO ALL STUDENT NAMES AND DIRECT STATUSES.
-2. If the admin asks for the names of students, a list of unplaced students, or details about a specific student, YOU MUST read the "COMPLETE LIST OF ALL STUDENTS IN DATABASE" provided above and explicitly list their names to the admin.
-3. NEVER say "I don't have access to specific names." You absolutely have their names in the list above. Read it and answer precisely.
-4. Do NOT mention "database aggregation" or how you got the data. Just act as a strategic advisor.
+1. YOU NOW HAVE FULL ACCESS TO ALL STUDENT NAMES, STATUSES, TOPICS, AND ROLES.
+2. If the admin asks "which topic students are weak the most", read the "UNIVERSITY TOPICS PERFORMANCE" above and explicitly state the topic with the lowest percentage.
+3. If they ask "which tech job students want the most", read the "MOST WANTED JOB ROLES" and explicitly state the jobs with the highest counts.
+4. If they ask about specific student names, read the "COMPLETE LIST OF ALL STUDENTS" and give them the exact names.
+5. NEVER say "I don't have access to specific data." You absolutely have it in the text above. Read it and answer precisely.
+6. Do NOT mention "database aggregation" or how you got the data. Act as a strategic advisor.
 `;
         } else {
             return res.status(403).json({ error: 'AI Insights are currently available for students and admins only.' });
