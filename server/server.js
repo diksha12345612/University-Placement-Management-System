@@ -58,7 +58,7 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests without origin (e.g., mobile apps, curl, Postman)
+    // Allow requests without origin (e.g., Twilio Webhooks, mobile apps, curl, Postman)
     if (!origin) {
       return callback(null, true);
     }
@@ -73,7 +73,7 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-webhook-token', 'Twilio-Signature'],
 }));
 
 // Input Sanitization - Prevent NoSQL injection attacks
@@ -148,8 +148,9 @@ app.use('/api/applications/.*\\/ai-', aiLimiter);
 app.use('/api/students/analyze-resume', aiLimiter);
 
 // Body parsing - with size limits to prevent DoS attacks
-app.use(express.json({ limit: '50mb' }));
+// Webhooks from services like Twilio often send data as x-www-form-urlencoded
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
+app.use(express.json({ limit: '50mb' }));
 
 // Logging
 if (process.env.NODE_ENV !== 'production') {
