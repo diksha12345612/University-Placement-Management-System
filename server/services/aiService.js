@@ -1446,6 +1446,7 @@ Extract the following fields (provide reasonable defaults if missing based on co
   "type": "String (must be one of: 'Full-time', 'Part-time', 'Internship', 'Contract', default to 'Full-time' if unclear)",
   "salary": "String (e.g. '10 LPA', 'Unpaid', etc. Default: 'Not specified')",
   "openings": 1,
+  "applyUrl": "String (URL to apply, e.g., google forms, bit.ly, etc. Look carefully for 'Registration link:' or 'Apply at:')",
   "deadline": "ISO-8601 Date String (if not found, guess a date 1-2 weeks from today, use format YYYY-MM-DD)",
   "eligibility": {
     "minCGPA": 0,

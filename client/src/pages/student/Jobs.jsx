@@ -121,6 +121,13 @@ const StudentJobs = () => {
                     >
                         Global Jobs (Recommended)
                     </button>
+                    <button 
+                        className={`tab ${activeTab === 'whatsapp' ? 'active' : ''}`} 
+                        onClick={() => setActiveTab('whatsapp')}
+                        style={{ padding: '0.75rem 1.5rem', borderBottom: activeTab === 'whatsapp' ? '2px solid var(--primary)' : 'none', background: 'none', border: 'none', fontWeight: activeTab === 'whatsapp' ? 600 : 400, color: activeTab === 'whatsapp' ? 'var(--primary)' : 'var(--text-muted)', cursor: 'pointer' }}
+                    >
+                        Community / WhatsApp Jobs
+                    </button>
                 </div>
 
                 {activeTab === 'internal' ? (
@@ -129,10 +136,10 @@ const StudentJobs = () => {
                     gridTemplateColumns: 'repeat(auto-fill, minmax(var(--mobile-job-min, 300px), 1fr))',
                     gap: '1.5rem'
                 }}>
-                    {jobs.length === 0 ? (
+                    {jobs.filter(j => !j.source || !j.source.toLowerCase().includes('whatsapp')).length === 0 ? (
                         <div className="empty-state"><h3>No jobs available</h3><p>Check back later for new openings</p></div>
                     ) : (
-                        jobs.map((job) => (
+                        jobs.filter(j => !j.source || !j.source.toLowerCase().includes('whatsapp')).map((job) => (
                             <div key={job._id} className="job-card hover-lift" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                                 <div style={{ flex: 1 }}>
                                     <h3 style={{ fontSize: '1.1rem', marginBottom: '0.25rem' }}>{job.title}</h3>
@@ -181,6 +188,34 @@ const StudentJobs = () => {
                         ))
                     )}
                 </div>
+                ) : activeTab === 'whatsapp' ? (
+                    <div className="jobs-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(var(--mobile-job-min, 300px), 1fr))', gap: '1.5rem' }}>
+                        {jobs.filter(j => j.source && j.source.toLowerCase().includes('whatsapp')).length === 0 ? (
+                             <div className="empty-state"><h3>No Community Jobs available</h3><p>Jobs imported from WhatsApp/Admin will show here.</p></div>
+                        ) : jobs.filter(j => j.source && j.source.toLowerCase().includes('whatsapp')).map((job) => (
+                            <div key={job._id} className="job-card hover-lift" style={{ height: '100%', display: 'flex', flexDirection: 'column', border: '1px solid #10b981', boxShadow: '0 4px 6px rgba(16, 185, 129, 0.1)' }}>
+                                <div style={{ flex: 1 }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
+                                        <h3 style={{ fontSize: '1.1rem', margin: 0 }}>{job.title}</h3>
+                                        <span className="badge" style={{ background: '#ecfdf5', color: '#059669', fontSize: '0.65rem' }}>WhatsApp</span>
+                                    </div>
+                                    <p className="company" style={{ color: 'var(--primary)', fontWeight: 600, fontSize: '0.9rem', marginBottom: '1rem' }}>{job.company}</p>
+                                    <div className="meta" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                                        <span className="flex items-center gap-1"><FiMapPin /> {job.location}</span>
+                                        <span className="flex items-center gap-1"><FiClock /> {job.type}</span>
+                                        {job.salary && <span className="flex items-center gap-1">₹ {job.salary}</span>}
+                                        <span className="flex items-center gap-1"><FiUsers /> {job.openings} openings</span>
+                                    </div>
+                                </div>
+                                <div style={{ marginTop: 'auto', borderTop: '1px solid var(--border)', paddingTop: '1rem' }}>
+                                    <div className="flex gap-2">
+                                        <button className="btn btn-secondary btn-sm flex-1" onClick={(e) => { e.stopPropagation(); navigate('/student/preparation', { state: { jobPrep: { title: job.title, company: job.company, description: job.description, skills: job.eligibility?.skills || [job.title] } } }); }}>🚀 Prepare</button>
+                                        <button className="btn btn-secondary btn-sm" onClick={() => setSelectedJob({ ...job, viewOnly: true, isWhatsApp: true })}>Details</button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
                         {loadingExternal ? (
@@ -427,7 +462,7 @@ const StudentJobs = () => {
                             )}
 
                             {/* Cover Letter */}
-                            {!selectedJob.viewOnly && !appliedJobs.includes(selectedJob._id) && (
+                            {!selectedJob.viewOnly && !selectedJob.isWhatsApp && !appliedJobs.includes(selectedJob._id) && (
                                 <div style={{ marginBottom: '1.75rem', paddingBottom: '1.75rem', borderBottom: '1px solid var(--border)' }}>
                                     <h4 style={{ marginTop: 0, marginBottom: '0.75rem', color: 'var(--primary)', fontSize: '0.95rem', fontWeight: 700 }}>💌 Cover Letter (Optional)</h4>
                                     <textarea
@@ -463,13 +498,24 @@ const StudentJobs = () => {
                                     🚀 Prepare for this Role
                                 </button>
                                 {!selectedJob.viewOnly && !appliedJobs.includes(selectedJob._id) && (
-                                    <button
+                                    <button 
                                         className="btn btn-primary"
                                         onClick={() => handleApply(selectedJob._id)}
                                         disabled={applying || !isEligibleToApply}
                                     >
                                         {applying ? '⏳ Submitting...' : '✓ Submit Application'}
                                     </button>
+                                )}
+                                {selectedJob.isWhatsApp && selectedJob.applyUrl && (
+                                    <a
+                                        href={selectedJob.applyUrl}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="btn btn-primary"
+                                        style={{ background: '#10b981', borderColor: '#10b981', color: '#fff' }}
+                                    >
+                                        🔗 Open Apply Link
+                                    </a>
                                 )}
                             </div>
                         </div>

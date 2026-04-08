@@ -18,6 +18,8 @@ const jobSchema = new mongoose.Schema({
     requirements: [String],
     responsibilities: [String],
     perks: [String],
+    applyUrl: { type: String }, // For external or WhatsApp jobs
+    source: { type: String }, // To track where it came from
     // Job attachment (PDF, DOCX, etc.)
     attachmentFile: String, // Base64 encoded file
     attachmentFileName: String,
