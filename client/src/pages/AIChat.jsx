@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { FiSend, FiUser, FiCpu, FiArrowLeft } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import api from '../services/api';
 
 const AIChat = () => {
@@ -26,6 +28,14 @@ const AIChat = () => {
     }, [messages]);
 
     useEffect(() => {
+    AI Agent
+    Hello Admin Mohit. I'm your AI Director. Ask me for data-driven insights about university placements, student averages, and performance metrics.
+    You
+    give me the list of all the students
+    AI Agent
+    {"_query": true, "collection": "User", "query": {}}
+    
+    
         if (user?.role === 'admin') {
             setMessages([
                 {
@@ -102,7 +112,26 @@ const AIChat = () => {
                                         {msg.role === 'user' ? <FiUser /> : <FiCpu />}
                                         <strong>{msg.role === 'user' ? 'You' : 'AI Agent'}</strong>
                                     </div>
-                                    <div style={styles.messageContent} dangerouslySetInnerHTML={{ __html: msg.content.replace(/\n/g, '<br/>') }} />
+                                    <div style={styles.messageContent} className={msg.role === 'assistant' ? 'markdown-body' : ''}>
+                                        {msg.role === 'user' ? (
+                                            msg.content.split('\n').map((line, i) => (
+                                                <span key={i}>
+                                                    {line}
+                                                    <br />
+                                                </span>
+                                            ))
+                                        ) : (
+                                            <ReactMarkdown 
+                                                remarkPlugins={[remarkGfm]}
+                                                components={{
+                                                    a: ({node, ...props}) => <a {...props} target="_blank" rel="noopener noreferrer" style={{color: '#2563EB', textDecoration: 'underline'}}/>,
+                                                    p: ({node, ...props}) => <p style={{marginBottom: '0.75rem'}} {...props} />,
+                                                }}
+                                            >
+                                                {msg.content}
+                                            </ReactMarkdown>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         ))}

@@ -135,7 +135,7 @@ GUIDELINES:
                 const rolesStr = (g.targetRoles || []).join(', ') || 'None';
                 const topicsStr = (m.topicProficiencies || []).map(t => `${t.topic}(${t.score}%)`).join(', ') || 'None';
                 const backendUrl = process.env.VITE_API_URL || 'https://university-placement-management-system.onrender.com/api'; // Or just your full production URL! 
-                const hasResume = (p.resumeUrl || p.resumeBase64) ? `Yes (Link: <a href="https://university-placement-management-system-phi.vercel.app/api/students/resume/${s._id}" target="_blank">View Resume</a>)` : 'No Resume';
+                const hasResume = (p.resumeUrl || p.resumeBase64) ? `Yes (Link: [View Resume](https://university-placement-management-system-phi.vercel.app/api/students/resume/${s._id}))` : 'No Resume';
 
                 return `Name: ${s.name} | Status: ${p.isPlaced ? 'Placed at ' + p.placedAt : 'Not Placed'} | Readiness: ${m.overallReadinessScore || 'N/A'}/100 | Roles Wanted: ${rolesStr} | Topic Scores: ${topicsStr} | Resume: ${hasResume}`;
             }).join('\n');
@@ -173,7 +173,7 @@ ${studentsList}
 
 GUIDELINES:
 1. You have access to aggregate data above. If the admin asks "which topic students are weak the most" or "which tech job students want the most", answer directly using the aggregate context provided.
-2. If the admin asks "show me the resume of [Student Name]", find the student in the COMPLETE LIST above and output their exact HTML Resume Link (e.g. <a href="...">View Resume</a>). Never say you cannot provide documents because you have the direct link above.
+2. If the admin asks "show me the resume of [Student Name]", find the student in the COMPLETE LIST above and output their exact Markdown Resume Link (e.g. [View Resume](https://...)). Never say you cannot provide documents because you have the direct link above.
 3. ⚠️ AUTONOMOUS DATABASE QUERY CAPABILITY ⚠️
 If the admin asks to "list all jobs", "show me job postings", "find jobs", or "list unplaced students", YOU MUST TRIGGER A DATABASE QUERY.
 To trigger a query, output EXACTLY THIS JSON FORMAT and NOTHING ELSE (no markdown, no backticks):
