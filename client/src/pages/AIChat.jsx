@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { FiSend, FiUser, FiCpu } from 'react-icons/fi';
+import { FiSend, FiUser, FiCpu, FiArrowLeft } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 
 const AIChat = () => {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const [messages, setMessages] = useState([
         {
             role: 'assistant',
@@ -64,51 +66,59 @@ const AIChat = () => {
     };
 
     return (
-        <div style={styles.container}>
-            <div style={styles.header}>
-                <div style={styles.headerTitle}>
-                    <FiCpu style={styles.icon} />
-                    <h2>AI Insights Assistant {user?.role === 'admin' ? '(Admin Mode)' : ''}</h2>
+        <div style={styles.pageContainer}>
+            <div style={styles.topBar}>
+                <button onClick={() => navigate(-1)} style={styles.backButton}>
+                    <FiArrowLeft style={{ marginRight: '8px' }} /> Back to Dashboard
+                </button>
+            </div>
+            <div style={styles.container}>
+                <div style={styles.header}>
+                    <div style={styles.headerTitle}>
+                        <FiCpu style={styles.icon} />
+                        <h2>AI Insights Assistant {user?.role === 'admin' ? '(Admin Mode)' : ''}</h2>
+                    </div>
+                    <span style={styles.badge}>Powered by RAG & GenAI</span>
                 </div>
-                <span style={styles.badge}>Powered by RAG & GenAI</span>
-            </div>
 
-            <div style={styles.chatBox}>
-                {messages.map((msg, idx) => (
-                    <div
-                        key={idx}
-                        style={{
-                            ...styles.messageWrapper,
-                            justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start'
-                        }}
-                    >
-                        <div style={{
-                            ...styles.messageBubble,
-                            backgroundColor: msg.role === 'user' ? '#4F46E5' : '#F3F4F6',
-                            color: msg.role === 'user' ? 'white' : '#1F2937',
-                            borderBottomRightRadius: msg.role === 'user' ? '4px' : '16px',
-                            borderBottomLeftRadius: msg.role === 'user' ? '16px' : '4px',
-                        }}>
-                            <div style={styles.messageHeader}>
-                                {msg.role === 'user' ? <FiUser /> : <FiCpu />}
-                                <strong>{msg.role === 'user' ? 'You' : 'AI Agent'}</strong>
+                <div style={styles.chatBox}>
+                    <div style={styles.chatBoxInner}>
+                        {messages.map((msg, idx) => (
+                            <div
+                                key={idx}
+                                style={{
+                                    ...styles.messageWrapper,
+                                    justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start'
+                                }}
+                            >
+                                <div style={{
+                                    ...styles.messageBubble,
+                                    backgroundColor: msg.role === 'user' ? '#4F46E5' : '#F3F4F6',
+                                    color: msg.role === 'user' ? 'white' : '#1F2937',
+                                    borderBottomRightRadius: msg.role === 'user' ? '4px' : '16px',
+                                    borderBottomLeftRadius: msg.role === 'user' ? '16px' : '4px',
+                                }}>
+                                    <div style={styles.messageHeader}>
+                                        {msg.role === 'user' ? <FiUser /> : <FiCpu />}
+                                        <strong>{msg.role === 'user' ? 'You' : 'AI Agent'}</strong>
+                                    </div>
+                                    <div style={styles.messageContent} dangerouslySetInnerHTML={{ __html: msg.content.replace(/\n/g, '<br/>') }} />
+                                </div>
                             </div>
-                            <div style={styles.messageContent} dangerouslySetInnerHTML={{ __html: msg.content.replace(/\n/g, '<br/>') }} />
-                        </div>
+                        ))}
+                        
+                        {isLoading && (
+                            <div style={{...styles.messageWrapper, justifyContent: 'flex-start'}}>
+                                <div style={{...styles.messageBubble, backgroundColor: '#F3F4F6', color: '#6B7280'}}>
+                                    <i>Analyzing your data...</i>
+                                </div>
+                            </div>
+                        )}
+                        <div ref={messagesEndRef} />
                     </div>
-                ))}
-                
-                {isLoading && (
-                    <div style={{...styles.messageWrapper, justifyContent: 'flex-start'}}>
-                        <div style={{...styles.messageBubble, backgroundColor: '#F3F4F6', color: '#6B7280'}}>
-                            <i>Analyzing your data...</i>
-                        </div>
-                    </div>
-                )}
-                <div ref={messagesEndRef} />
-            </div>
+                </div>
 
-            <form onSubmit={sendMessage} style={styles.inputArea}>
+                <form onSubmit={sendMessage} style={styles.inputArea}>
                 <input
                     type="text"
                     value={input}
@@ -121,21 +131,47 @@ const AIChat = () => {
                     <FiSend style={{ fontSize: '1.2rem' }} />
                 </button>
             </form>
+            </div>
         </div>
     );
 };
 
 const styles = {
+    pageContainer: {
+        padding: '24px',
+        maxWidth: '1200px',
+        margin: '0 auto',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '16px'
+    },
+    topBar: {
+        display: 'flex',
+        justifyContent: 'flex-start',
+    },
+    backButton: {
+        display: 'flex',
+        alignItems: 'center',
+        padding: '8px 16px',
+        backgroundColor: 'white',
+        border: '1px solid #E5E7EB',
+        borderRadius: '8px',
+        color: '#4B5563',
+        fontSize: '0.9rem',
+        fontWeight: '500',
+        cursor: 'pointer',
+        boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+        transition: 'all 0.2s ease',
+    },
     container: {
         display: 'flex',
         flexDirection: 'column',
-        height: 'calc(100vh - 100px)',
+        height: 'calc(100vh - 120px)',
         backgroundColor: '#ffffff',
         borderRadius: '12px',
         boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
         overflow: 'hidden',
-        maxWidth: '1000px',
-        margin: '0 auto'
+        width: '100%',
     },
     header: {
         padding: '20px 24px',
@@ -169,8 +205,15 @@ const styles = {
         overflowY: 'auto',
         display: 'flex',
         flexDirection: 'column',
-        gap: '20px',
         backgroundColor: '#F9FAFB'
+    },
+    chatBoxInner: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '20px',
+        width: '100%',
+        maxWidth: '800px',
+        margin: '0 auto'
     },
     messageWrapper: {
         display: 'flex',
@@ -199,7 +242,10 @@ const styles = {
         padding: '20px',
         borderTop: '1px solid #E5E7EB',
         backgroundColor: 'white',
-        gap: '12px'
+        gap: '12px',
+        maxWidth: '800px',
+        width: '100%',
+        margin: '0 auto'
     },
     input: {
         flex: 1,
