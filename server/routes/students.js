@@ -7,7 +7,7 @@ const MockTestAttempt = require('../models/MockTestAttempt');
 const ResumeAnalysis = require('../models/ResumeAnalysis');
 const RecommendationPlan = require('../models/RecommendationPlan');
 const path = require('path');
-const { extractTextFromPDF, analyzeResume, generateRecommendations } = require('../services/aiService');
+const { extractTextFromPDF, analyzeResume, generateRecommendations, extractStudentProfileFromLinkedIn } = require('../services/aiService');
 
 // Get student profile
 router.get('/profile', auth, authorize('student'), async (req, res) => {
@@ -171,6 +171,25 @@ router.post('/resume', auth, authorize('student'), upload.single('resume'), asyn
     } catch (error) {
         console.error('Upload Error:', error);
         res.status(500).json({ error: 'Error uploading resume' });
+    }
+});
+
+// POST /api/students/parse-linkedin - Extract data from LinkedIn PDF
+router.post('/parse-linkedin', auth, authorize('student'), upload.single('linkedinPdf'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'No file uploaded' });
+        }
+
+        if (req.file.mimetype !== 'application/pdf') {
+            return res.status(400).json({ error: 'Only PDF files are supported' });
+        }
+
+        const data = await extractStudentProfileFromLinkedIn(req.file.buffer);
+        res.json(data);
+    } catch (error) {
+        console.error('LinkedIn Parsing Error:', error);
+        res.status(500).json({ error: 'Failed to parse LinkedIn PDF: ' + error.message });
     }
 });
 

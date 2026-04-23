@@ -73,6 +73,7 @@ export const studentAPI = {
     getRecommendations: (targetRole) => api.post('/students/recommendations', { targetRole }),
     getRecommendationHistory: () => api.get('/students/recommendations/history'),
     updateRecommendationProgress: (data) => api.put('/students/recommendations/progress', data),
+    parseLinkedIn: (formData) => api.post('/students/parse-linkedin', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
     getAll: () => api.get('/students'),
 };
 

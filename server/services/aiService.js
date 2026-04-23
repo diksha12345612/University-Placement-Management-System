@@ -1195,6 +1195,37 @@ const calculateTestDuration = (questions) => {
 };
 
 // ──────────────── AI Mock Interview System ──────────────────────
+/**
+ * Extract student profile data from LinkedIn PDF text
+ */
+const extractStudentProfileFromLinkedIn = async (pdfBuffer) => {
+    try {
+        const text = await extractTextFromPDF(pdfBuffer);
+        const prompt = `You are an expert data extractor. Extract the candidate's profile information from the following LinkedIn PDF profile text.
+Return ONLY a JSON object with the following structure:
+{
+  "name": "full name",
+  "email": "email address",
+  "phone": "phone number",
+  "skills": ["skill1", "skill2"],
+  "linkedIn": "LinkedIn profile URL",
+  "github": "GitHub profile URL (if found)",
+  "portfolio": "Portfolio URL (if found)",
+  "address": "location/address",
+  "summary": "professional summary"
+}
+
+LinkedIn profile text:
+${text.substring(0, 15000)}`;
+
+        const response = await callAI([{ role: 'user', content: prompt }]);
+        return parseJsonSafely(response);
+    } catch (err) {
+        console.error('[AI] LinkedIn extraction failed:', err);
+        throw new Error('Failed to analyze LinkedIn PDF.');
+    }
+};
+
 const extractResumeForInterview = async (pdfBuffer) => {
     try {
         const text = await extractTextFromPDF(pdfBuffer);
@@ -1488,6 +1519,7 @@ module.exports = {
     extractResumeForInterview,
     generateInterviewReply,
     analyzeInterviewPerformance,
+    extractStudentProfileFromLinkedIn,
     // Legacy aliases
     evaluateTestAnswers,
     evaluateCandidateForJob,

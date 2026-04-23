@@ -136,11 +136,93 @@ const StudentProfile = () => {
         }
     };
 
+    const handleLinkedInUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        if (file.type !== 'application/pdf') {
+            return toast.error('Please upload a PDF file');
+        }
+
+        setLoading(true);
+        const toastId = toast.loading('AI is analyzing your LinkedIn profile...');
+        try {
+            const formData = new FormData();
+            formData.append('linkedinPdf', file);
+            const res = await studentAPI.parseLinkedIn(formData);
+            const data = res.data;
+
+            // Pre-fill the form
+            setForm(prev => ({
+                ...prev,
+                name: data.name || prev.name,
+                skills: Array.isArray(data.skills) ? data.skills.join(', ') : (data.skills || prev.skills),
+                linkedIn: data.linkedIn || prev.linkedIn,
+                github: data.github || prev.github,
+                portfolio: data.portfolio || prev.portfolio,
+                address: data.address || prev.address
+            }));
+
+            toast.success('Profile details imported! Please review and fill in missing fields.', { id: toastId });
+        } catch (err) {
+            toast.error(err.response?.data?.error || 'Error parsing LinkedIn PDF', { id: toastId });
+        } finally {
+            setLoading(false);
+            // Reset input
+            e.target.value = '';
+        }
+    };
+
     return (
         <Layout title="My Profile">
             <div className="fade-in">
                 <div className="card" style={{ maxWidth: '800px' }}>
                     <h2 style={{ marginBottom: '1.5rem' }}>Profile Information</h2>
+
+                    {/* Quick Setup Section */}
+                    <div style={{ 
+                        marginBottom: '2rem', 
+                        padding: '1.25rem', 
+                        background: 'rgba(37, 99, 235, 0.05)', 
+                        borderRadius: '12px', 
+                        border: '1px solid rgba(37, 99, 235, 0.2)', 
+                        display: 'flex', 
+                        justifyContent: 'space-between', 
+                        alignItems: 'center',
+                        gap: '1rem',
+                        flexWrap: 'wrap'
+                    }}>
+                        <div style={{ flex: 1, minWidth: '200px' }}>
+                            <h4 style={{ margin: '0 0 0.25rem 0', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <span>Γ£¿</span> Quick Setup with LinkedIn
+                            </h4>
+                            <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                                Save time by importing your details from a LinkedIn Profile PDF.
+                            </p>
+                        </div>
+                        <button 
+                            type="button" 
+                            className="btn btn-secondary" 
+                            style={{ 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                gap: '0.5rem',
+                                whiteSpace: 'nowrap'
+                            }}
+                            onClick={() => document.getElementById('linkedin-upload').click()} 
+                            disabled={loading}
+                        >
+                            {loading ? 'Analyzing...' : 'Upload LinkedIn PDF'}
+                        </button>
+                        <input 
+                            id="linkedin-upload" 
+                            type="file" 
+                            accept=".pdf" 
+                            style={{ display: 'none' }} 
+                            onChange={handleLinkedInUpload} 
+                        />
+                    </div>
+
                     <form onSubmit={handleSubmit}>
                         {/* Profile Photo Section */}
                         <div style={{ marginBottom: '2rem', paddingBottom: '1.5rem', borderBottom: '1px solid var(--border)' }}>
