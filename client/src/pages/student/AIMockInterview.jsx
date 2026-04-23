@@ -126,6 +126,9 @@ const AIMockInterview = () => {
     const [isSpeaking, setIsSpeaking] = useState(false);
     const [isListening, setIsListening] = useState(false);
     const [interviewTime, setInterviewTime] = useState(0);
+    const [videoStream, setVideoStream] = useState(null);
+    const [gazeWarnings, setGazeWarnings] = useState(0);
+    const videoRef = useRef(null);
     const chatEndRef = useRef(null);
     const recognitionRef = useRef(null);
     const silenceTimerRef = useRef(null);
@@ -154,8 +157,11 @@ const AIMockInterview = () => {
                 }
             }
             if (timerRef.current) clearInterval(timerRef.current);
+            if (videoStream) {
+                videoStream.getTracks().forEach(t => t.stop());
+            }
         };
-    }, []);
+    }, [videoStream]);
 
     // Load voices
     useEffect(() => {
@@ -247,7 +253,7 @@ const AIMockInterview = () => {
             toast.error('Failed to send message.'); 
         }
         finally { setIsLoading(false); }
-    }, [chatHistory, candidateProfile, jobRole, questionType, difficulty, questionCount, speakText]);
+    }, [chatHistory, candidateProfile, questionType, difficulty, questionCount, speakText, getEnhancedJobRole]);
 
     // ─── Speech Recognition ───
     useEffect(() => {
@@ -299,7 +305,13 @@ const AIMockInterview = () => {
             console.warn('Fullscreen request failed:', err);
         }
 
-        try { await navigator.mediaDevices.getUserMedia({ audio: true }); } catch { toast.error('Microphone access required.'); return; }
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+            setVideoStream(stream);
+        } catch { 
+            toast.error('Microphone and Camera access required.'); 
+            return; 
+        }
         setIsLoading(true);
         const formData = new FormData();
         
@@ -323,10 +335,10 @@ const AIMockInterview = () => {
         finally { setIsLoading(false); }
     };
 
-    const getEnhancedJobRole = () => {
+    const getEnhancedJobRole = useCallback(() => {
         if (!jobPrep) return jobRole;
         return `${jobRole} | Job Description: ${jobPrep.description ? jobPrep.description.substring(0, 150) + '...' : 'N/A'} | Required Skills: ${jobPrep.skills?.join(', ') || 'N/A'}`;
-    };
+    }, [jobPrep, jobRole]);
 
     const sendMessage = async (e) => {
         e?.preventDefault();
@@ -382,15 +394,67 @@ const AIMockInterview = () => {
             setEvaluation(res.data.evaluation); setStep('evaluation');
         } catch { toast.error('Failed to generate evaluation.'); }
         finally { setIsLoading(false); }
-    }, [jobRole, questionType, chatHistory, difficulty]);
+    }, [questionType, chatHistory, difficulty, getEnhancedJobRole]);
 
     useEffect(() => { endInterviewRef.current = endInterview; }, [endInterview]);
+
+    // Snapshot interval for checking attention
+    useEffect(() => {
+        let interval;
+        if (step === 'interview' && videoRef.current && videoStream) {
+            videoRef.current.srcObject = videoStream;
+            interval = setInterval(async () => {
+                try {
+                    const canvas = document.createElement('canvas');
+                    const video = videoRef.current;
+                    if (!video) return;
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    const dataUrl = canvas.toDataURL('image/jpeg');
+                    const base64Image = dataUrl.split(',')[1];
+                    const response = await fetch("https://models.inference.ai.azure.com/chat/completions", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${import.meta.env.VITE_GITHUB_TOKEN}`
+                        },
+                        body: JSON.stringify({
+                            model: "gpt-4o",
+                            messages: [
+                                {
+                                    role: "user",
+                                    content: [
+                                        { type: "text", text: "Look at the person in this image. Are they directly looking at the camera/screen? Reply with only a single word: YES or NO." },
+                                        { type: "image_url", image_url: { url: `data:image/jpeg;base64,${base64Image}` } }
+                                    ]
+                                }
+                            ]
+                        })
+                    });
+                    const data = await response.json();
+                    const answer = data.choices?.[0]?.message?.content?.trim().toUpperCase();
+                    if (answer === 'NO' || answer?.includes('NO')) {
+                        setGazeWarnings(prev => prev + 1);
+                        toast.error("Please look at the screen!", { icon: '👀' });
+                    }
+                } catch (e) {
+                    console.error("Gaze check failed", e);
+                }
+            }, 10000); // Check every 10 seconds
+        }
+        return () => {
+            if (interval) clearInterval(interval);
+        };
+    }, [step, videoStream]);
 
     const resetInterview = () => { 
         setStep('setup'); 
         setChatHistory([]); 
         setEvaluation(null); 
         setInterviewTime(0); 
+        setGazeWarnings(0);
         autoEndTriggeredRef.current = false;
     };
 
@@ -433,7 +497,11 @@ const AIMockInterview = () => {
                         {/* Main area */}
                         <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
                             {/* AI Panel */}
-                            <div className="lg:w-1/3 flex flex-col items-center justify-center p-8 border-b lg:border-b-0 lg:border-r border-gray-200 bg-gradient-to-b from-blue-50 to-white">
+                            <div className="relative lg:w-1/3 flex flex-col items-center justify-center p-8 border-b lg:border-b-0 lg:border-r border-gray-200 bg-gradient-to-b from-blue-50 to-white">
+                                {/* Local Video PiP */}
+                                <div className="absolute top-4 left-4 w-32 h-24 rounded-lg overflow-hidden border-2 border-white shadow-lg bg-black z-10">
+                                    <video ref={videoRef} autoPlay muted className="w-full h-full object-cover transform -scale-x-100" />
+                                </div>
                                 <AIAvatar isSpeaking={isSpeaking} />
                                 <h3 className="text-gray-900 font-bold text-xl mt-5">Sarah Chen</h3>
                                 <p className="text-gray-600 text-sm font-medium">Senior AI Interviewer</p>
@@ -604,6 +672,12 @@ const AIMockInterview = () => {
                                 }}>
                                     <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '1.5rem', color: 'var(--text-primary)' }}>🎯 Areas to Improve</h3>
                                     <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                        {gazeWarnings > 0 && (
+                                            <li style={{ color: 'var(--text-body)', fontSize: '0.95rem', display: 'flex', gap: '0.75rem' }}>
+                                                <span style={{ color: '#ef4444', fontWeight: 700, flexShrink: 0 }}>👀</span>
+                                                <span>You looked away from the screen {gazeWarnings} times. Try to maintain consistent eye contact.</span>
+                                            </li>
+                                        )}
                                         {(evaluation.improvements || []).map((s, i) => (
                                             <li key={i} style={{ color: 'var(--text-body)', fontSize: '0.95rem', display: 'flex', gap: '0.75rem' }}>
                                                 <span style={{ color: '#f59e0b', fontWeight: 700, flexShrink: 0 }}>→</span>
